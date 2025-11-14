@@ -18,7 +18,7 @@ Este repositório foi construído usando o expo.
 3. Startando o projeto
 
    ```bash
-   npx expo start
+   npm run start
    ```
 
 ## Importante:
