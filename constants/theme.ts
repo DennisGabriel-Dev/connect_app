@@ -5,7 +5,7 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
+const tintColorLight = '#1d7f14';
 const tintColorDark = '#fff';
 
 export const Colors = {
@@ -51,3 +51,10 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+
+/*
+como usar:
+
+import {Colors} from ''
+*/
