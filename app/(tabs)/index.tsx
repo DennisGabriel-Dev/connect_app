@@ -6,6 +6,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import Button from '@/components/shared/Button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import IniciarTela from '@/components/programacao/IniciarTela';
 
 export default function HomeScreen() {
   return (
@@ -23,6 +24,7 @@ export default function HomeScreen() {
       </ThemedView>
       <Button title='connect IF' onPress={()=> console.log('hello')} key={12}/>
        <ThemedText>This app includes example code to help you get started.</ThemedText>
+       {/* descomente aqui para ver a tela de login <IniciarTela/>*/}
     </ParallaxScrollView>
   );
 }
@@ -45,3 +47,4 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 });
+
