@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { apiAuth, CredenciaisLogin } from '../../services/programacao/api'; 
+import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
 
 interface LoginUsuarioProps {
   onLoginSucesso?: () => void;
@@ -44,7 +44,7 @@ export default function LoginUsuario({
       if (resultado.usuario) {
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSucesso?.();
-        router.push('/programacao');
+        router.push('/(tabs)');
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }

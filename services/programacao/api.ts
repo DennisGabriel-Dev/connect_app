@@ -6,7 +6,7 @@ export interface Horario {
   date_end: string;
 }
 
-export interface Palestrante {
+export interface Palestrante { 
   nome: string;
   foto?: string;
   bio?: string;
@@ -159,7 +159,7 @@ const apiAuth = {
 };
 
 // Exportações
-export { apiProgramacao, apiAuth, URL_BASE_API };
+export { apiAuth, apiProgramacao, URL_BASE_API };
 
 export default {
   programacao: apiProgramacao,

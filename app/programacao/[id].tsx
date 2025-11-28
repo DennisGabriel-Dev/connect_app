@@ -1,3 +1,4 @@
+import BotaoPresenca from '@/components/presenca/BotaoPresenca';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -137,11 +138,18 @@ export default function TelaDetalheProgramacao() {
           </View>
         )}
 
-        <View style={styles.placeholderPresenca}>
+        {/* <View style={styles.placeholderPresenca}>
           <Text style={styles.textoPresenca}>
             [Componente de Registrar Presença - Outra Equipe]
           </Text>
-        </View>
+        </View> */}
+
+        <BotaoPresenca
+  atividadeId={atividade.id}
+  onPresencaRegistrada={(dados) => {
+    console.log('Presença registrada:', dados);
+  }}
+/>
 
         <View style={styles.espacador} />
       </ScrollView>

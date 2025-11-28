@@ -3,14 +3,13 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
 } from 'react-native';
-import { HeaderTela } from '../../components/shared/HeaderTela';
-import api, { Atividade } from '../../services/programacao/api'; 
+import api, { Atividade } from '../../services/programacao/api';
 
 export default function TelaProgramacao() {
   const navegador = useRouter();
@@ -128,8 +127,6 @@ export default function TelaProgramacao() {
 
   return (
     <>
-      <HeaderTela titulo="Eventos" />
-
       <View style={styles.container}>
         {/* Container de Filtros Scrollavel */}
         <View style={styles.containerFiltrosWrapper}>
