@@ -16,7 +16,7 @@ interface HeaderTelaProps {
 export const HeaderTela: React.FC<HeaderTelaProps> = ({
   titulo,
   textoBotaoVoltar = 'Voltar',
-  corFundo = '#0B7730',
+  corFundo = '#1E88E5',
   corTexto = '#FFFFFF',
 }) => {
   return (

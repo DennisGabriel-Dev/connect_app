@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
 } from 'react-native';
 import { HeaderTela } from '../../components/shared/HeaderTela';
 import api, { Atividade } from '../../services/programacao/api'; 
@@ -130,15 +131,22 @@ export default function TelaProgramacao() {
       <HeaderTela titulo="Eventos" />
 
       <View style={styles.container}>
-        <View style={styles.containerFiltros}>
-          {tiposAtividade.map(renderizarFiltro)}
+        {/* Container de Filtros Scrollavel */}
+        <View style={styles.containerFiltrosWrapper}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.containerFiltros}
+          >
+            {tiposAtividade.map(renderizarFiltro)}
+          </ScrollView>
         </View>
 
         <View style={styles.separador} />
 
         {carregando ? (
           <View style={styles.containerCarregando}>
-            <ActivityIndicator size="large" color="#0B7730" />
+            <ActivityIndicator size="large" color="#1E88E5" />
             <Text style={styles.textoCarregando}>Carregando eventos...</Text>
           </View>
         ) : (
@@ -165,35 +173,52 @@ export default function TelaProgramacao() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  containerFiltrosWrapper: {
     backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   containerFiltros: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
+    minHeight: 60,
   },
   botaoFiltro: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   botaoFiltroAtivo: {
-    backgroundColor: '#0B7730',
+    backgroundColor: '#1E88E5',
+    borderColor: '#1E88E5',
   },
   textoFiltro: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666666',
+    color: '#64748B',
+    textAlign: 'center',
   },
   textoFiltroAtivo: {
     color: '#FFFFFF',
   },
   separador: {
     height: 1,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 16,
+    backgroundColor: '#E2E8F0',
   },
   containerCarregando: {
     flex: 1,
@@ -201,8 +226,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textoCarregando: {
-    marginTop: 12,
-    color: '#666',
+    marginTop: 16,
+    color: '#64748B',
     fontSize: 16,
   },
   containerLista: {
@@ -210,18 +235,18 @@ const styles = StyleSheet.create({
   },
   cartaoAtividade: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     marginHorizontal: 16,
-    marginVertical: 6,
+    marginVertical: 8,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   infoAtividade: {
     flex: 1,
@@ -230,19 +255,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   tituloAtividade: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#0B7730',
+    color: '#1E88E5',
     flex: 1,
-    marginRight: 8,
+    marginRight: 12,
+    lineHeight: 24,
   },
   linhaInformacoes: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 20,
   },
   itemInformacao: {
     flexDirection: 'row',
@@ -250,35 +276,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   icone: {
-    fontSize: 14,
-    marginRight: 4,
+    fontSize: 16,
+    marginRight: 8,
+    color: '#64748B',
   },
   horarioAtividade: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#64748B',
+    fontWeight: '500',
   },
   localAtividade: {
     fontSize: 14,
-    color: '#000000',
+    color: '#475569',
+    fontWeight: '500',
     flex: 1,
   },
   tipoAtividade: {
     fontSize: 12,
     color: '#FFFFFF',
-    backgroundColor: '#0b7731ce',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: '#1E88E5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     overflow: 'hidden',
+    fontWeight: '600',
   },
   containerVazio: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   textoVazio: {
     fontSize: 16,
-    color: '#666666',
+    color: '#64748B',
     textAlign: 'center',
+    lineHeight: 24,
   },
 });
