@@ -10,22 +10,7 @@ import IniciarTela from '@/components/programacao/IniciarTela';
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Bem-vindo ao Connect!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <Button title='connect IF' onPress={()=> console.log('hello')} key={12}/>
-       <ThemedText>This app includes example code to help you get started.</ThemedText>
-       {/* descomente aqui para ver a tela de login <IniciarTela/>*/}
-    </ParallaxScrollView>
+     <IniciarTela/>
   );
 }
 
