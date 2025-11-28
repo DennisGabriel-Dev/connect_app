@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthProvider } from '@/services/auth/context';
 
 // export const unstable_settings = {
 //   anchor: '(tabs)',
@@ -13,17 +14,19 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
-      <Stack
-       screenOptions={{
-        headerShown: true,
-      }}
-      >
-        <Stack.Screen name="index"  options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)"  options={{title:"Atividades", headerShown: false , headerLeft: () => null,   }} />
-        {/* <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} /> */}
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
+        <Stack
+         screenOptions={{
+          headerShown: true,
+        }}
+        >
+          <Stack.Screen name="index"  options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)"  options={{title:"Atividades", headerShown: false , headerLeft: () => null,   }} />
+          {/* <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} /> */}
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

@@ -9,6 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { presencaApi } from '../../services/presenca/api';
+import { extrairPalestraIdDoQrCode } from '../../services/presenca/qrcode';
+import { useAuth } from '../../services/auth/context';
 
 interface BotaoPresencaProps {
   atividadeId: string;
@@ -20,6 +23,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
   const [modalVisivel, setModalVisivel] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [qrCodeScaneado, setQrCodeScaneado] = useState(false);
+  const { usuario: usuarioLogado } = useAuth();
 
   const abrirCamera = async () => {
     if (!permission?.granted) {
@@ -39,25 +43,53 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
     setCarregando(true);
 
     try {
-      // Aqui você pode fazer a chamada à API para registrar a presença
       console.log('QR Code escaneado:', dados);
       console.log('Atividade ID:', atividadeId);
 
-      // Exemplo de chamada à API (descomente quando tiver o endpoint)
-      // const resposta = await api.presenca.registrarPresenca({
-      //   atividadeId,
-      //   qrCode: dados,
-      // });
-
-      Alert.alert('Sucesso', 'Presença registrada com sucesso!');
-      
-      if (onPresencaRegistrada) {
-        onPresencaRegistrada({ qrCode: dados, atividadeId });
+      // Verificar se há usuário logado
+      if (!usuarioLogado || !usuarioLogado.id) {
+        Alert.alert('Erro', 'Você precisa estar logado para registrar presença.');
+        setCarregando(false);
+        setQrCodeScaneado(false);
+        return;
       }
 
-      setModalVisivel(false);
-    } catch (erro) {
-      Alert.alert('Erro', 'Falha ao registrar presença');
+      // Extrair palestraId do QR code
+      const palestraIdDoQr = extrairPalestraIdDoQrCode(dados);
+
+      // Usar o palestraId do QR code, ou o atividadeId como fallback
+      const palestraId = palestraIdDoQr || atividadeId;
+
+      if (!palestraId) {
+        Alert.alert('Erro', 'QR Code inválido. Não foi possível identificar a palestra/atividade.');
+        setCarregando(false);
+        setQrCodeScaneado(false);
+        return;
+      }
+
+      // Registrar presença na API usando o ID do usuário logado
+      const resposta = await presencaApi.registrarPresenca({
+        participanteId: usuarioLogado.id,
+        palestraId: palestraId,
+      });
+
+      if (resposta.error) {
+        Alert.alert('Erro', resposta.error);
+      } else {
+        Alert.alert('Sucesso', resposta.message || 'Presença registrada com sucesso!');
+        
+        if (onPresencaRegistrada) {
+          onPresencaRegistrada({ 
+            qrCode: dados, 
+            atividadeId: palestraId,
+            presenca: resposta.presenca 
+          });
+        }
+
+        setModalVisivel(false);
+      }
+    } catch (erro: any) {
+      Alert.alert('Erro', erro.message || 'Falha ao registrar presença');
       console.error('Erro ao registrar presença:', erro);
     } finally {
       setCarregando(false);

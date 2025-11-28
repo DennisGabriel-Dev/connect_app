@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
+import { useAuth } from '../../services/auth/context';
 
 interface LoginUsuarioProps {
   onLoginSucesso?: () => void;
@@ -28,6 +29,7 @@ export default function LoginUsuario({
   const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
   const router = useRouter();
+  const { definirUsuario } = useAuth();
 
   const manipularLogin = async () => {
     if (!email || !senha) {
@@ -42,6 +44,9 @@ export default function LoginUsuario({
       const resultado = await apiAuth.login(credenciais);
 
       if (resultado.usuario) {
+        // Salvar usuário logado no context
+        definirUsuario(resultado.usuario);
+        
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSucesso?.();
         router.push('/(tabs)');
