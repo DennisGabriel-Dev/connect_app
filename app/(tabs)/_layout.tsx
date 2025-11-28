@@ -18,22 +18,29 @@ export default function TabLayout() {
         headerTitleAlign: 'center',
         headerTintColor: 'white',
          headerStyle: {
-          backgroundColor: '#0066CC',
+          backgroundColor: '#1e88e5',
     
         },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Eventos',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Atividades',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
         }}
       />
       <Tabs.Screen
         name="perguntas"
         options={{
           title: 'Perguntas',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bubble.right.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />
     </Tabs>

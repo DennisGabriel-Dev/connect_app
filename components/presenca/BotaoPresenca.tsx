@@ -83,7 +83,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
         <View style={styles.container}>
           {carregando ? (
             <View style={styles.containerCarregando}>
-              <ActivityIndicator size="large" color="#0066CC" />
+              <ActivityIndicator size="large" color="#1e88e5" />
               <Text style={styles.textoCarregando}>Processando...</Text>
             </View>
           ) : (
@@ -120,7 +120,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
 
 const styles = StyleSheet.create({
   botao: {
-    backgroundColor: '#0066CC',
+    backgroundColor: '#1e88e5',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderWidth: 2,
-    borderColor: '#0066CC',
+    borderColor: '#1e88e5',
     borderRadius: 12,
   },
   rodape: {
