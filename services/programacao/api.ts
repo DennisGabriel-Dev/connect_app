@@ -86,6 +86,42 @@ const apiProgramacao = {
       console.error(`Erro ao buscar atividade ${id}:`, erro.message);
       return null;
     }
+  },
+
+  async buscarPalestrasPorParticipante(participanteId: string): Promise<Atividade[]> {
+    try {
+      const resposta = await axios.get(
+        `${URL_BASE_API}/palestras/participante/${participanteId}`,
+        {
+          timeout: 10000,
+        }
+      );
+
+      if (resposta.status === 200) {
+        const dadosAPI = resposta.data;
+
+        if (!dadosAPI || !Array.isArray(dadosAPI)) {
+          return [];
+        }
+
+        return dadosAPI.map((atividade: any) => ({
+          id: atividade.id?.toString() || '',
+          titulo: atividade.titulo || 'Sem título',
+          descricao: atividade.descricao || '',
+          tipo: atividade.tipo || 'Atividade',
+          local: atividade.local || 'Local a definir',
+          horarios: atividade.horarios || [],
+          palestrantes: atividade.palestrantes || [],
+          dataHoraPresenca: atividade.dataHoraPresenca,
+          sincronizado: atividade.sincronizado
+        }));
+      }
+
+      return [];
+    } catch (erro: any) {
+      console.error('Erro ao buscar palestras do participante:', erro.message);
+      return [];
+    }
   }
 };
 
