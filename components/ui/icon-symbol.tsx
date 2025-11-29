@@ -23,6 +23,7 @@ const MAPPING = {
   'bubble.right.fill': 'chat-bubble',
   'person.fill': 'person',
   'camera.fill': 'camera-alt',
+  'checkmark.circle.fill': 'question-answer',
 } as IconMapping;
 
 /**
