@@ -69,7 +69,7 @@ export default function TelaQuiz() {
       // sucesso: mostra pontuação vinda do backend
       Alert.alert(
         'Quiz finalizado',
-        `Você acertou ${resultado.pontuacao} de ${resultado.total} perguntas.`,
+        `Você obteve ${resultado.pontuacao} de ${resultado.total} pontos.`,
       );
     } catch (err: any) {
       // se o backend mandou { error: "..." }, essa mensagem vem em err.messageApi

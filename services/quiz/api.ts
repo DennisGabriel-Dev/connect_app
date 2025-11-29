@@ -1,7 +1,50 @@
 import { Quiz, RespostaUsuario } from './type';
 
 // URL base da API de quizzes no backend
-const API_BASE = 'http://localhost:5000/api/v1/quizzes';
+// Usando IP da máquina na rede local (mesmo padrão dos outros serviços)
+const API_BASE = 'http://192.168.3.30:5000/api/v1/quizzes';
+
+// Interface para quiz resumido (usado na listagem)
+export interface QuizResumido {
+  id: string;
+  titulo: string;
+  descricao?: string;
+  liberado: boolean;
+}
+
+// Lista todos os quizzes (incluindo não liberados)
+export async function listarQuizzes(): Promise<QuizResumido[]> {
+  try {
+    const response = await fetch(`${API_BASE}/`);
+
+    if (!response.ok) {
+      throw new Error('Erro ao listar quizzes');
+    }
+
+    const data = await response.json();
+    return data as QuizResumido[];
+  } catch (error) {
+    console.error('Erro ao listar quizzes', error);
+    throw error;
+  }
+}
+
+// Lista apenas os quizzes liberados
+export async function listarQuizzesLiberados(): Promise<QuizResumido[]> {
+  try {
+    const response = await fetch(`${API_BASE}/liberados`);
+
+    if (!response.ok) {
+      throw new Error('Erro ao listar quizzes liberados');
+    }
+
+    const data = await response.json();
+    return data as QuizResumido[];
+  } catch (error) {
+    console.error('Erro ao listar quizzes liberados', error);
+    throw error;
+  }
+}
 
 // Busca um quiz específico pelo ID
 export async function buscarQuiz(quizId: string): Promise<Quiz> {
@@ -51,7 +94,17 @@ export async function submeterRespostas(
       throw erro;
     }
 
-    // sucesso: retorna o objeto com pontuação/total
+    // sucesso: extrai os dados do resultado retornado pelo backend
+    // O backend retorna: { mensagem, resultado: { tentativa: { pontosObtidos }, pontuacaoMaxima, ... } }
+    const resultado = (data as any)?.resultado;
+    if (resultado) {
+      return {
+        pontuacao: resultado.tentativa?.pontosObtidos || 0,
+        total: resultado.pontuacaoMaxima || 0,
+      };
+    }
+    
+    // fallback caso a estrutura seja diferente
     return data as { pontuacao: number; total: number };
   } catch (error) {
     console.error('Erro ao enviar respostas', error);
