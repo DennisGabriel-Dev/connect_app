@@ -1,4 +1,5 @@
 import BotaoPresenca from '@/components/presenca/BotaoPresenca';
+import { HeaderTela } from '@/components/shared/HeaderTela';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -11,7 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { HeaderTela } from '../../components/shared/HeaderTela';
 import { apiProgramacao, Atividade, Palestrante } from '../../services/programacao/api';
 
 export default function TelaDetalheProgramacao() {
@@ -72,9 +72,8 @@ export default function TelaDetalheProgramacao() {
   const dataFim = horario ? new Date(horario.date_end) : new Date();
 
   return (
-    <>
-      <HeaderTela titulo="Voltar" textoBotaoVoltar="Voltar" />
-
+    <View style={{ flex: 1 }}>
+      <HeaderTela titulo='Detalhes da Atividade'/>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.cabecalho}>
           <Text style={styles.titulo}>{atividade.titulo}</Text>
@@ -193,7 +192,7 @@ export default function TelaDetalheProgramacao() {
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   );
 }
 

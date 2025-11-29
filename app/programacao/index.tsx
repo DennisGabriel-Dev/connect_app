@@ -68,6 +68,13 @@ export default function TelaProgramacao() {
     navegador.push(`/programacao/${atividade.id}`);
   };
 
+  // Nova função para navegar para as avaliações da palestra
+  const manipularVerAvaliacoes = (atividade: Atividade) => {
+    navegador.push(`/feedback/${atividade.id}`);
+  };
+
+
+
   const renderizarItemAtividade = ({ item }: { item: Atividade }) => {
     const horario = item.horarios[0];
     const dataInicio = horario ? new Date(horario.date_start) : new Date();
@@ -102,6 +109,19 @@ export default function TelaProgramacao() {
               </Text>
             </View>
           </View>
+
+          {/* Nova seção para botão de avaliações */}
+          <View style={styles.containerAcoes}>
+            <TouchableOpacity
+              style={styles.botaoAvaliacoes}
+              onPress={(e) => {
+                e.stopPropagation(); // Impede que o clique propague para o cartão
+                manipularVerAvaliacoes(item);
+              }}
+            >
+              <Text style={styles.textoBotaoAvaliacoes}>📊 Ver Avaliações</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -128,10 +148,11 @@ export default function TelaProgramacao() {
   return (
     <>
       <View style={styles.container}>
+
         {/* Container de Filtros Scrollavel */}
         <View style={styles.containerFiltrosWrapper}>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.containerFiltros}
           >
@@ -172,8 +193,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  containerFiltrosWrapper: {
+  // Novos estilos para o header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     elevation: 4,
@@ -181,6 +208,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
+  },
+  tituloHeader: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+
+  containerFiltrosWrapper: {
+    backgroundColor: '#FFFFFF',
   },
   containerFiltros: {
     flexDirection: 'row',
@@ -266,6 +302,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 20,
+    marginBottom: 12, // Adicionado marginBottom para espaço do botão
   },
   itemInformacao: {
     flexDirection: 'row',
@@ -296,6 +333,23 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     overflow: 'hidden',
+    fontWeight: '600',
+  },
+  // Novos estilos para a seção de ações
+  containerAcoes: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+  },
+  botaoAvaliacoes: {
+    backgroundColor: '#8B5CF6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  textoBotaoAvaliacoes: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '600',
   },
   containerVazio: {

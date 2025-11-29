@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../../services/auth/context';
 import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
+import { authStorage } from '../../services/programacao/authStorage';
 
 interface LoginUsuarioProps {
   onLoginSucesso?: () => void;
@@ -38,15 +39,19 @@ export default function LoginUsuario({
       return;
     }
 
-    const credenciais: CredenciaisLogin = { email, senha };
-
     setCarregando(true);
     try {
+      const credenciais: CredenciaisLogin = { email, senha };
       const resultado = await apiAuth.login(credenciais);
 
       if (resultado.usuario) {
-        // Salvar usuário logado no context
+        // Salvar usuário logado no context e localStorage
         definirUsuario(resultado.usuario);
+        await authStorage.salvarUsuario({
+          id: resultado.usuario.id,
+          email: resultado.usuario.email,
+          token: resultado.usuario.token
+        }, resultado.usuario.token);
         
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSucesso?.();
@@ -55,7 +60,12 @@ export default function LoginUsuario({
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
     } catch (erro: any) {
-      Alert.alert('Erro', erro.message);
+      if (erro.message === 'FIRST_ACCESS') {
+        Alert.alert('Primeiro Acesso', 'Detectado primeiro acesso. Redirecionando...');
+        // Adicione lógica para primeiro acesso se necessário
+      } else {
+        Alert.alert('Erro', erro.message || 'Erro ao fazer login');
+      }
     } finally {
       setCarregando(false);
     }

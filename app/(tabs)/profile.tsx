@@ -1,9 +1,9 @@
+import PresencaCard from '@/components/presenca/PresencaCard';
 import { useAuth } from '@/services/auth/context';
 import { apiProgramacao, Atividade } from '@/services/programacao/api';
-import PresencaCard from '@/components/presenca/PresencaCard';
 import { authStorage } from '@/services/programacao/authStorage';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Profile() {
@@ -77,6 +77,12 @@ export default function Profile() {
             <Text style={styles.valor}>{usuario?.email || 'Não disponível'}</Text>
           </View>
         </View>
+        <TouchableOpacity 
+          style={styles.botaoAvaliacoes} 
+          onPress={() => router.push('/feedback/minhas-avaliacoes')}
+        >
+          <Text style={styles.textoBotaoAvaliacoes}>📊 Minhas Avaliações</Text>
+        </TouchableOpacity>
 
         <View style={styles.secaoPresencas}>
           <Text style={styles.tituloSecao}>Minhas Presenças</Text>
@@ -95,6 +101,7 @@ export default function Profile() {
             ))
           )}
         </View>
+
 
         <TouchableOpacity style={styles.botaoLogout} onPress={handleLogout}>
           <Text style={styles.textoBotao}>Sair</Text>
@@ -163,6 +170,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
+  },
+  botaoAvaliacoes: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  textoBotaoAvaliacoes: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   botaoLogout: {
     backgroundColor: '#E53935',
