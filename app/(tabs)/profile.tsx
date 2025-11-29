@@ -1,25 +1,35 @@
-import { authStorage, UsuarioArmazenado } from '@/services/programacao/authStorage';
+import { useAuth } from '@/services/auth/context';
+import { apiProgramacao, Atividade } from '@/services/programacao/api';
+import PresencaCard from '@/components/presenca/PresencaCard';
+import { authStorage } from '@/services/programacao/authStorage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Profile() {
   const router = useRouter();
-  const [usuario, setUsuario] = useState<UsuarioArmazenado | null>(null);
-  const [carregando, setCarregando] = useState(true);
+  const { usuario } = useAuth();
+  const [palestras, setPalestras] = useState<(Atividade & { dataHoraPresenca?: string; sincronizado?: boolean })[]>([]);
+  const [carregandoPresencas, setCarregandoPresencas] = useState(false);
 
   useEffect(() => {
-    carregarUsuario();
-  }, []);
+    if (usuario?.id) {
+      carregarPalestras();
+    }
+  }, [usuario?.id]);
 
-  const carregarUsuario = async () => {
+  const carregarPalestras = async () => {
+    if (!usuario?.id) return;
+    
+    setCarregandoPresencas(true);
     try {
-      const usuarioArmazenado = await authStorage.obterUsuario();
-      setUsuario(usuarioArmazenado);
+      const palestrasLista = await apiProgramacao.buscarPalestrasPorParticipante(usuario.id);
+      console.log('Palestras recebidas da API:', palestrasLista);
+      setPalestras(palestrasLista);
     } catch (erro) {
-      console.error('Erro ao carregar usuário:', erro);
+      console.error('Erro ao carregar palestras:', erro);
     } finally {
-      setCarregando(false);
+      setCarregandoPresencas(false);
     }
   };
 
@@ -36,33 +46,49 @@ export default function Profile() {
     ]);
   };
 
-  if (carregando) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#1e88e5" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.titulo}>Informações do Perfil</Text>
-        
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>ID</Text>
-          <Text style={styles.valor}>{usuario?.id || 'Não disponível'}</Text>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.card}>
+          <Text style={styles.titulo}>Informações do Perfil</Text>
+          
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>ID</Text>
+            <Text style={styles.valor}>{usuario?.id || 'Não disponível'}</Text>
+          </View>
+
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Email</Text>
+            <Text style={styles.valor}>{usuario?.email || 'Não disponível'}</Text>
+          </View>
         </View>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Email</Text>
-          <Text style={styles.valor}>{usuario?.email || 'Não disponível'}</Text>
+        <View style={styles.secaoPresencas}>
+          <Text style={styles.tituloSecao}>Minhas Presenças</Text>
+          
+          {carregandoPresencas ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#1e88e5" />
+            </View>
+          ) : palestras.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Nenhuma presença registrada ainda.</Text>
+            </View>
+          ) : (
+            palestras.map((palestra) => (
+              <PresencaCard key={palestra.id} palestra={palestra} />
+            ))
+          )}
         </View>
-      </View>
 
-      <TouchableOpacity style={styles.botaoLogout} onPress={handleLogout}>
-        <Text style={styles.textoBotao}>Sair</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.botaoLogout} onPress={handleLogout}>
+          <Text style={styles.textoBotao}>Sair</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
@@ -70,9 +96,13 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
   },
   card: {
     backgroundColor: 'white',
@@ -99,12 +129,37 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
+  secaoPresencas: {
+    marginBottom: 20,
+  },
+  tituloSecao: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+  },
   botaoLogout: {
     backgroundColor: '#E53935',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
+    marginBottom: 20,
   },
   textoBotao: {
     color: '#FFFFFF',

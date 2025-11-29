@@ -12,6 +12,36 @@ export interface RespostaPresenca {
   error?: string;
 }
 
+export interface HorarioPresenca {
+  id_time?: number;
+  date_start?: string;
+  date_end?: string;
+}
+
+export interface PalestrantePresenca {
+  even3Id: number;
+  nome: string;
+  bio?: string;
+}
+
+export interface PalestraCompleta {
+  id: string;
+  titulo: string;
+  tipo: string;
+  local?: string;
+  horarios: HorarioPresenca[];
+  palestrantes: PalestrantePresenca[];
+}
+
+export interface PresencaCompleta {
+  id: string;
+  participanteId: string;
+  palestraId: string;
+  dataHora: string;
+  sincronizado: boolean;
+  palestra?: PalestraCompleta; // Opcional caso a palestra não esteja disponível
+}
+
 // Serviço de API para Presença
 export const presencaApi = {
   async registrarPresenca(dados: DadosPresenca): Promise<RespostaPresenca> {
@@ -48,7 +78,7 @@ export const presencaApi = {
     }
   },
 
-  async listarPresencas(participanteId: string): Promise<any[]> {
+  async listarPresencas(participanteId: string): Promise<PresencaCompleta[]> {
     try {
       const resposta = await axios.get(
         `${URL_BASE_API}/presenca/${participanteId}`,
