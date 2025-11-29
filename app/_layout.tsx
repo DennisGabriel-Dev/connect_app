@@ -1,12 +1,12 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
 import { useEffect, useState } from 'react';
+import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthProvider } from '@/services/auth/context';
 import { authStorage } from '@/services/programacao/authStorage';
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [isAutenticado, setIsAutenticado] = useState<boolean | null>(null);
@@ -24,6 +24,7 @@ export default function RootLayout() {
   }
 
   return (
+     <AuthProvider>
     <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {isAutenticado ? (
@@ -34,5 +35,6 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
+    </AuthProvider>
   );
 }

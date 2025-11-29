@@ -9,6 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../../services/auth/context';
+import { presencaApi } from '../../services/presenca/api';
+import { extrairPalestraIdDoQrCode } from '../../services/presenca/qrcode';
+import { IconSymbol } from '../ui/icon-symbol';
 
 interface BotaoPresencaProps {
   atividadeId: string;
@@ -20,6 +24,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
   const [modalVisivel, setModalVisivel] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [qrCodeScaneado, setQrCodeScaneado] = useState(false);
+  const { usuario: usuarioLogado } = useAuth();
 
   const abrirCamera = async () => {
     if (!permission?.granted) {
@@ -32,6 +37,12 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
     setModalVisivel(true);
   };
 
+  const fecharModal = () => {
+    setModalVisivel(false);
+    setQrCodeScaneado(false);
+    setCarregando(false);
+  };
+
   const manipularQrCodeScaneado = async (dados: string) => {
     if (qrCodeScaneado) return;
     
@@ -39,46 +50,71 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
     setCarregando(true);
 
     try {
-      // Aqui você pode fazer a chamada à API para registrar a presença
       console.log('QR Code escaneado:', dados);
       console.log('Atividade ID:', atividadeId);
 
-      // Exemplo de chamada à API (descomente quando tiver o endpoint)
-      // const resposta = await api.presenca.registrarPresenca({
-      //   atividadeId,
-      //   qrCode: dados,
-      // });
-
-      Alert.alert('Sucesso', 'Presença registrada com sucesso!');
-      
-      if (onPresencaRegistrada) {
-        onPresencaRegistrada({ qrCode: dados, atividadeId });
+      // Verificar se há usuário logado
+      if (!usuarioLogado || !usuarioLogado.id) {
+        Alert.alert('Erro', 'Você precisa estar logado para registrar presença.');
+        fecharModal();
+        return;
       }
 
-      setModalVisivel(false);
-    } catch (erro) {
-      Alert.alert('Erro', 'Falha ao registrar presença');
+      // Extrair palestraId do QR code
+      const palestraIdDoQr = extrairPalestraIdDoQrCode(dados);
+
+      // Usar o palestraId do QR code, ou o atividadeId como fallback
+      const palestraId = palestraIdDoQr;
+
+      if (!palestraId) {
+        Alert.alert('Erro', 'QR Code inválido. Não foi possível identificar a palestra/atividade.');
+        fecharModal();
+        return;
+      }
+
+      // Registrar presença na API usando o ID do usuário logado
+      console.log('Participante ID:', usuarioLogado.id);
+      console.log('Palestra ID:', palestraId);
+      const resposta = await presencaApi.registrarPresenca({
+        participanteId: usuarioLogado.id,
+        palestraId: palestraId,
+      });
+
+      if (resposta.error) {
+        Alert.alert('Erro', resposta.error);
+        fecharModal();
+      } else {
+        Alert.alert('Sucesso', resposta.message || 'Presença registrada com sucesso!');
+        
+        if (onPresencaRegistrada) {
+          onPresencaRegistrada({ 
+            qrCode: dados, 
+            atividadeId: palestraId,
+            presenca: resposta.presenca 
+          });
+        }
+
+        fecharModal();
+      }
+    } catch (erro: any) {
+      Alert.alert('Erro', erro.message || 'Falha ao registrar presença');
       console.error('Erro ao registrar presença:', erro);
-    } finally {
-      setCarregando(false);
-      setQrCodeScaneado(false);
+      fecharModal();
     }
   };
 
   return (
     <>
       <TouchableOpacity style={styles.botao} onPress={abrirCamera}>
-        <Text style={styles.textoBotao}>📱 Registrar Presença</Text>
+        <IconSymbol name="camera.fill" size={24} color="#FFFFFF" />
+        <Text style={styles.textoBotao}>Registrar Presença</Text>
       </TouchableOpacity>
 
       <Modal
         animationType="slide"
         transparent={false}
         visible={modalVisivel}
-        onRequestClose={() => {
-          setModalVisivel(false);
-          setQrCodeScaneado(false);
-        }}
+        onRequestClose={fecharModal}
       >
         <View style={styles.container}>
           {carregando ? (
@@ -102,10 +138,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
                 <Text style={styles.textoRodape}>Aponte a câmera para o QR code</Text>
                 <TouchableOpacity
                   style={styles.botaoFechar}
-                  onPress={() => {
-                    setModalVisivel(false);
-                    setQrCodeScaneado(false);
-                  }}
+                  onPress={fecharModal}
                 >
                   <Text style={styles.textoBotaoFechar}>Cancelar</Text>
                 </TouchableOpacity>
@@ -125,7 +158,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
     margin: 12,
+    flexDirection: 'row',
+    gap: 8,
   },
   textoBotao: {
     color: '#FFFFFF',

@@ -13,7 +13,7 @@ type IconSymbolName = keyof typeof MAPPING;
  * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
-// mapear iccones
+// mapear icones
 const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
@@ -22,6 +22,7 @@ const MAPPING = {
   'calendar': 'event',
   'bubble.right.fill': 'chat-bubble',
   'person.fill': 'person',
+  'camera.fill': 'camera-alt',
 } as IconMapping;
 
 /**
