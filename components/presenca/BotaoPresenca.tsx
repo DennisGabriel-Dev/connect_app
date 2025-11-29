@@ -58,7 +58,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
       const palestraIdDoQr = extrairPalestraIdDoQrCode(dados);
 
       // Usar o palestraId do QR code, ou o atividadeId como fallback
-      const palestraId = palestraIdDoQr || atividadeId;
+      const palestraId = palestraIdDoQr;
 
       if (!palestraId) {
         Alert.alert('Erro', 'QR Code inválido. Não foi possível identificar a palestra/atividade.');
@@ -68,6 +68,8 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
       }
 
       // Registrar presença na API usando o ID do usuário logado
+      console.log('Participante ID:', usuarioLogado.id);
+      console.log('Palestra ID:', palestraId);
       const resposta = await presencaApi.registrarPresenca({
         participanteId: usuarioLogado.id,
         palestraId: palestraId,
