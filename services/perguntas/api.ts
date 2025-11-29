@@ -1,18 +1,63 @@
 import axios from 'axios';
 import { CriarPerguntaDTO, Pergunta } from './types';
 
-// URL base da API - mesma do sistema
-const URL_BASE_API = 'https://api-even3-hml.onrender.com';
+// URL base da API - usando IP da máquina na rede local (mesmo padrão dos outros serviços)
+const URL_BASE_API = 'http://192.168.3.30:5000/api/v1/perguntas';
+
+// Interface para o formato retornado pelo backend
+interface PerguntaBackend {
+  _id?: string;
+  id?: string;
+  texto: string;
+  participanteId: string;
+  participanteNome: string;
+  palestraId: string;
+  palestraTitulo: string;
+  dataHora: string;
+  respondida: boolean;
+  resposta?: string;
+  palestranteNome?: string;
+  dataResposta?: string;
+  curtidas: number;
+}
+
+// Função para mapear dados do backend para o formato do frontend
+function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pergunta {
+  // Separar título e descrição do texto
+  // Assumindo que a primeira linha é o título e o resto é descrição
+  const linhas = perguntaBackend.texto.split('\n\n');
+  const titulo = linhas[0] || perguntaBackend.texto;
+  const descricao = linhas.slice(1).join('\n\n') || '';
+
+  return {
+    id: perguntaBackend._id || perguntaBackend.id || '',
+    palestraId: perguntaBackend.palestraId,
+    usuarioId: perguntaBackend.participanteId,
+    usuarioNome: perguntaBackend.participanteNome,
+    titulo: titulo.trim(),
+    descricao: descricao.trim(),
+    votos: perguntaBackend.curtidas || 0,
+    usuariosVotaram: [], // O backend não tem esse campo ainda
+    respondida: perguntaBackend.respondida || false,
+    resposta: perguntaBackend.resposta,
+    dataResposta: perguntaBackend.dataResposta,
+    createdAt: perguntaBackend.dataHora,
+    updatedAt: perguntaBackend.dataHora,
+  };
+}
 
 // API calls para perguntas
 export const perguntasApi = {
   // Listar todas as perguntas de uma palestra (ordenadas por votos)
   async listarPerguntasPorPalestra(palestraId: string): Promise<Pergunta[]> {
     try {
-      const response = await axios.get(`${URL_BASE_API}/perguntas/palestra/${palestraId}`);
-      // Ordenar por votos (mais votadas primeiro)
-      const perguntas = response.data.sort((a: Pergunta, b: Pergunta) => b.votos - a.votos);
-      return perguntas;
+      const response = await axios.get(`${URL_BASE_API}/palestra/${palestraId}`);
+      // A resposta vem no formato { success, data, count }
+      const perguntasBackend = response.data.data || response.data;
+      const perguntasArray = Array.isArray(perguntasBackend) ? perguntasBackend : [];
+      
+      // Mapear cada pergunta do formato backend para o formato frontend
+      return perguntasArray.map(mapearPerguntaBackendParaFrontend);
     } catch (error) {
       console.error('Erro ao listar perguntas:', error);
       throw error;
@@ -20,47 +65,48 @@ export const perguntasApi = {
   },
 
   // Criar nova pergunta
-  async criarPergunta(dados: CriarPerguntaDTO, usuarioId: string, usuarioNome: string): Promise<Pergunta> {
+  async criarPergunta(dados: CriarPerguntaDTO & { palestraTitulo?: string }, usuarioId: string, usuarioNome: string): Promise<Pergunta> {
     try {
+      // O backend espera: { texto, participanteId, participanteNome, palestraId, palestraTitulo }
+      // O frontend envia: { titulo, descricao, palestraId, palestraTitulo? }
       const pergunta = {
-        ...dados,
-        usuarioId,
-        usuarioNome,
-        votos: 0,
-        usuariosVotaram: [],
-        respondida: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        texto: dados.titulo + (dados.descricao ? `\n\n${dados.descricao}` : ''),
+        participanteId: usuarioId,
+        participanteNome: usuarioNome,
+        palestraId: dados.palestraId,
+        palestraTitulo: dados.palestraTitulo || 'Palestra',
       };
       
-      const response = await axios.post(`${URL_BASE_API}/perguntas`, pergunta);
-      return response.data;
+      const response = await axios.post(`${URL_BASE_API}`, pergunta);
+      // A resposta vem no formato { success, message, data }
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao criar pergunta:', error);
       throw error;
     }
   },
 
-  // Votar em uma pergunta
+  // Votar em uma pergunta (curtir)
   async votarPergunta(perguntaId: string, usuarioId: string): Promise<Pergunta> {
     try {
-      const response = await axios.post(`${URL_BASE_API}/perguntas/${perguntaId}/votar`, {
-        usuarioId,
-      });
-      return response.data;
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/curtir`);
+      // A resposta vem no formato { success, message, data }
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao votar na pergunta:', error);
       throw error;
     }
   },
 
-  // Remover voto de uma pergunta
+  // Remover voto de uma pergunta (não implementado no backend ainda)
   async removerVoto(perguntaId: string, usuarioId: string): Promise<Pergunta> {
     try {
-      const response = await axios.post(`${URL_BASE_API}/perguntas/${perguntaId}/remover-voto`, {
-        usuarioId,
-      });
-      return response.data;
+      // Por enquanto, apenas retorna a pergunta sem o voto
+      // TODO: Implementar endpoint de remover curtida no backend
+      const pergunta = await this.buscarPerguntaPorId(perguntaId);
+      return pergunta;
     } catch (error) {
       console.error('Erro ao remover voto:', error);
       throw error;
@@ -70,8 +116,10 @@ export const perguntasApi = {
   // Buscar pergunta por ID
   async buscarPerguntaPorId(id: string): Promise<Pergunta> {
     try {
-      const response = await axios.get(`${URL_BASE_API}/perguntas/${id}`);
-      return response.data;
+      const response = await axios.get(`${URL_BASE_API}/${id}`);
+      // A resposta vem no formato { success, data }
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao buscar pergunta:', error);
       throw error;
@@ -81,11 +129,12 @@ export const perguntasApi = {
   // Responder pergunta (para palestrantes)
   async responderPergunta(perguntaId: string, resposta: string): Promise<Pergunta> {
     try {
-      const response = await axios.patch(`${URL_BASE_API}/perguntas/${perguntaId}/responder`, {
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/responder`, {
         resposta,
-        dataResposta: new Date().toISOString(),
       });
-      return response.data;
+      // A resposta vem no formato { success, message, data }
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao responder pergunta:', error);
       throw error;

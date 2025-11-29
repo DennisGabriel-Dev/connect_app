@@ -11,31 +11,19 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
-import { authStorage } from '@/services/programacao/authStorage';
+import { useAuth } from '@/services/auth/context';
 
 export default function DetalhePerguntaScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { usuario } = useAuth();
   
   const [pergunta, setPergunta] = useState<Pergunta | null>(null);
   const [carregando, setCarregando] = useState(true);
-  const [usuarioId, setUsuarioId] = useState<string>('');
 
   useEffect(() => {
-    carregarUsuario();
     carregarPergunta();
   }, [id]);
-
-  const carregarUsuario = async () => {
-    try {
-      const usuario = await authStorage.getUser();
-      if (usuario?.id) {
-        setUsuarioId(usuario.id);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error);
-    }
-  };
 
   const carregarPergunta = async () => {
     try {
@@ -51,13 +39,13 @@ export default function DetalhePerguntaScreen() {
   };
 
   const handleVotar = async () => {
-    if (!usuarioId || !pergunta) {
+    if (!usuario?.id || !pergunta) {
       Alert.alert('Erro', 'Você precisa estar logado para votar.');
       return;
     }
 
     try {
-      const jaVotou = pergunta.usuariosVotaram?.includes(usuarioId);
+      const jaVotou = pergunta.usuariosVotaram?.includes(usuario.id);
 
       // Atualizar UI imediatamente
       setPergunta(prev => {
@@ -67,22 +55,22 @@ export default function DetalhePerguntaScreen() {
           return {
             ...prev,
             votos: prev.votos - 1,
-            usuariosVotaram: prev.usuariosVotaram.filter(id => id !== usuarioId)
+            usuariosVotaram: prev.usuariosVotaram.filter(id => id !== usuario.id)
           };
         } else {
           return {
             ...prev,
             votos: prev.votos + 1,
-            usuariosVotaram: [...prev.usuariosVotaram, usuarioId]
+            usuariosVotaram: [...prev.usuariosVotaram, usuario.id]
           };
         }
       });
 
       // Fazer requisição
       if (jaVotou) {
-        await perguntasApi.removerVoto(pergunta.id, usuarioId);
+        await perguntasApi.removerVoto(pergunta.id, usuario.id);
       } else {
-        await perguntasApi.votarPergunta(pergunta.id, usuarioId);
+        await perguntasApi.votarPergunta(pergunta.id, usuario.id);
       }
 
     } catch (error) {
@@ -117,7 +105,7 @@ export default function DetalhePerguntaScreen() {
     );
   }
 
-  const usuarioJaVotou = pergunta.usuariosVotaram?.includes(usuarioId);
+  const usuarioJaVotou = pergunta.usuariosVotaram?.includes(usuario?.id || '');
   const dataFormatada = new Date(pergunta.createdAt).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',

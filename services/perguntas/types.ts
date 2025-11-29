@@ -19,6 +19,7 @@ export interface CriarPerguntaDTO {
   palestraId: string;
   titulo: string;
   descricao: string;
+  palestraTitulo?: string;
 }
 
 export interface VotarPerguntaDTO {

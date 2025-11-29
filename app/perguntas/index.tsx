@@ -13,39 +13,26 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
 import PerguntaCard from '@/components/perguntas/PerguntaCard';
-import { authStorage } from '@/services/programacao/authStorage';
+import { useAuth } from '@/services/auth/context';
 
 export default function PerguntasScreen() {
   const router = useRouter();
   const { palestraId, palestraTitulo } = useLocalSearchParams();
+  const { usuario } = useAuth();
   
   const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
-  const [usuarioId, setUsuarioId] = useState<string>('');
-
-  // Carregar ID do usuário
-  useEffect(() => {
-    carregarUsuario();
-  }, []);
 
   // Carregar perguntas da palestra
   useEffect(() => {
     if (palestraId) {
       carregarPerguntas();
+    } else {
+      // Se não há palestraId, para o loading e mostra mensagem
+      setCarregando(false);
     }
   }, [palestraId]);
-
-  const carregarUsuario = async () => {
-    try {
-      const usuario = await authStorage.getUser();
-      if (usuario?.id) {
-        setUsuarioId(usuario.id);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error);
-    }
-  };
 
   const carregarPerguntas = async () => {
     try {
@@ -71,7 +58,7 @@ export default function PerguntasScreen() {
   };
 
   const handleVotar = async (perguntaId: string) => {
-    if (!usuarioId) {
+    if (!usuario?.id) {
       Alert.alert('Erro', 'Você precisa estar logado para votar.');
       return;
     }
@@ -80,7 +67,7 @@ export default function PerguntasScreen() {
       const pergunta = perguntas.find(p => p.id === perguntaId);
       if (!pergunta) return;
 
-      const jaVotou = pergunta.usuariosVotaram?.includes(usuarioId);
+      const jaVotou = pergunta.usuariosVotaram?.includes(usuario.id);
 
       // Otimistic update - atualiza UI imediatamente
       setPerguntas(prevPerguntas => {
@@ -91,14 +78,14 @@ export default function PerguntasScreen() {
               return {
                 ...p,
                 votos: p.votos - 1,
-                usuariosVotaram: p.usuariosVotaram.filter(id => id !== usuarioId)
+                usuariosVotaram: p.usuariosVotaram.filter(id => id !== usuario.id)
               };
             } else {
               // Adicionar voto
               return {
                 ...p,
                 votos: p.votos + 1,
-                usuariosVotaram: [...p.usuariosVotaram, usuarioId]
+                usuariosVotaram: [...p.usuariosVotaram, usuario.id]
               };
             }
           }
@@ -111,9 +98,9 @@ export default function PerguntasScreen() {
 
       // Fazer requisição para API
       if (jaVotou) {
-        await perguntasApi.removerVoto(perguntaId, usuarioId);
+        await perguntasApi.removerVoto(perguntaId, usuario.id);
       } else {
-        await perguntasApi.votarPergunta(perguntaId, usuarioId);
+        await perguntasApi.votarPergunta(perguntaId, usuario.id);
       }
 
     } catch (error) {
@@ -144,7 +131,7 @@ export default function PerguntasScreen() {
       )}
       <PerguntaCard
         pergunta={item}
-        usuarioAtualId={usuarioId}
+        usuarioAtualId={usuario?.id || ''}
         onVotar={handleVotar}
         onPressionar={handlePressionarPergunta}
       />
@@ -163,15 +150,30 @@ export default function PerguntasScreen() {
     </View>
   );
 
-  const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>💭</Text>
-      <Text style={styles.emptyTitulo}>Nenhuma pergunta ainda</Text>
-      <Text style={styles.emptySubtitulo}>
-        Seja o primeiro a fazer uma pergunta!
-      </Text>
-    </View>
-  );
+  const renderEmpty = () => {
+    // Se não há palestraId, mostra mensagem diferente
+    if (!palestraId) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyIcon}>📋</Text>
+          <Text style={styles.emptyTitulo}>Selecione uma palestra</Text>
+          <Text style={styles.emptySubtitulo}>
+            Para ver e fazer perguntas, selecione uma palestra na aba Atividades.
+          </Text>
+        </View>
+      );
+    }
+    
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyIcon}>💭</Text>
+        <Text style={styles.emptyTitulo}>Nenhuma pergunta ainda</Text>
+        <Text style={styles.emptySubtitulo}>
+          Seja o primeiro a fazer uma pergunta!
+        </Text>
+      </View>
+    );
+  };
 
   if (carregando) {
     return (
@@ -201,14 +203,16 @@ export default function PerguntasScreen() {
         }
       />
 
-      {/* Botão flutuante para criar pergunta */}
-      <TouchableOpacity 
-        style={styles.botaoFlutuante} 
-        onPress={handleCriarPergunta}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.botaoFlutuanteTexto}>+ Nova Pergunta</Text>
-      </TouchableOpacity>
+      {/* Botão flutuante para criar pergunta - só mostra se houver palestraId */}
+      {palestraId && (
+        <TouchableOpacity 
+          style={styles.botaoFlutuante} 
+          onPress={handleCriarPergunta}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.botaoFlutuanteTexto}>+ Nova Pergunta</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

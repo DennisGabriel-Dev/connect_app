@@ -13,33 +13,16 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
-import { authStorage } from '@/services/programacao/authStorage';
+import { useAuth } from '@/services/auth/context';
 
 export default function CriarPerguntaScreen() {
   const router = useRouter();
   const { palestraId, palestraTitulo } = useLocalSearchParams();
+  const { usuario } = useAuth();
   
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [enviando, setEnviando] = useState(false);
-  const [usuarioId, setUsuarioId] = useState<string>('');
-  const [usuarioNome, setUsuarioNome] = useState<string>('');
-
-  useEffect(() => {
-    carregarUsuario();
-  }, []);
-
-  const carregarUsuario = async () => {
-    try {
-      const usuario = await authStorage.getUser();
-      if (usuario) {
-        setUsuarioId(usuario.id);
-        setUsuarioNome(usuario.nome || usuario.email);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error);
-    }
-  };
 
   const validarFormulario = (): boolean => {
     if (!titulo.trim()) {
@@ -57,7 +40,7 @@ export default function CriarPerguntaScreen() {
       return false;
     }
 
-    if (!usuarioId) {
+    if (!usuario?.id) {
       Alert.alert('Erro', 'Você precisa estar logado para criar uma pergunta.');
       return false;
     }
@@ -75,9 +58,10 @@ export default function CriarPerguntaScreen() {
         palestraId: palestraId as string,
         titulo: titulo.trim(),
         descricao: descricao.trim(),
+        palestraTitulo: palestraTitulo as string || 'Palestra',
       };
 
-      await perguntasApi.criarPergunta(novaPergunta, usuarioId, usuarioNome);
+      await perguntasApi.criarPergunta(novaPergunta, usuario?.id || '', usuario?.nome || usuario?.email || '');
 
       Alert.alert(
         'Sucesso!',
