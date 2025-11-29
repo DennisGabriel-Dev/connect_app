@@ -6,7 +6,7 @@ export interface Horario {
   date_end: string;
 }
 
-export interface Palestrante {
+export interface Palestrante { 
   nome: string;
   foto?: string;
   bio?: string;
@@ -35,7 +35,7 @@ export interface RespostaLogin {
   code?: string;
 }
 
-const URL_BASE_API = 'http://192.168.1.8:5000/api/v1'; // Adicionar URL_API no .env depois
+const URL_BASE_API = 'http://192.168.1.8:5000/api/v1'; // IP da máquina na rede local
 
 // Serviço de Programação/Atividades
 const apiProgramacao = {
@@ -85,6 +85,42 @@ const apiProgramacao = {
     } catch (erro: any) {
       console.error(`Erro ao buscar atividade ${id}:`, erro.message);
       return null;
+    }
+  },
+
+  async buscarPalestrasPorParticipante(participanteId: string): Promise<Atividade[]> {
+    try {
+      const resposta = await axios.get(
+        `${URL_BASE_API}/palestras/participante/${participanteId}`,
+        {
+          timeout: 10000,
+        }
+      );
+
+      if (resposta.status === 200) {
+        const dadosAPI = resposta.data;
+
+        if (!dadosAPI || !Array.isArray(dadosAPI)) {
+          return [];
+        }
+
+        return dadosAPI.map((atividade: any) => ({
+          id: atividade.id?.toString() || '',
+          titulo: atividade.titulo || 'Sem título',
+          descricao: atividade.descricao || '',
+          tipo: atividade.tipo || 'Atividade',
+          local: atividade.local || 'Local a definir',
+          horarios: atividade.horarios || [],
+          palestrantes: atividade.palestrantes || [],
+          dataHoraPresenca: atividade.dataHoraPresenca,
+          sincronizado: atividade.sincronizado
+        }));
+      }
+
+      return [];
+    } catch (erro: any) {
+      console.error('Erro ao buscar palestras do participante:', erro.message);
+      return [];
     }
   }
 };
@@ -159,7 +195,7 @@ const apiAuth = {
 };
 
 // Exportações
-export { apiProgramacao, apiAuth, URL_BASE_API };
+export { apiAuth, apiProgramacao, URL_BASE_API };
 
 export default {
   programacao: apiProgramacao,

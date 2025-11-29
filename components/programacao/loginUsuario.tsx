@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,7 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { apiAuth, CredenciaisLogin } from '../../services/programacao/api'; 
+import { useAuth } from '../../services/auth/context';
+import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
 
 interface LoginUsuarioProps {
   onLoginSucesso?: () => void;
@@ -28,6 +30,7 @@ export default function LoginUsuario({
   const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
   const router = useRouter();
+  const { definirUsuario } = useAuth();
 
   const manipularLogin = async () => {
     if (!email || !senha) {
@@ -42,9 +45,12 @@ export default function LoginUsuario({
       const resultado = await apiAuth.login(credenciais);
 
       if (resultado.usuario) {
+        // Salvar usuário logado no context
+        definirUsuario(resultado.usuario);
+        
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSucesso?.();
-        router.push('/programacao');
+        router.push('/(tabs)');
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
@@ -69,7 +75,12 @@ export default function LoginUsuario({
           contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
         >
+          
           <View style={styles.conteudo}>
+            <Image
+              source={require('../../assets/images/logo-connect.png')}
+              style={styles.logo}
+            />
             <Text style={styles.titulo}>
               Login
             </Text>
@@ -158,6 +169,12 @@ const styles = StyleSheet.create({
   },
   conteudo: {
     padding: 32,
+  },
+   logo: {
+    width: 280,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   titulo: {
     fontSize: 32,
