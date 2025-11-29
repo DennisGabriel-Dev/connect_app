@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
+import { authStorage } from '../../services/programacao/authStorage';
 
 interface LoginUsuarioProps {
   onLoginSucesso?: () => void;
@@ -42,6 +44,10 @@ export default function LoginUsuario({
       const resultado = await apiAuth.login(credenciais);
 
       if (resultado.usuario) {
+        await authStorage.salvarUsuario(
+          { id: resultado.usuario.id, email: resultado.usuario.email },
+          resultado.usuario.token
+        );
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSucesso?.();
         router.push('/(tabs)');
@@ -70,6 +76,10 @@ export default function LoginUsuario({
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.conteudo}>
+            <Image
+              source={require('../../assets/images/logo-connect.png')}
+              style={styles.logo}
+            />
             <Text style={styles.titulo}>
               Login
             </Text>
@@ -158,6 +168,12 @@ const styles = StyleSheet.create({
   },
   conteudo: {
     padding: 32,
+  },
+  logo: {
+    width: 280,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   titulo: {
     fontSize: 32,
