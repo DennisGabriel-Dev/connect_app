@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,7 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { apiAuth, CredenciaisLogin } from '../../services/programacao/api'; 
+import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
+import { authStorage } from '../../services/programacao/authStorage';
 
 interface CadastroUsuarioProps {
   onCadastroSucesso?: () => void;
@@ -67,6 +69,12 @@ export default function CadastroUsuario({
       const resultado = await apiAuth.cadastrar(credenciais);
 
       if (resultado.message) {
+        if (resultado.usuario) {
+          await authStorage.salvarUsuario(
+            { id: resultado.usuario.id, email: resultado.usuario.email },
+            resultado.usuario.token
+          );
+        }
         Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
         onCadastroSucesso?.();
         router.push('/programacao');
@@ -95,6 +103,10 @@ export default function CadastroUsuario({
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.conteudo}>
+            <Image
+              source={require('../../assets/images/logo-connect.png')}
+              style={styles.logo}
+            />
             <Text style={styles.titulo}>
               Criar Cadastro
             </Text>
@@ -215,6 +227,12 @@ const styles = StyleSheet.create({
   },
   conteudo: {
     padding: 32,
+  },
+  logo: {
+    width: 280,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   titulo: {
     fontSize: 32,
