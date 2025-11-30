@@ -2,7 +2,7 @@ import { Quiz, RespostaUsuario } from './type';
 import { authStorage } from '../programacao/authStorage';
 
 // URL base da API de quizzes no backend
-const API_BASE = 'http://192.168.3.30:5000/api/v1/quizzes';
+const API_BASE = 'http://192.168.3.37:5000/api/v1/quizzes';
 
 // Interface para quiz resumido (usado na listagem)
 export interface QuizResumido {
