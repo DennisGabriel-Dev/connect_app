@@ -151,7 +151,7 @@ export default function TelaDetalheProgramacao() {
 />
 
         {/* Botão para acessar perguntas da palestra */}
-        <View style={styles.secaoPerguntas}>
+        {/* <View style={styles.secaoPerguntas}>
           <TouchableOpacity
             style={styles.botaoPerguntas}
             onPress={() => navegador.push({
@@ -175,7 +175,7 @@ export default function TelaDetalheProgramacao() {
               <Text style={styles.botaoPerguntasSeta}>→</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <View style={styles.espacador} />
       </ScrollView>
