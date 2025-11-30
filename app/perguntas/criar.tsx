@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput,
-  TouchableOpacity,
-  StyleSheet, 
-  ScrollView,
+import { perguntasApi } from '@/services/perguntas/api';
+import { authStorage } from '@/services/programacao/authStorage';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { perguntasApi } from '@/services/perguntas/api';
-import { authStorage } from '@/services/programacao/authStorage';
 
 export default function CriarPerguntaScreen() {
   const router = useRouter();
@@ -31,10 +31,10 @@ export default function CriarPerguntaScreen() {
 
   const carregarUsuario = async () => {
     try {
-      const usuario = await authStorage.getUser();
+      const usuario = await authStorage.obterUsuario();
       if (usuario) {
         setUsuarioId(usuario.id);
-        setUsuarioNome(usuario.nome || usuario.email);
+        setUsuarioNome(usuario.email);
       }
     } catch (error) {
       console.error('Erro ao carregar usuário:', error);
