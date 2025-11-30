@@ -72,7 +72,6 @@ export default function TelaQuiz() {
   }
 
   async function enviarRespostas(respostas: RespostaUsuario[]) {
-
     try {
       setEnviando(true);
       const resultado = await submeterRespostas(String(id), respostas);
@@ -110,8 +109,6 @@ export default function TelaQuiz() {
       setEnviando(false);
     }
   }
-
-
 
   if (carregando) {
     return (
