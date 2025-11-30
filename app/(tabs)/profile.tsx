@@ -1,4 +1,5 @@
 import PresencaCard from '@/components/presenca/PresencaCard';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/services/auth/context';
 import { apiProgramacao, Atividade } from '@/services/programacao/api';
 import { authStorage } from '@/services/programacao/authStorage';
@@ -81,7 +82,8 @@ export default function Profile() {
           style={styles.botaoAvaliacoes} 
           onPress={() => router.push('/feedback/minhas-avaliacoes')}
         >
-          <Text style={styles.textoBotaoAvaliacoes}>📊 Minhas Avaliações</Text>
+          <IconSymbol size={20} name="star.fill" color="#FFFFFF" style={styles.icone} />
+          <Text style={styles.textoBotaoAvaliacoes}>Minhas Avaliações</Text>
         </TouchableOpacity>
 
         <View style={styles.secaoPresencas}>
@@ -176,8 +178,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
+  },
+  icone: {
+    marginRight: 8,
   },
   textoBotaoAvaliacoes: {
     color: '#FFFFFF',

@@ -53,9 +53,8 @@ export default function LoginUsuario({
           token: resultado.usuario.token
         }, resultado.usuario.token);
         
-        Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSucesso?.();
-        router.push('/(tabs)');
+        router.replace('/(tabs)');
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }

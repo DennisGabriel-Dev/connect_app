@@ -35,7 +35,7 @@ export interface RespostaLogin {
   code?: string;
 }
 
-const URL_BASE_API = 'http://192.168.1.8:5000/api/v1'; // IP da máquina na rede local
+const URL_BASE_API = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Serviço de Programação/Atividades
 const apiProgramacao = {

@@ -111,10 +111,10 @@ export default function TelaQuiz() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#fff',
+          backgroundColor: '#F8FAFC',
         }}
       >
-        <Text>Carregando quiz...</Text>
+        <Text style={{ fontSize: 16, color: '#64748B' }}>Carregando quiz...</Text>
       </View>
     );
   }
@@ -127,10 +127,10 @@ export default function TelaQuiz() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#fff',
+          backgroundColor: '#F8FAFC',
         }}
       >
-        <Text>Quiz não encontrado</Text>
+        <Text style={{ fontSize: 18, color: '#DC2626', marginBottom: 16 }}>Quiz não encontrado</Text>
       </View>
     );
   }

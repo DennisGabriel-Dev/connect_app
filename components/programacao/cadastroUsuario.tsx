@@ -75,9 +75,8 @@ export default function CadastroUsuario({
             resultado.usuario.token
           );
         }
-        Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
         onCadastroSucesso?.();
-        router.push('/(tabs)');
+        router.replace('/(tabs)');
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
