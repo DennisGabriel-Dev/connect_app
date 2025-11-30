@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
-  TouchableOpacity,
-  RefreshControl,
-  Alert
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import PerguntaCard from '@/components/perguntas/PerguntaCard';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useAuth } from '@/services/auth/context';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
-import PerguntaCard from '@/components/perguntas/PerguntaCard';
-import { useAuth } from '@/services/auth/context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
 export default function PerguntasScreen() {
   const router = useRouter();
@@ -155,7 +156,7 @@ export default function PerguntasScreen() {
     if (!palestraId) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>📋</Text>
+          <IconSymbol name="clipboard" size={64} color="#94A3B8" style={styles.emptyIcon} />
           <Text style={styles.emptyTitulo}>Selecione uma palestra</Text>
           <Text style={styles.emptySubtitulo}>
             Para ver e fazer perguntas, selecione uma palestra na aba Atividades.
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   headerTitulo: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
     color: '#1E293B',
     marginBottom: 4,
@@ -290,7 +291,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyIcon: {
-    fontSize: 64,
     marginBottom: 16,
   },
   emptyTitulo: {
