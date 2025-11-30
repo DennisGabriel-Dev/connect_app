@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { IconSymbol } from "../../components/ui/icon-symbol";
 import { listarTudo } from "../../services/sorteio/api";
 
 export default function AdminUserListScreen() {
@@ -74,7 +75,7 @@ export default function AdminUserListScreen() {
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: "white", fontWeight: "600" }}>Filtros</Text>
+          <IconSymbol name="line.3.horizontal.decrease.circle" size={24} color="black" />
         </TouchableOpacity>
       </View>
 

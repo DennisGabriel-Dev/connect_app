@@ -48,22 +48,26 @@ export async function listarQuizzesLiberados(): Promise<QuizResumido[]> {
 // Busca um quiz específico pelo ID (GET /api/v1/quizzes/:id)
 export async function buscarQuiz(quizId: string): Promise<Quiz> {
   try {
+    // faz a requisição HTTP para o backend
     const response = await fetch(`${API_BASE}/${quizId}`);
 
+    // se não for status 2xx, considera que o quiz não foi encontrado
     if (!response.ok) {
       throw new Error('Quiz não encontrado');
     }
 
+    // converte o JSON da resposta para o tipo Quiz
     const data = await response.json();
     return data as Quiz;
   } catch (error) {
     console.error('Erro ao buscar quiz', error);
+    // propaga o erro para o componente tratar (alerta, tela de erro, etc.)
     throw error;
   }
 }
 
 // Envia as respostas do usuário para o backend (POST /api/v1/quizzes/responder/:id)
-// Agora o participanteId é obtido do authStorage (salvo pelo login)
+// O participanteId é obtido automaticamente do authStorage (salvo pelo login)
 export async function submeterRespostas(
   quizId: string,
   respostas: RespostaUsuario[],

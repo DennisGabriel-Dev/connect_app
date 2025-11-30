@@ -14,6 +14,7 @@ import {
 import { Atividade } from '../../services/programacao/api';
  
 import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../../hooks/useAuth';
 import { apiFeedback } from '../../services/feedback/api';
 import { apiProgramacao } from '../../services/programacao/api';
@@ -189,9 +190,15 @@ export default function TelaMinhasAvaliacoes() {
           onPress={carregarMinhasPalestras}
           disabled={atualizando}
         >
-          <Text style={styles.iconeAtualizar}>
-            {atualizando ? '⏳' : '🔄'}
-          </Text>
+          <IconSymbol 
+            name={atualizando ? 'hourglass' : 'arrow.clockwise'} 
+            size={20} 
+            color="#1E88E5" 
+          />
+
+          {/* <Text style={styles.iconeAtualizar}>
+          {atualizando ? '⏳' : '🔄'}
+          </Text> */}
         </TouchableOpacity>
       </View>
 
@@ -268,9 +275,6 @@ const styles = StyleSheet.create({
   },
   botaoAtualizar: {
     padding: 8,
-  },
-  iconeAtualizar: {
-    fontSize: 20,
   },
   containerCarregando: {
     flex: 1,

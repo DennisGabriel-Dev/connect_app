@@ -7,29 +7,21 @@ import { Opcao, Pergunta, Quiz, RespostaUsuario } from '../../services/quiz/type
 
 // Tela responsável por exibir e responder um quiz
 export default function TelaQuiz() {
-  // pega o id do quiz vindo da rota /quiz/[id]
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  // estado com os dados do quiz carregados da API
   const [quiz, setQuiz] = useState<Quiz | null>(null);
-  // índice da pergunta atual (0, 1, 2, ...)
   const [perguntaAtual, setPerguntaAtual] = useState(0);
-  // guarda, para cada pergunta, o índice da opção selecionada
   const [respostasUsuario, setRespostasUsuario] = useState<{ [key: string]: number }>({});
-  // controla loading inicial do quiz
   const [carregando, setCarregando] = useState(true);
-  // evita múltiplos envios simultâneos
   const [enviando, setEnviando] = useState(false);
 
-  // sempre que o id da rota mudar, busca o quiz na API
   useEffect(() => {
     if (id) {
       carregarQuiz();
     }
   }, [id]);
 
-  // busca o quiz no backend e atualiza o estado
   async function carregarQuiz() {
     try {
       setCarregando(true);
@@ -43,11 +35,9 @@ export default function TelaQuiz() {
     }
   }
 
-  // monta as respostas e envia para o backend
   async function finalizarQuiz() {
     if (!quiz || enviando) return;
 
-    // transforma o estado local em array no formato esperado pela API
     const respostas: RespostaUsuario[] = quiz.perguntas.map((p: Pergunta) => {
       const indiceSelecionado = respostasUsuario[p.id];
       const opcaoSelecionada: Opcao | undefined = p.opcoes[indiceSelecionado];
@@ -58,7 +48,6 @@ export default function TelaQuiz() {
       };
     });
 
-    // impede envio se alguma pergunta estiver sem resposta
     const algumaSemResposta = respostas.some(r => !r.opcaoId);
     if (algumaSemResposta) {
       Alert.alert('Atenção', 'Responda todas as perguntas antes de finalizar.');
@@ -67,7 +56,6 @@ export default function TelaQuiz() {
 
     try {
       setEnviando(true);
-      // submeterRespostas já busca o participanteId via authStorage
       const resultado = await submeterRespostas(String(id), respostas);
 
       Alert.alert(
@@ -77,8 +65,8 @@ export default function TelaQuiz() {
           {
             text: 'OK',
             onPress: () => {
-              // volta para a tela de listagem de quizzes
-              router.replace('/quiz');
+              // volta para a tela de Programação
+              router.replace('/(tabs)'); // use '/(tabs)/programacao' se estiver em grupo de tabs
             },
           },
         ],
@@ -86,19 +74,29 @@ export default function TelaQuiz() {
     } catch (err: any) {
       const mensagemApi =
         err?.messageApi || err?.message || 'Não foi possível enviar as respostas.';
-      Alert.alert('Aviso', mensagemApi);
+
+      if (mensagemApi.includes('já respondeu')) {
+        Alert.alert('Aviso', mensagemApi, [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/(tabs)');
+            },
+          },
+        ]);
+      } else {
+        Alert.alert('Aviso', mensagemApi);
+      }
     } finally {
       setEnviando(false);
     }
   }
 
-  // chamada quando o usuário toca em uma opção
   async function selecionarOpcaoEAvancar(indice: number) {
     if (!quiz || enviando) return;
 
     const perguntaId = quiz.perguntas[perguntaAtual].id;
 
-    // registra o índice da opção escolhida para a pergunta atual
     setRespostasUsuario(prev => ({
       ...prev,
       [perguntaId]: indice,
@@ -106,14 +104,11 @@ export default function TelaQuiz() {
 
     const ultimaPergunta = perguntaAtual === quiz.perguntas.length - 1;
 
-    // se ainda houver perguntas, avança automaticamente
     if (!ultimaPergunta) {
       setPerguntaAtual(perguntaAtual + 1);
     }
-    // se for a última, o usuário finaliza manualmente pelo botão
   }
 
-  // estado de carregamento do quiz
   if (carregando) {
     return (
       <View
@@ -129,7 +124,6 @@ export default function TelaQuiz() {
     );
   }
 
-  // caso o quiz não tenha sido encontrado pela API
   if (!quiz) {
     return (
       <View
@@ -147,10 +141,8 @@ export default function TelaQuiz() {
     );
   }
 
-  // pergunta que está sendo exibida no momento
   const perguntaAtualObj: Pergunta = quiz.perguntas[perguntaAtual];
 
-  // indica se todas as perguntas já foram respondidas
   const todasRespondidas =
     quiz.perguntas.length > 0 &&
     quiz.perguntas.every(p => respostasUsuario[p.id] !== undefined);
@@ -159,7 +151,6 @@ export default function TelaQuiz() {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <HeaderTela titulo="Teste seu conhecimento" />
 
-      {/* Cabeçalho com título do quiz e progresso */}
       <View style={{ marginBottom: 24, padding: 16 }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 4 }}>
           {quiz.titulo}
@@ -169,7 +160,6 @@ export default function TelaQuiz() {
         </Text>
       </View>
 
-      {/* Bloco principal: enunciado + opções */}
       <ScrollView style={{ flex: 1, padding: 16 }}>
         <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 16 }}>
           {perguntaAtualObj.texto}
@@ -199,7 +189,6 @@ export default function TelaQuiz() {
         </View>
       </ScrollView>
 
-      {/* Botão de finalizar visível apenas quando todas as perguntas têm resposta */}
       {todasRespondidas && (
         <TouchableOpacity
           onPress={finalizarQuiz}

@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-
+import React from "react";
 export default function SorteioLayout() {
   return (
 
@@ -11,7 +11,7 @@ export default function SorteioLayout() {
         headerTitleStyle: { fontWeight: "bold" },
       }}
     >
-      <Text>oii</Text>
+
     
       <Stack.Screen
         name="index"
