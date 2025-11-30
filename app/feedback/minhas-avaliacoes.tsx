@@ -101,14 +101,13 @@ export default function TelaMinhasAvaliacoes() {
   const renderizarItemPalestra = ({ item }: { item: PalestraComPresenca }) => {
     const horario = item.horarios[0];
     const dataInicio = horario ? new Date(horario.date_start) : new Date();
+    const dataFim = horario ? new Date(horario.date_end) : new Date();
 
     return (
       <TouchableOpacity
-
         style={styles.cartaoPalestra}
         onPress={() => manipularAvaliarPalestra(item)}
       >
-
         <View style={styles.infoPalestra}>
           <View style={styles.cabecalhoPalestra}>
             <Text style={styles.tituloPalestra} numberOfLines={2}>
@@ -118,33 +117,40 @@ export default function TelaMinhasAvaliacoes() {
               styles.statusAvaliacao,
               item.jaAvaliada ? styles.statusAvaliada : styles.statusPendente
             ]}>
-              <Text style={styles.textoStatus}>
-                {item.jaAvaliada ? '✓ Avaliada' : '📝 Avaliar'}
+              <IconSymbol 
+                name={item.jaAvaliada ? 'checkmark.circle.fill' : 'clipboard'} 
+                size={14} 
+                color={item.jaAvaliada ? '#065F46' : '#92400E'} 
+              />
+              <Text style={[styles.textoStatus, !item.jaAvaliada && styles.textoStatusPendente]}>
+                {item.jaAvaliada ? 'Avaliada' : 'Avaliar'}
               </Text>
             </View>
           </View>
 
           <View style={styles.linhaInformacoes}>
             <View style={styles.itemInformacao}>
-              <Text style={styles.icone}>🕐</Text>
-              <Text style={styles.horarioPalestra}>
-                {dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              <IconSymbol name="calendar" size={16} color="#64748B" />
+              <Text style={styles.textoInformacao}>
+                {dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </Text>
             </View>
+          </View>
 
+          <View style={styles.linhaInformacoes}>
             <View style={styles.itemInformacao}>
-              <Text style={styles.icone}>📍</Text>
-              <Text style={styles.localPalestra} numberOfLines={1}>
+              <IconSymbol name="clock.fill" size={16} color="#64748B" />
+              <Text style={styles.textoInformacao}>
+                {dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {dataFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.linhaInformacoes}>
+            <View style={styles.itemInformacao}>
+              <IconSymbol name="house.fill" size={16} color="#64748B" />
+              <Text style={styles.textoInformacao} numberOfLines={1}>
                 {item.local}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.linhaInformacoes}>
-            <View style={styles.itemInformacao}>
-              <Text style={styles.icone}>🎯</Text>
-              <Text style={styles.tipoPalestra}>
-                {item.tipo}
               </Text>
             </View>
           </View>
@@ -216,7 +222,7 @@ export default function TelaMinhasAvaliacoes() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.containerVazio}>
-              <Text style={styles.iconeVazio}>🎭</Text>
+              <IconSymbol name="calendar" size={48} color="#94A3B8" />
               <Text style={styles.tituloVazio}>Nenhum evento frequentado</Text>
               <Text style={styles.textoVazio}>
                 Você ainda não registrou presença em nenhum evento.
@@ -326,6 +332,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     minWidth: 100,
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
   },
   statusAvaliada: {
     backgroundColor: '#D1FAE5',
@@ -338,6 +347,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#065F46',
   },
+  textoStatusPendente: {
+    color: '#92400E',
+  },
   linhaInformacoes: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -347,27 +359,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: 8,
   },
-  icone: {
-    fontSize: 14,
-    marginRight: 8,
-    color: '#64748B',
-  },
-  horarioPalestra: {
+  textoInformacao: {
     fontSize: 14,
     color: '#64748B',
-    fontWeight: '500',
-  },
-  localPalestra: {
-    fontSize: 14,
-    color: '#475569',
     fontWeight: '500',
     flex: 1,
-  },
-  tipoPalestra: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
   },
   containerBotaoAcao: {
     marginTop: 12,
@@ -395,10 +393,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     paddingHorizontal: 20,
   },
-  iconeVazio: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
+
   tituloVazio: {
     fontSize: 18,
     fontWeight: '600',

@@ -1,4 +1,6 @@
 // app/feedback/avaliar/[id].tsx
+import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -173,7 +175,7 @@ export default function TelaAvaliarPalestra() {
   if (!palestra) {
     return (
       <View style={styles.containerErro}>
-        <Text style={styles.iconeErro}>❌</Text>
+        <IconSymbol name="clipboard" size={48} color="#DC2626" />
         <Text style={styles.tituloErro}>Palestra não encontrada</Text>
         <Text style={styles.textoErro}>
           A palestra que você está tentando avaliar não foi encontrada.
@@ -198,7 +200,7 @@ export default function TelaAvaliarPalestra() {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
+        {/* <View style={styles.header}>
           <TouchableOpacity 
             style={styles.botaoVoltarHeader}
             onPress={() => router.back()}
@@ -209,7 +211,8 @@ export default function TelaAvaliarPalestra() {
           <View style={styles.infoHeader}>
             <Text style={styles.tituloHeader}>Avaliar Palestra</Text>
           </View>
-        </View>
+        </View> */}
+         <HeaderTela titulo='Avaliar Atividade'/>
 
         <View style={styles.cardPalestra}>
           <Text style={styles.tituloPalestra}>{palestra.titulo}</Text>
@@ -221,17 +224,34 @@ export default function TelaAvaliarPalestra() {
           )}
 
           <View style={styles.infoAdicional}>
-            <View style={styles.itemInfo}>
-              <Text style={styles.iconeInfo}>🎯</Text>
-              <Text style={styles.textoInfo}>{palestra.tipo}</Text>
-            </View>
+            {palestra.horarios && palestra.horarios[0] && (
+              <>
+                <View style={styles.itemInfo}>
+                  <IconSymbol name="calendar" size={16} color="#64748B" />
+                  <Text style={styles.textoInfo}>
+                    {new Date(palestra.horarios[0].date_start).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </Text>
+                </View>
+                <View style={styles.itemInfo}>
+                  <IconSymbol name="clock.fill" size={16} color="#64748B" />
+                  <Text style={styles.textoInfo}>
+                    {new Date(palestra.horarios[0].date_start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {new Date(palestra.horarios[0].date_end).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                </View>
+              </>
+            )}
             
             {palestra.local && (
               <View style={styles.itemInfo}>
-                <Text style={styles.iconeInfo}>📍</Text>
+                <IconSymbol name="house.fill" size={16} color="#64748B" />
                 <Text style={styles.textoInfo}>{palestra.local}</Text>
               </View>
             )}
+            
+            <View style={styles.itemInfo}>
+              <IconSymbol name="clipboard" size={16} color="#64748B" />
+              <Text style={styles.textoInfo}>{palestra.tipo}</Text>
+            </View>
           </View>
         </View>
 
@@ -328,10 +348,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 40,
   },
-  iconeErro: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
+
   tituloErro: {
     fontSize: 20,
     fontWeight: '600',
@@ -407,11 +424,7 @@ const styles = StyleSheet.create({
   itemInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  iconeInfo: {
-    fontSize: 14,
-    marginRight: 8,
-    color: '#64748B',
+    gap: 8,
   },
   textoInfo: {
     fontSize: 14,

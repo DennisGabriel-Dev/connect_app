@@ -23,7 +23,8 @@ const MAPPING = {
   'bubble.right.fill': 'chat-bubble',
   'person.fill': 'person',
   'camera.fill': 'camera-alt',
-  'checkmark.circle.fill': 'question-answer',
+  'checkmark.circle.fill': 'check-circle',
+  'checkmark.seal.fill': 'verified',
   'chart.bar.fill': 'bar-chart',
   'star.fill': 'star',
   'star': 'star-border',
@@ -31,6 +32,7 @@ const MAPPING = {
   'clipboard': 'assignment',
   'arrow.clockwise': 'refresh',
   'hourglass': 'hourglass-empty',
+  'clock.fill': 'schedule',
 } as IconMapping;
 
 /**

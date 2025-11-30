@@ -1,5 +1,6 @@
 import BotaoPresenca from '@/components/presenca/BotaoPresenca';
 import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -68,7 +69,7 @@ export default function TelaDetalheProgramacao() {
   if (carregando) {
     return (
       <View style={styles.containerCarregando}>
-        <ActivityIndicator size="large" color="#0B7730" />
+        <ActivityIndicator size="large" color="rgb(30, 136, 229)" />
         <Text style={styles.textoCarregando}>Carregando detalhes...</Text>
       </View>
     );
@@ -169,6 +170,7 @@ export default function TelaDetalheProgramacao() {
           onPresencaRegistrada={(dados) => {
             console.log('Presença registrada:', dados);
             setPresencaRegistrada(true);
+            navegador.push(`/feedback/avaliar/${dados.atividadeId}`);
           }}
         />
 
@@ -178,7 +180,8 @@ export default function TelaDetalheProgramacao() {
             style={styles.botaoAvaliar}
             onPress={() => navegador.push(`/feedback/avaliar/${atividade.id}`)}
           >
-            <Text style={styles.textoBotaoAvaliar}>⭐ Avaliar este Evento</Text>
+            <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
+            <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
           </TouchableOpacity>
         )}
 
@@ -312,7 +315,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   titulo: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
     color: '#1E293B',
     textAlign: 'center',
@@ -512,18 +515,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   botaoAvaliar: {
-    backgroundColor: '#10B981',
-    marginHorizontal: 20,
-    marginTop: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    backgroundColor: '#1e88e5',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    justifyContent: 'center',
+    margin: 12,
+    flexDirection: 'row',
+    gap: 8,
   },
   textoBotaoAvaliar: {
     color: '#FFFFFF',

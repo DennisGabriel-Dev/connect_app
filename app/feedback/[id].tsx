@@ -1,5 +1,6 @@
 // app/feedback/[id].tsx
 import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -163,7 +164,8 @@ export default function TelaAvaliacoesPalestra() {
           style={styles.botaoAvaliar}
           onPress={() => router.push(`/feedback/avaliar/${id}`)}
         >
-          <Text style={styles.textoBotaoAvaliar}>⭐ Avaliar este evento</Text>
+          <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
+          <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
         </TouchableOpacity>
       </View>
 
@@ -298,17 +300,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   botaoAvaliar: {
-    backgroundColor: '#10B981',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    backgroundColor: '#1e88e5',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     marginTop: 16,
     alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   textoBotaoAvaliar: {
     color: '#FFFFFF',
