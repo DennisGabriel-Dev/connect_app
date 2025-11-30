@@ -15,7 +15,7 @@ import { Atividade } from '../../services/programacao/api';
  
 import { HeaderTela } from '@/components/shared/HeaderTela';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../services/auth/context';
 import { apiFeedback } from '../../services/feedback/api';
 import { apiProgramacao } from '../../services/programacao/api';
 

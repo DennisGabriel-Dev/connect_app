@@ -3,20 +3,19 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import {apiProgramacao} from '../../../services/programacao/api';
-import {apiFeedback} from '../../../services/feedback/api';
-import { Atividade } from '../../../services/programacao/api';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../../services/auth/context';
+import { apiFeedback } from '../../../services/feedback/api';
+import { apiProgramacao, Atividade } from '../../../services/programacao/api';
 
 export default function TelaAvaliarPalestra() {
   const { id } = useLocalSearchParams();
