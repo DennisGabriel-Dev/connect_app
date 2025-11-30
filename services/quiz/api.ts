@@ -1,7 +1,6 @@
 import { Quiz, RespostaUsuario } from './type';
 import { authStorage } from '../programacao/authStorage';
 
-// URL base da API de quizzes no backend
 const API_BASE = 'http://192.168.3.37:5000/api/v1/quizzes';
 
 // Interface para quiz resumido (usado na listagem)
@@ -72,7 +71,6 @@ export async function submeterRespostas(
   try {
     // 1) Recupera o usuário salvo pelo módulo de autenticação
     const usuario = await authStorage.obterUsuario();
-
     if (!usuario?.id) {
       throw new Error('Não foi possível identificar o participante (user_id ausente).');
     }

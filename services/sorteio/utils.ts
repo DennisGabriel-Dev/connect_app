@@ -1,4 +1,1 @@
-// Utilitários para sorteio
-export const sorteioUtils = {
-  // Implementar utilitários aqui
-};
+export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;

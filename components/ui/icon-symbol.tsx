@@ -2,9 +2,8 @@
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolViewProps, SymbolWeight } from 'expo-symbols';
-import { ComponentProps } from 'react';
+import React, { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
-
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
 
@@ -19,11 +18,15 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
   'calendar': 'event',
   'bubble.right.fill': 'chat-bubble',
   'person.fill': 'person',
   'camera.fill': 'camera-alt',
   'checkmark.circle.fill': 'question-answer',
+  'chart.bar.fill': 'bar-chart',
+  'star.fill': 'star',
+  'star': 'star-border',
 } as IconMapping;
 
 /**

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { HeaderTela } from '@/components/shared/HeaderTela';
 import { useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { buscarQuiz, submeterRespostas } from '../../services/quiz/api';
-import { Pergunta, RespostaUsuario, Quiz, Opcao } from '../../services/quiz/type';
+import { Opcao, Pergunta, Quiz, RespostaUsuario } from '../../services/quiz/type';
 
 // Tela responsável por exibir e responder um quiz
 export default function TelaQuiz() {
@@ -110,10 +111,10 @@ export default function TelaQuiz() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#fff',
+          backgroundColor: '#F8FAFC',
         }}
       >
-        <Text>Carregando quiz...</Text>
+        <Text style={{ fontSize: 16, color: '#64748B' }}>Carregando quiz...</Text>
       </View>
     );
   }
@@ -126,10 +127,10 @@ export default function TelaQuiz() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#fff',
+          backgroundColor: '#F8FAFC',
         }}
       >
-        <Text>Quiz não encontrado</Text>
+        <Text style={{ fontSize: 18, color: '#DC2626', marginBottom: 16 }}>Quiz não encontrado</Text>
       </View>
     );
   }
@@ -143,9 +144,13 @@ export default function TelaQuiz() {
     quiz.perguntas.every(p => respostasUsuario[p.id] !== undefined);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff', padding: 16 }}>
+    
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <HeaderTela titulo='Teste seu conhecimento'/>
+
+      
       {/* Cabeçalho com título do quiz e progresso */}
-      <View style={{ marginBottom: 24 }}>
+      <View style={{ marginBottom: 24, padding: 16 }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 4 }}>
           {quiz.titulo}
         </Text>
@@ -154,8 +159,8 @@ export default function TelaQuiz() {
         </Text>
       </View>
 
-      {/* Bloco principal com enunciado e opções */}
-      <ScrollView style={{ flex: 1 }}>
+      {/* Bloco principal: enunciado + opções */}
+      <ScrollView style={{ flex: 1, padding: 16 }}>
         <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 16 }}>
           {perguntaAtualObj.texto}
         </Text>
