@@ -80,7 +80,7 @@ export default function TelaMinhasPresencas() {
           onRefresh={carregarPresencas}
           ListEmptyComponent={
             <View style={styles.containerVazio}>
-              <Text style={styles.iconeVazio}>📋</Text>
+              <IconSymbol name="clipboard" size={48} color="#94A3B8" />
               <Text style={styles.tituloVazio}>Nenhuma presença registrada</Text>
               <Text style={styles.textoVazio}>
                 Você ainda não registrou presença em nenhuma atividade.
@@ -142,10 +142,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     paddingHorizontal: 20,
   },
-  iconeVazio: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
+
   tituloVazio: {
     fontSize: 18,
     fontWeight: '600',
