@@ -32,7 +32,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="quiz"
         options={{
-          title: 'Quiz',
+          title: 'Quizzes',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="checkmark.circle.fill" color={color} />,
         }}
       />

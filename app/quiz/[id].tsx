@@ -1,4 +1,5 @@
 import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -54,6 +55,23 @@ export default function TelaQuiz() {
       return;
     }
 
+    Alert.alert(
+      'Confirmar Envio',
+      'Deseja finalizar e enviar suas respostas? Esta ação não pode ser desfeita.',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Finalizar',
+          onPress: () => enviarRespostas(respostas),
+        },
+      ],
+    );
+  }
+
+  async function enviarRespostas(respostas: RespostaUsuario[]) {
     try {
       setEnviando(true);
       const resultado = await submeterRespostas(String(id), respostas);
@@ -89,23 +107,6 @@ export default function TelaQuiz() {
       }
     } finally {
       setEnviando(false);
-    }
-  }
-
-  async function selecionarOpcaoEAvancar(indice: number) {
-    if (!quiz || enviando) return;
-
-    const perguntaId = quiz.perguntas[perguntaAtual].id;
-
-    setRespostasUsuario(prev => ({
-      ...prev,
-      [perguntaId]: indice,
-    }));
-
-    const ultimaPergunta = perguntaAtual === quiz.perguntas.length - 1;
-
-    if (!ultimaPergunta) {
-      setPerguntaAtual(perguntaAtual + 1);
     }
   }
 
@@ -171,7 +172,13 @@ export default function TelaQuiz() {
             return (
               <TouchableOpacity
                 key={opcao.id ?? indice}
-                onPress={() => selecionarOpcaoEAvancar(indice)}
+                onPress={() => {
+                  const perguntaId = quiz.perguntas[perguntaAtual].id;
+                  setRespostasUsuario(prev => ({
+                    ...prev,
+                    [perguntaId]: indice,
+                  }));
+                }}
                 disabled={enviando}
                 style={{
                   padding: 12,
@@ -189,29 +196,75 @@ export default function TelaQuiz() {
         </View>
       </ScrollView>
 
-      {todasRespondidas && (
+      <View style={{ flexDirection: 'row', gap: 12, padding: 16 }}>
         <TouchableOpacity
-          onPress={finalizarQuiz}
-          disabled={enviando}
+          onPress={() => setPerguntaAtual(perguntaAtual - 1)}
+          disabled={perguntaAtual === 0 || enviando}
           style={{
-            marginTop: 16,
+            flex: 1,
             paddingVertical: 12,
             borderRadius: 8,
-            backgroundColor: enviando ? '#9ca3af' : '#2563eb',
+            backgroundColor: perguntaAtual === 0 ? '#e5e7eb' : '#f3f4f6',
+            borderWidth: 1,
+            borderColor: '#d1d5db',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
           }}
         >
-          <Text
-            style={{
-              color: '#fff',
-              textAlign: 'center',
-              fontSize: 18,
-              fontWeight: '600',
-            }}
-          >
-            {enviando ? 'Enviando...' : 'Finalizar Quiz'}
+          <IconSymbol name="chevron.left" size={20} color={perguntaAtual === 0 ? '#9ca3af' : '#374151'} />
+          <Text style={{ fontSize: 16, fontWeight: '600', color: perguntaAtual === 0 ? '#9ca3af' : '#374151' }}>
+            Anterior
           </Text>
         </TouchableOpacity>
-      )}
+
+        <TouchableOpacity
+          onPress={() => setPerguntaAtual(perguntaAtual + 1)}
+          disabled={perguntaAtual === quiz.perguntas.length - 1 || enviando}
+          style={{
+            flex: 1,
+            paddingVertical: 12,
+            borderRadius: 8,
+            backgroundColor: perguntaAtual === quiz.perguntas.length - 1 ? '#e5e7eb' : '#f3f4f6',
+            borderWidth: 1,
+            borderColor: '#d1d5db',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: '600', color: perguntaAtual === quiz.perguntas.length - 1 ? '#9ca3af' : '#374151' }}>
+            Próxima
+          </Text>
+          <IconSymbol name="chevron.right" size={20} color={perguntaAtual === quiz.perguntas.length - 1 ? '#9ca3af' : '#374151'} />
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        onPress={finalizarQuiz}
+        disabled={!todasRespondidas || enviando}
+        style={{
+          margin: 16,
+          marginTop: 0,
+          paddingVertical: 12,
+          borderRadius: 8,
+          backgroundColor: !todasRespondidas || enviando ? '#9ca3af' : '#2563eb',
+          opacity: !todasRespondidas || enviando ? 0.6 : 1,
+        }}
+      >
+        <Text
+          style={{
+            color: '#fff',
+            textAlign: 'center',
+            fontSize: 18,
+            fontWeight: '600',
+          }}
+        >
+          {enviando ? 'Enviando...' : 'Finalizar Quiz'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
