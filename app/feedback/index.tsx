@@ -10,8 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Atividade } from '../../services/programacao/api';
-import { apiProgramacao } from '../../services/programacao/api';
+import { Atividade, apiProgramacao } from '../../services/programacao/api';
 
 export default function TelaFeedback() {
   const router = useRouter();

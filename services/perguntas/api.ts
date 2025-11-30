@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { CriarPerguntaDTO, Pergunta } from './types';
 
-// URL base da API - usando IP da máquina na rede local (mesmo padrão dos outros serviços)
-const URL_BASE_API = 'http://192.168.3.30:5000/api/v1/perguntas';
+const URL_BASE_API = `${process.env.EXPO_PUBLIC_API_BASE_URL}/perguntas`;
 
 // Interface para o formato retornado pelo backend
 interface PerguntaBackend {

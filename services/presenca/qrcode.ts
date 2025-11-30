@@ -23,8 +23,9 @@ export function gerarUrlQrCode(palestraId: string): string {
 /**
  * Gera a URL HTTP para o QR code (alternativa para testes)
  */
-export function gerarUrlHttpQrCode(palestraId: string, baseUrl: string = 'http://192.168.3.30:5000'): string {
-  return `${baseUrl}/api/v1/presenca/qr?palestraId=${palestraId}`;
+export function gerarUrlHttpQrCode(palestraId: string, baseUrl?: string): string {
+  const base = (baseUrl || process.env.EXPO_PUBLIC_API_BASE_URL)?.replace('/api/v1', '');
+  return `${base}/api/v1/presenca/qr?palestraId=${palestraId}`;
 }
 
 /**

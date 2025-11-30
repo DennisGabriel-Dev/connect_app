@@ -24,6 +24,9 @@ const MAPPING = {
   'person.fill': 'person',
   'camera.fill': 'camera-alt',
   'checkmark.circle.fill': 'question-answer',
+  'chart.bar.fill': 'bar-chart',
+  'star.fill': 'star',
+  'star': 'star-border',
 } as IconMapping;
 
 /**
