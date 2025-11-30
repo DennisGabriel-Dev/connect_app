@@ -86,10 +86,6 @@ export default function TelaAvaliacoesPalestra() {
           `{item.comentario}`
         </Text>
       )}
-      
-      <Text style={styles.dataFeedback}>
-        {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-      </Text>
     </View>
   );
 
@@ -162,6 +158,13 @@ export default function TelaAvaliacoesPalestra() {
             </Text>
           </View>
         )}
+
+        <TouchableOpacity
+          style={styles.botaoAvaliar}
+          onPress={() => router.push(`/feedback/avaliar/${id}`)}
+        >
+          <Text style={styles.textoBotaoAvaliar}>⭐ Avaliar este evento</Text>
+        </TouchableOpacity>
       </View>
 
       {feedbacks.length > 0 ? (
@@ -293,6 +296,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748B',
     fontWeight: '500',
+  },
+  botaoAvaliar: {
+    backgroundColor: '#10B981',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 16,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
+  textoBotaoAvaliar: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   listaFeedbacks: {
     padding: 16,

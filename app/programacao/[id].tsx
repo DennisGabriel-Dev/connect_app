@@ -12,15 +12,36 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../../services/auth/context';
+import { presencaApi } from '../../services/presenca/api';
 import { apiProgramacao, Atividade, Palestrante } from '../../services/programacao/api';
 
 export default function TelaDetalheProgramacao() {
   const { id } = useLocalSearchParams();
   const navegador = useRouter();
+  const { usuario } = useAuth();
   const [atividade, setAtividade] = useState<Atividade | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [modalPalestranteVisivel, setModalPalestranteVisivel] = useState(false);
   const [palestranteSelecionado, setPalestranteSelecionado] = useState<Palestrante | null>(null);
+  const [presencaRegistrada, setPresencaRegistrada] = useState(false);
+
+  // Verificar se usuário já tem presença registrada nesta atividade
+  useEffect(() => {
+    const verificarPresenca = async () => {
+      if (!usuario?.id || !id) return;
+
+      try {
+        const presencas = await presencaApi.listarPresencas(usuario.id);
+        const temPresenca = presencas.some((p) => p.palestraId === id);
+        setPresencaRegistrada(temPresenca);
+      } catch (erro) {
+        console.error('Erro ao verificar presença:', erro);
+      }
+    };
+
+    verificarPresenca();
+  }, [usuario?.id, id]);
 
   useEffect(() => {
     const carregarAtividade = async () => {
@@ -144,11 +165,22 @@ export default function TelaDetalheProgramacao() {
         </View> */}
 
         <BotaoPresenca
-  atividadeId={atividade.id}
-  onPresencaRegistrada={(dados) => {
-    console.log('Presença registrada:', dados);
-  }}
-/>
+          atividadeId={atividade.id}
+          onPresencaRegistrada={(dados) => {
+            console.log('Presença registrada:', dados);
+            setPresencaRegistrada(true);
+          }}
+        />
+
+        {/* Botão Avaliar Evento - aparece após presença registrada */}
+        {presencaRegistrada && (
+          <TouchableOpacity
+            style={styles.botaoAvaliar}
+            onPress={() => navegador.push(`/feedback/avaliar/${atividade.id}`)}
+          >
+            <Text style={styles.textoBotaoAvaliar}>⭐ Avaliar este Evento</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Botão para acessar perguntas da palestra */}
         {/* <View style={styles.secaoPerguntas}>
@@ -478,5 +510,24 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#1E88E5',
     fontWeight: '700',
+  },
+  botaoAvaliar: {
+    backgroundColor: '#10B981',
+    marginHorizontal: 20,
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
+  textoBotaoAvaliar: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
