@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buscarQuiz, submeterRespostas } from '../../services/quiz/api';
 import { Pergunta, RespostaUsuario, Quiz, Opcao } from '../../services/quiz/type';
 
@@ -64,24 +63,16 @@ export default function TelaQuiz() {
       return;
     }
 
-    // recupera o ID do participante salvo pelo fluxo de login
-    const participanteId = await AsyncStorage.getItem('user_id');
-    if (!participanteId) {
-      Alert.alert('Erro', 'Não foi possível identificar o participante (user_id ausente).');
-      return;
-    }
-
     try {
       setEnviando(true);
-      const resultado = await submeterRespostas(String(id), participanteId, respostas);
+      // submeterRespostas agora já busca o participanteId via authStorage
+      const resultado = await submeterRespostas(String(id), respostas);
 
-      // sucesso: mostra pontuação retornada pela API
       Alert.alert(
         'Quiz finalizado',
         `Você obteve ${resultado.pontuacao} de ${resultado.total} pontos.`,
       );
     } catch (err: any) {
-      // em caso de erro, usa a mensagem vinda da API (err.messageApi) ou uma genérica
       const mensagemApi =
         err?.messageApi || err?.message || 'Não foi possível enviar as respostas.';
       Alert.alert('Aviso', mensagemApi);

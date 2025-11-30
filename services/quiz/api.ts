@@ -1,7 +1,7 @@
 import { Quiz, RespostaUsuario } from './type';
+import { authStorage } from '../programacao/authStorage';
 
 // URL base da API de quizzes no backend
-// Usando IP da máquina na rede local (mesmo padrão dos outros serviços)
 const API_BASE = 'http://192.168.3.30:5000/api/v1/quizzes';
 
 // Interface para quiz resumido (usado na listagem)
@@ -64,20 +64,26 @@ export async function buscarQuiz(quizId: string): Promise<Quiz> {
 }
 
 // Envia as respostas do usuário para o backend (POST /api/v1/quizzes/responder/:id)
-// recebe o quizId, o id do participante (dinâmico) e o array de respostas
+// Agora o participanteId é obtido do authStorage (salvo pelo login)
 export async function submeterRespostas(
   quizId: string,
-  participanteId: string,
   respostas: RespostaUsuario[],
 ): Promise<{ pontuacao: number; total: number }> {
   try {
-    // chamada HTTP para envio das respostas
+    // 1) Recupera o usuário salvo pelo módulo de autenticação
+    const usuario = await authStorage.obterUsuario();
+
+    if (!usuario?.id) {
+      throw new Error('Não foi possível identificar o participante (user_id ausente).');
+    }
+
+    // 2) Chamada HTTP para envio das respostas
     const response = await fetch(`${API_BASE}/responder/${quizId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         // identifica o participante que está respondendo o quiz
-        'x-participante-id': participanteId,
+        'x-participante-id': usuario.id,
       },
       // corpo no formato esperado pela API: { respostas: [...] }
       body: JSON.stringify({ respostas }),
@@ -106,7 +112,6 @@ export async function submeterRespostas(
     }
 
     // fallback caso a estrutura seja diferente
-    // sucesso: retorna o objeto com pontuação e total de pontos
     return data as { pontuacao: number; total: number };
   } catch (error) {
     console.error('Erro ao enviar respostas', error);
