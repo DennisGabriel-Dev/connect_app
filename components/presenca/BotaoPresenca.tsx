@@ -1,5 +1,5 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useAuth } from '../../services/auth/context';
-import { presencaApi } from '../../services/presenca/api';
+import { presencaApi, PresencaCompleta } from '../../services/presenca/api';
 import { extrairPalestraIdDoQrCode } from '../../services/presenca/qrcode';
 import { IconSymbol } from '../ui/icon-symbol';
 
@@ -24,7 +24,38 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
   const [modalVisivel, setModalVisivel] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [qrCodeScaneado, setQrCodeScaneado] = useState(false);
+  const [temPresenca, setTemPresenca] = useState(false);
+  const [carregandoPresenca, setCarregandoPresenca] = useState(true);
   const { usuario: usuarioLogado } = useAuth();
+
+  // Verificar se o usuário já tem presença registrada nesta atividade
+  useEffect(() => {
+    const verificarPresenca = async () => {
+      if (!usuarioLogado?.id) {
+        setCarregandoPresenca(false);
+        return;
+      }
+
+      try {
+        setCarregandoPresenca(true);
+        const presencas = await presencaApi.listarPresencas(usuarioLogado.id);
+        
+        // Verificar se há presença para esta atividade/palestra
+        const possuiPresenca = presencas.some(
+          (presenca: PresencaCompleta) => presenca.palestraId === atividadeId
+        );
+        
+        setTemPresenca(possuiPresenca);
+      } catch (erro) {
+        console.error('Erro ao verificar presença:', erro);
+        setTemPresenca(false);
+      } finally {
+        setCarregandoPresenca(false);
+      }
+    };
+
+    verificarPresenca();
+  }, [usuarioLogado?.id, atividadeId]);
 
   const abrirCamera = async () => {
     if (!permission?.granted) {
@@ -86,6 +117,9 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
       } else {
         Alert.alert('Sucesso', resposta.message || 'Presença registrada com sucesso!');
         
+        // Atualizar estado para indicar que agora tem presença
+        setTemPresenca(true);
+        
         if (onPresencaRegistrada) {
           onPresencaRegistrada({ 
             qrCode: dados, 
@@ -102,6 +136,26 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
       fecharModal();
     }
   };
+
+  // Se estiver carregando a verificação de presença, mostrar loading
+  if (carregandoPresenca) {
+    return (
+      <View style={[styles.botao, styles.botaoCarregando]}>
+        <ActivityIndicator size="small" color="#FFFFFF" />
+        <Text style={styles.textoBotao}>Verificando presença...</Text>
+      </View>
+    );
+  }
+
+  // Se já tiver presença, mostrar botão verde informativo
+  if (temPresenca) {
+    return (
+      <View style={[styles.botao, styles.botaoComPresenca]}>
+        <IconSymbol name="checkmark.circle.fill" size={24} color="#FFFFFF" />
+        <Text style={styles.textoBotao}>Presença Registrada</Text>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -162,6 +216,12 @@ const styles = StyleSheet.create({
     margin: 12,
     flexDirection: 'row',
     gap: 8,
+  },
+  botaoCarregando: {
+    opacity: 0.8,
+  },
+  botaoComPresenca: {
+    backgroundColor: '#10B981', // Verde
   },
   textoBotao: {
     color: '#FFFFFF',
