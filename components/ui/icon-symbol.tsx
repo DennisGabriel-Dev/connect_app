@@ -27,6 +27,10 @@ const MAPPING = {
   'chart.bar.fill': 'bar-chart',
   'star.fill': 'star',
   'star': 'star-border',
+  'line.3.horizontal.decrease.circle': 'tune',
+  'clipboard': 'assignment',
+  'arrow.clockwise': 'refresh',
+  'hourglass': 'hourglass-empty',
 } as IconMapping;
 
 /**
