@@ -6,7 +6,7 @@ export interface Horario {
   date_end: string;
 }
 
-export interface Palestrante { 
+export interface Palestrante {
   nome: string;
   foto?: string;
   bio?: string;

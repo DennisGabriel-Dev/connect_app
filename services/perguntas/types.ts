@@ -1,7 +1,28 @@
 // Tipos TypeScript para perguntas
 export interface Pergunta {
   id: string;
+  palestraId: string;
+  usuarioId: string;
+  usuarioNome: string;
   titulo: string;
   descricao: string;
-  // Adicionar outros campos conforme necessário
+  votos: number;
+  usuariosVotaram: string[];
+  respondida: boolean;
+  resposta?: string;
+  dataResposta?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CriarPerguntaDTO {
+  palestraId: string;
+  titulo: string;
+  descricao: string;
+  palestraTitulo?: string;
+}
+
+export interface VotarPerguntaDTO {
+  perguntaId: string;
+  usuarioId: string;
 }

@@ -1,4 +1,5 @@
 import BotaoPresenca from '@/components/presenca/BotaoPresenca';
+import { HeaderTela } from '@/components/shared/HeaderTela';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -11,7 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { HeaderTela } from '../../components/shared/HeaderTela';
 import { apiProgramacao, Atividade, Palestrante } from '../../services/programacao/api';
 
 export default function TelaDetalheProgramacao() {
@@ -72,9 +72,8 @@ export default function TelaDetalheProgramacao() {
   const dataFim = horario ? new Date(horario.date_end) : new Date();
 
   return (
-    <>
-      <HeaderTela titulo="Voltar" textoBotaoVoltar="Voltar" />
-
+    <View style={{ flex: 1 }}>
+      <HeaderTela titulo='Detalhes da Atividade'/>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.cabecalho}>
           <Text style={styles.titulo}>{atividade.titulo}</Text>
@@ -151,6 +150,33 @@ export default function TelaDetalheProgramacao() {
   }}
 />
 
+        {/* Botão para acessar perguntas da palestra */}
+        <View style={styles.secaoPerguntas}>
+          <TouchableOpacity
+            style={styles.botaoPerguntas}
+            onPress={() => navegador.push({
+              pathname: '/perguntas',
+              params: { 
+                palestraId: atividade.id,
+                palestraTitulo: atividade.titulo 
+              }
+            })}
+          >
+            <View style={styles.botaoPerguntasConteudo}>
+              <View style={styles.botaoPerguntasIcone}>
+                <Text style={styles.botaoPerguntasIconeTexto}>💬</Text>
+              </View>
+              <View style={styles.botaoPerguntasTextos}>
+                <Text style={styles.botaoPerguntasTitulo}>Perguntas da Palestra</Text>
+                <Text style={styles.botaoPerguntasSubtitulo}>
+                  Faça perguntas e vote nas que você quer ver respondidas
+                </Text>
+              </View>
+              <Text style={styles.botaoPerguntasSeta}>→</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.espacador} />
       </ScrollView>
 
@@ -193,7 +219,7 @@ export default function TelaDetalheProgramacao() {
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   );
 }
 
@@ -384,28 +410,73 @@ const styles = StyleSheet.create({
   },
   textoModal: {
     fontSize: 16,
-    lineHeight: 26,
-    color: '#475569',
+    color: '#64748B',
+    lineHeight: 24,
   },
   botoesModal: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 20,
   },
   botaoFechar: {
-    backgroundColor: '#1E88E5',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
+    backgroundColor: '#0B7730',
+    paddingVertical: 16,
     borderRadius: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    alignItems: 'center',
   },
   textoBotaoFechar: {
-    color: '#FFFFFF',
-    fontWeight: '600',
     fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  // Estilos para seção de perguntas
+  secaoPerguntas: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+  },
+  botaoPerguntas: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    borderWidth: 2,
+    borderColor: '#1E88E5',
+  },
+  botaoPerguntasConteudo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  botaoPerguntasIcone: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  botaoPerguntasIconeTexto: {
+    fontSize: 28,
+  },
+  botaoPerguntasTextos: {
+    flex: 1,
+  },
+  botaoPerguntasTitulo: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  botaoPerguntasSubtitulo: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+  botaoPerguntasSeta: {
+    fontSize: 24,
+    color: '#1E88E5',
+    fontWeight: '700',
   },
 });
