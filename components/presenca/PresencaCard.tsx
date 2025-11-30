@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Atividade } from '@/services/programacao/api';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import React from 'react';
 interface PresencaCardProps {
   palestra: Atividade & {
@@ -42,31 +43,32 @@ export default function PresencaCard({ palestra }: PresencaCardProps) {
       <View style={styles.linhaInformacoes}>
         {dataInicio && (
           <View style={styles.itemInformacao}>
-            <Text style={styles.icone}>🕐</Text>
+            <IconSymbol name="calendar" size={16} color="#64748B" />
             <Text style={styles.textoInformacao}>
-              {dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              {dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </Text>
           </View>
         )}
-
         {palestra.local && (
-          <View style={styles.itemInformacao}>
-            <Text style={styles.icone}>📍</Text>
-            <Text style={styles.textoInformacao} numberOfLines={1}>
+          <View style={styles.itemLocal}>
+            <IconSymbol name="house.fill" size={16} color="#64748B" />
+            <Text style={styles.textoLocal} numberOfLines={1}>
               {palestra.local}
             </Text>
           </View>
         )}
       </View>
 
-      <View style={styles.linhaInformacoes}>
-        <View style={styles.itemInformacao}>
-          <Text style={styles.icone}>🎯</Text>
-          <Text style={styles.textoInformacao}>
-            {palestra.tipo || 'Não informado'}
-          </Text>
+      {dataInicio && (
+        <View style={styles.linhaInformacoes}>
+          <View style={styles.itemInformacao}>
+            <IconSymbol name="clock.fill" size={16} color="#64748B" />
+            <Text style={styles.textoInformacao}>
+              {dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
 
       {palestra.dataHoraPresenca && (
         <View style={styles.containerDataPresenca}>
@@ -129,13 +131,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: 8,
   },
-  icone: {
-    fontSize: 14,
-    marginRight: 8,
-    color: '#64748B',
+  itemLocal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    justifyContent: 'flex-end',
   },
   textoInformacao: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  textoLocal: {
     fontSize: 14,
     color: '#64748B',
     fontWeight: '500',
