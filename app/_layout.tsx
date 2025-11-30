@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '@/services/auth/context';
 import { authStorage } from '@/services/programacao/authStorage';
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [isAutenticado, setIsAutenticado] = useState<boolean | null>(null);

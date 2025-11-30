@@ -1,11 +1,11 @@
 // components/layout/HeaderTela.tsx
-import { Stack } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderTelaProps {
   titulo: string;
-  textoBotaoVoltar?: string;
   corFundo?: string;
   corTexto?: string;
 }
@@ -15,27 +15,41 @@ interface HeaderTelaProps {
  */
 export const HeaderTela: React.FC<HeaderTelaProps> = ({
   titulo,
-  textoBotaoVoltar = 'Voltar',
   corFundo = '#1E88E5',
   corTexto = '#FFFFFF',
 }) => {
+  const router = useRouter();
+
   return (
-    <Stack.Screen 
-      options={{
-        title: titulo,
-        headerBackTitle: textoBotaoVoltar,
-        headerStyle: {
-          backgroundColor: corFundo,
-        },
-        headerTintColor: corTexto,
-        headerTitleStyle: {
-          color: corTexto,
-        },
-      }} 
-    />
+    <View style={[styles.header, { backgroundColor: corFundo }]}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.botaoVoltar}>
+        <Ionicons name="arrow-back" size={24} color={corTexto} />
+      </TouchableOpacity>
+      <Text style={[styles.titulo, { color: corTexto }]}>{titulo}</Text>
+      <View style={{ width: 40 }} />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // Estilos podem ser adicionados aqui
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 40,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+  },
+  botaoVoltar: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titulo: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
 });

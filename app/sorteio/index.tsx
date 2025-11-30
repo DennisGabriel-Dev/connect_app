@@ -1,13 +1,13 @@
 // app/sorteio/index.tsx
-import { useEffect, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
   ActivityIndicator,
   FlatList,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
 import { listarTudo } from "../../services/sorteio/api";
 
 export default function AdminUserListScreen() {
@@ -63,10 +63,12 @@ export default function AdminUserListScreen() {
           Usuários
         </Text>
 
+        
+
         <TouchableOpacity
           onPress={() => router.push("/sorteio/modal")}
           style={{
-            backgroundColor: "#2563EB",
+            backgroundColor: "#1E88E5'",
             paddingHorizontal: 16,
             paddingVertical: 8,
             borderRadius: 8,

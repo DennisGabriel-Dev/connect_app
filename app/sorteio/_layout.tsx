@@ -2,17 +2,20 @@ import { Stack } from "expo-router";
 
 export default function SorteioLayout() {
   return (
+
     <Stack
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: "#2563EB" },
+        headerStyle: { backgroundColor: "#1E88E5" },
         headerTintColor: "white",
         headerTitleStyle: { fontWeight: "bold" },
       }}
     >
+      <Text>oii</Text>
+    
       <Stack.Screen
         name="index"
-        options={{ title: "Painel do Sorteio" }}
+        options={{ title: "Painel do Sorteio " }}
       />
       <Stack.Screen
         name="details"

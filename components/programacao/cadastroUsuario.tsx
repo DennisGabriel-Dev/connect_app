@@ -62,11 +62,11 @@ export default function CadastroUsuario({
       return;
     }
 
-    const credenciais: CredenciaisLogin = { email, senha };
-
     setCarregando(true);
     try {
-      const resultado = await apiAuth.cadastrar(credenciais);
+      // Primeiro, faz o cadastro na API
+      const { apiAuth } = await import('../../services/programacao/api');
+      const resultado = await apiAuth.cadastrar({ email, senha });
 
       if (resultado.message) {
         if (resultado.usuario) {
@@ -77,12 +77,12 @@ export default function CadastroUsuario({
         }
         Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
         onCadastroSucesso?.();
-        router.push('/programacao');
+        router.push('/(tabs)');
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
     } catch (erro: any) {
-      Alert.alert('Erro', erro.message);
+      Alert.alert('Erro', erro.message || 'Erro ao realizar cadastro');
     } finally {
       setCarregando(false);
     }

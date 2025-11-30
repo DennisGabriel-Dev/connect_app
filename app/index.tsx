@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
 import TelaAuthContainer from "@/components/programacao/telaAuthContainer";
 import { authStorage } from '@/services/programacao/authStorage';
+import { useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
 
 export default function Index() {
   const router = useRouter();

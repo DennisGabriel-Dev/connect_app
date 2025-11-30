@@ -2,7 +2,7 @@ import { Quiz, RespostaUsuario } from './type';
 
 // URL base da API de quizzes no backend
 // Usando IP da máquina na rede local (mesmo padrão dos outros serviços)
-const API_BASE = 'http://192.168.3.30:5000/api/v1/quizzes';
+const API_BASE = 'http://192.168.1.8:5000/api/v1/quizzes';
 
 // Interface para quiz resumido (usado na listagem)
 export interface QuizResumido {
