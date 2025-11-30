@@ -1,7 +1,7 @@
 import { Quiz, RespostaUsuario } from './type';
 import { authStorage } from '../programacao/authStorage';
 
-const API_BASE = 'http://192.168.3.37:5000/api/v1/quizzes';
+const API_BASE = `${process.env.EXPO_PUBLIC_API_BASE_URL}/quizzes`;
 
 // Interface para quiz resumido (usado na listagem)
 export interface QuizResumido {

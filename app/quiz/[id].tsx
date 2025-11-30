@@ -160,6 +160,7 @@ export default function TelaQuiz() {
       </View>
 
       {/* Bloco principal: enunciado + opções */}
+
       <ScrollView style={{ flex: 1, padding: 16 }}>
         <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 16 }}>
           {perguntaAtualObj.texto}
