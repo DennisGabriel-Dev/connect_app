@@ -20,7 +20,7 @@ export default function CriarPerguntaScreen() {
   const { palestraId, palestraTitulo } = useLocalSearchParams();
   
   const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState('');
+  const [pergunta, setPergunta] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [usuarioId, setUsuarioId] = useState<string>('');
   const [usuarioNome, setUsuarioNome] = useState<string>('');
@@ -42,18 +42,13 @@ export default function CriarPerguntaScreen() {
   };
 
   const validarFormulario = (): boolean => {
-    if (!titulo.trim()) {
-      Alert.alert('Atenção', 'Por favor, insira um título para sua pergunta.');
+    if (!pergunta.trim()) {
+      Alert.alert('Atenção', 'Por favor, escreva sua pergunta.');
       return false;
     }
 
-    if (titulo.trim().length < 10) {
-      Alert.alert('Atenção', 'O título deve ter pelo menos 10 caracteres.');
-      return false;
-    }
-
-    if (!descricao.trim()) {
-      Alert.alert('Atenção', 'Por favor, adicione uma descrição à sua pergunta.');
+    if (pergunta.trim().length < 10) {
+      Alert.alert('Atenção', 'A pergunta deve ter pelo menos 10 caracteres.');
       return false;
     }
 
@@ -74,7 +69,7 @@ export default function CriarPerguntaScreen() {
       const novaPergunta = {
         palestraId: palestraId as string,
         titulo: titulo.trim(),
-        descricao: descricao.trim(),
+        descricao: pergunta.trim(),
       };
 
       await perguntasApi.criarPergunta(novaPergunta, usuarioId, usuarioNome);
@@ -99,7 +94,7 @@ export default function CriarPerguntaScreen() {
   };
 
   const handleCancelar = () => {
-    if (titulo.trim() || descricao.trim()) {
+    if (titulo.trim() || pergunta.trim()) {
       Alert.alert(
         'Descartar pergunta?',
         'Você tem alterações não salvas. Deseja descartar?',
@@ -134,32 +129,32 @@ export default function CriarPerguntaScreen() {
 
         {/* Formulário */}
         <View style={styles.formulario}>
-          {/* Campo Título */}
+          {/* Campo Assunto */}
           <View style={styles.campoContainer}>
-            <Text style={styles.label}>Título da Pergunta *</Text>
+            <Text style={styles.label}>Assunto (opcional)</Text>
             <TextInput
               style={styles.inputTitulo}
-              placeholder="Ex: Como implementar autenticação JWT?"
+              placeholder="Ex: Autenticação JWT, React Native, etc."
               placeholderTextColor="#94A3B8"
               value={titulo}
               onChangeText={setTitulo}
-              maxLength={200}
+              maxLength={100}
               editable={!enviando}
             />
             <Text style={styles.contador}>
-              {titulo.length}/200 caracteres
+              {titulo.length}/100 caracteres
             </Text>
           </View>
 
-          {/* Campo Descrição */}
+          {/* Campo Pergunta */}
           <View style={styles.campoContainer}>
-            <Text style={styles.label}>Descrição (opcional)</Text>
+            <Text style={styles.label}>Sua Pergunta *</Text>
             <TextInput
               style={styles.inputDescricao}
-              placeholder="Adicione mais detalhes sobre sua pergunta..."
+              placeholder="Digite sua pergunta aqui..."
               placeholderTextColor="#94A3B8"
-              value={descricao}
-              onChangeText={setDescricao}
+              value={pergunta}
+              onChangeText={setPergunta}
               maxLength={1000}
               multiline
               numberOfLines={6}
@@ -167,7 +162,7 @@ export default function CriarPerguntaScreen() {
               editable={!enviando}
             />
             <Text style={styles.contador}>
-              {descricao.length}/1000 caracteres
+              {pergunta.length}/1000 caracteres
             </Text>
           </View>
 
