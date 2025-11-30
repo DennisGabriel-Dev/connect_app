@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
-  TouchableOpacity,
-  RefreshControl,
-  Alert
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import PerguntaCard from '@/components/perguntas/PerguntaCard';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
-import PerguntaCard from '@/components/perguntas/PerguntaCard';
 import { authStorage } from '@/services/programacao/authStorage';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
 export default function PerguntasScreen() {
   const router = useRouter();
@@ -38,7 +38,7 @@ export default function PerguntasScreen() {
 
   const carregarUsuario = async () => {
     try {
-      const usuario = await authStorage.getUser();
+      const usuario = await authStorage.obterUsuario();
       if (usuario?.id) {
         setUsuarioId(usuario.id);
       }
