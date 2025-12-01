@@ -2,8 +2,8 @@ import { HeaderTela } from '@/components/shared/HeaderTela';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { authStorage } from '../../services/programacao/authStorage';
-import { buscarQuiz, submeterRespostas } from '../../services/quiz/api';
+import { authStorage } from '../../services/programacao/authStorage'; // Verifique se este caminho está correto
+import { buscarQuizCompleto, submeterRespostas } from '../../services/quiz/api';
 import { Opcao, Pergunta, Quiz, RespostaUsuario } from '../../services/quiz/type';
 
 // Tela responsável por exibir e responder um quiz
@@ -33,7 +33,7 @@ export default function TelaQuiz() {
   async function carregarQuiz() {
     try {
       setCarregando(true);
-      const quizData = await buscarQuiz(String(id));
+      const quizData = await buscarQuizCompleto(String(id));
       setQuiz(quizData);
     } catch (error) {
       console.error(error);
