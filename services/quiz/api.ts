@@ -1,4 +1,5 @@
 import { Quiz, RespostaUsuario } from './type';
+import { authStorage } from '../programacao/authStorage';
 
 const API_BASE = `${process.env.EXPO_PUBLIC_API_BASE_URL}/quizzes`;
 
@@ -87,20 +88,25 @@ export async function buscarQuizCompleto(id: string): Promise<Quiz> {
 
 
 // Envia as respostas do usuário para o backend (POST /api/v1/quizzes/responder/:id)
-// recebe o quizId, o id do participante (dinâmico) e o array de respostas
+// O participanteId é obtido automaticamente do authStorage (salvo pelo login)
 export async function submeterRespostas(
   quizId: string,
-  participanteId: string,
   respostas: RespostaUsuario[],
 ): Promise<{ pontuacao: number; total: number }> {
   try {
-    // chamada HTTP para envio das respostas
+    // 1) Recupera o usuário salvo pelo módulo de autenticação
+    const usuario = await authStorage.obterUsuario();
+    if (!usuario?.id) {
+      throw new Error('Não foi possível identificar o participante (user_id ausente).');
+    }
+
+    // 2) Chamada HTTP para envio das respostas
     const response = await fetch(`${API_BASE}/responder/${quizId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         // identifica o participante que está respondendo o quiz
-        'x-participante-id': participanteId,
+        'x-participante-id': usuario.id,
       },
       // corpo no formato esperado pela API: { respostas: [...] }
       body: JSON.stringify({ respostas }),
@@ -127,7 +133,7 @@ export async function submeterRespostas(
         total: resultado.pontuacaoMaxima || 0,
       };
     }
-    
+
     // fallback caso a estrutura seja diferente
     return data as { pontuacao: number; total: number };
   } catch (error) {

@@ -1,5 +1,6 @@
 import BotaoPresenca from '@/components/presenca/BotaoPresenca';
 import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -13,15 +14,36 @@ import {
   View,
 } from 'react-native';
 import QuizAtividade from '../../components/quiz/QuizAtividade';
+import { useAuth } from '../../services/auth/context';
+import { presencaApi } from '../../services/presenca/api';
 import { apiProgramacao, Atividade, Palestrante } from '../../services/programacao/api';
 
 export default function TelaDetalheProgramacao() {
   const { id } = useLocalSearchParams();
   const navegador = useRouter();
+  const { usuario } = useAuth();
   const [atividade, setAtividade] = useState<Atividade | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [modalPalestranteVisivel, setModalPalestranteVisivel] = useState(false);
   const [palestranteSelecionado, setPalestranteSelecionado] = useState<Palestrante | null>(null);
+  const [presencaRegistrada, setPresencaRegistrada] = useState(false);
+
+  // Verificar se usuário já tem presença registrada nesta atividade
+  useEffect(() => {
+    const verificarPresenca = async () => {
+      if (!usuario?.id || !id) return;
+
+      try {
+        const presencas = await presencaApi.listarPresencas(usuario.id);
+        const temPresenca = presencas.some((p) => p.palestraId === id);
+        setPresencaRegistrada(temPresenca);
+      } catch (erro) {
+        console.error('Erro ao verificar presença:', erro);
+      }
+    };
+
+    verificarPresenca();
+  }, [usuario?.id, id]);
 
   useEffect(() => {
     const carregarAtividade = async () => {
@@ -48,7 +70,7 @@ export default function TelaDetalheProgramacao() {
   if (carregando) {
     return (
       <View style={styles.containerCarregando}>
-        <ActivityIndicator size="large" color="#0B7730" />
+        <ActivityIndicator size="large" color="rgb(30, 136, 229)" />
         <Text style={styles.textoCarregando}>Carregando detalhes...</Text>
       </View>
     );
@@ -146,8 +168,21 @@ export default function TelaDetalheProgramacao() {
           atividadeId={atividade.id}
           onPresencaRegistrada={(dados) => {
             console.log('Presença registrada:', dados);
+            setPresencaRegistrada(true);
+            navegador.push(`/feedback/avaliar/${dados.atividadeId}`);
           }}
         />
+
+        {/* Botão Avaliar Evento - aparece após presença registrada */}
+        {presencaRegistrada && (
+          <TouchableOpacity
+            style={styles.botaoAvaliar}
+            onPress={() => navegador.push(`/feedback/avaliar/${atividade.id}`)}
+          >
+            <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
+            <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Quiz específico da atividade */}
         <View style={{ marginTop: 24 }}>
@@ -257,7 +292,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   titulo: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
     color: '#1E293B',
     textAlign: 'center',
@@ -455,5 +490,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#1E88E5',
     fontWeight: '700',
+  },
+  botaoAvaliar: {
+    backgroundColor: '#1e88e5',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 12,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  textoBotaoAvaliar: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

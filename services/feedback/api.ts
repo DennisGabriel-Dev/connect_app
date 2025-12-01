@@ -49,7 +49,6 @@ const apiFeedback = {
   // Buscar feedbacks do usuário logado
   async buscarMeusFeedbacks(participanteId: string): Promise<Feedback[]> {
     try {
-      console.log('🔍 Buscando feedbacks para usuário:', participanteId);
       const resposta = await axios.get(
         `${URL_BASE_API}/feedback/usuario/${participanteId}`,
         { timeout: 10000 }

@@ -1,3 +1,4 @@
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -34,7 +35,14 @@ export default function TelaProgramacao() {
               .filter((tipo): tipo is string => !!tipo)
           )
         );
-        setTiposAtividade(['Todos', ...tiposUnicos]);
+        
+        // Move "Outro" para o final
+        const tiposOrdenados = tiposUnicos.filter(tipo => tipo !== 'Outro');
+        if (tiposUnicos.includes('Outro')) {
+          tiposOrdenados.push('Outro');
+        }
+        
+        setTiposAtividade(['Todos', 'Dia 1', 'Dia 2', ...tiposOrdenados]);
       } catch (erro) {
         console.error('Erro ao carregar atividades:', erro);
       } finally {
@@ -51,6 +59,10 @@ export default function TelaProgramacao() {
 
     try {
       if (tipo === 'Todos') {
+        const dados = await api.programacao.buscarAtividades();
+        setAtividadesFiltradas(dados);
+      } else if (tipo === 'Dia 1' || tipo === 'Dia 2') {
+        // Filtro mockado por dia - implementar lógica real depois
         const dados = await api.programacao.buscarAtividades();
         setAtividadesFiltradas(dados);
       } else {
@@ -78,6 +90,7 @@ export default function TelaProgramacao() {
   const renderizarItemAtividade = ({ item }: { item: Atividade }) => {
     const horario = item.horarios[0];
     const dataInicio = horario ? new Date(horario.date_start) : new Date();
+    const dataFim = horario ? new Date(horario.date_end) : new Date();
 
     return (
       <TouchableOpacity
@@ -96,15 +109,26 @@ export default function TelaProgramacao() {
 
           <View style={styles.linhaInformacoes}>
             <View style={styles.itemInformacao}>
-              <Text style={styles.icone}>🕐</Text>
-              <Text style={styles.horarioAtividade}>
-                {dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              <IconSymbol name="calendar" size={16} color="#64748B" />
+              <Text style={styles.textoInformacao}>
+                {dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </Text>
             </View>
+          </View>
 
+          <View style={styles.linhaInformacoes}>
             <View style={styles.itemInformacao}>
-              <Text style={styles.icone}>📍</Text>
-              <Text style={styles.localAtividade} numberOfLines={1}>
+              <IconSymbol name="clock.fill" size={16} color="#64748B" />
+              <Text style={styles.textoInformacao}>
+                {dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {dataFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.linhaInformacoes}>
+            <View style={styles.itemInformacao}>
+              <IconSymbol name="house.fill" size={16} color="#64748B" />
+              <Text style={styles.textoInformacao} numberOfLines={1}>
                 {item.local}
               </Text>
             </View>
@@ -115,11 +139,12 @@ export default function TelaProgramacao() {
             <TouchableOpacity
               style={styles.botaoAvaliacoes}
               onPress={(e) => {
-                e.stopPropagation(); // Impede que o clique propague para o cartão
+                e.stopPropagation();
                 manipularVerAvaliacoes(item);
               }}
             >
-              <Text style={styles.textoBotaoAvaliacoes}>📊 Ver Avaliações</Text>
+              <IconSymbol name="chart.bar.fill" size={14} color="#FFFFFF" />
+              <Text style={styles.textoBotaoAvaliacoes}>Ver Avaliações</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -308,27 +333,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: 8,
   },
-  icone: {
-    fontSize: 16,
-    marginRight: 8,
-    color: '#64748B',
-  },
-  horarioAtividade: {
+  textoInformacao: {
     fontSize: 14,
     color: '#64748B',
-    fontWeight: '500',
-  },
-  localAtividade: {
-    fontSize: 14,
-    color: '#475569',
     fontWeight: '500',
     flex: 1,
   },
   tipoAtividade: {
     fontSize: 12,
-    color: '#FFFFFF',
-    backgroundColor: '#1E88E5',
+    color: '#3B82F6',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -346,6 +362,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   textoBotaoAvaliacoes: {
     color: '#FFFFFF',

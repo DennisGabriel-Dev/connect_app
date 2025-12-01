@@ -147,12 +147,12 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
     );
   }
 
-  // Se já tiver presença, mostrar botão verde informativo
+  // Se já tiver presença, mostrar aviso verde
   if (temPresenca) {
     return (
       <View style={[styles.botao, styles.botaoComPresenca]}>
-        <IconSymbol name="checkmark.circle.fill" size={24} color="#FFFFFF" />
-        <Text style={styles.textoBotao}>Presença Registrada</Text>
+        <IconSymbol name="checkmark.seal.fill" size={24} color="#10B981" />
+        <Text style={styles.textoBotaoPresenca}>Presença Registrada</Text>
       </View>
     );
   }
@@ -221,10 +221,17 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   botaoComPresenca: {
-    backgroundColor: '#10B981', // Verde
+    backgroundColor: '#E8F5E9',
+    borderWidth: 0,
+    borderColor: '#10B981',
   },
   textoBotao: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  textoBotaoPresenca: {
+    color: '#10B981',
     fontSize: 16,
     fontWeight: '600',
   },
