@@ -97,7 +97,7 @@ export default function TelaDetalheProgramacao() {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <HeaderTela titulo={atividade.titulo} onVoltar={() => navegador.back()} />
+        <HeaderTela titulo="Detalhes da atividade" onVoltar={() => navegador.back()} />
         <View style={styles.cabecalho}>
           <Text style={styles.titulo}>{atividade.titulo}</Text>
         </View>
