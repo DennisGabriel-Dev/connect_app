@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import { QuizResumido, buscarQuizPorAtividade } from '../../services/quiz/api';
 
 interface QuizAtividadeProps {
@@ -29,7 +29,14 @@ const QuizAtividade: React.FC<QuizAtividadeProps> = ({ atividadeId }) => {
   }
 
   const manipularPressionarQuiz = (quizId: string) => {
-    navegador.push(`/quiz/${quizId}`);
+    if (!quiz) return;
+
+    if (quiz.jaRespondeu) {
+      Alert.alert("Concluído", "Você já respondeu este quiz.");
+      return;
+    }
+
+    navegador.push(`/quiz/${quiz.id}`);
   };
 
   if (carregando) {
@@ -45,15 +52,18 @@ const QuizAtividade: React.FC<QuizAtividadeProps> = ({ atividadeId }) => {
     return null;
   }
 
+  const estiloBotao = quiz.jaRespondeu ? styles.botaoConcluido : styles.botaoResponderQuiz;
+  const textoBotao = quiz.jaRespondeu ? "Quiz Concluído" : "Responder Quiz";
+
   // Exibe apenas o botão para responder quiz com título
   return (
     <View style={styles.containerBotaoQuiz}>
       <Text style={styles.tituloQuizAtividade}>Quiz da Atividade</Text>
       <TouchableOpacity
-        style={styles.botaoResponderQuiz}
+        style={estiloBotao}
         onPress={() => manipularPressionarQuiz(quiz.id)}
       >
-        <Text style={styles.textoBotaoResponderQuiz}>Responder quiz</Text>
+        <Text style={styles.textoBotaoResponderQuiz}>{textoBotao}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -90,6 +100,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 24,
     elevation: 2,
+  },
+  botaoConcluido: {
+    backgroundColor: '#64748B',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 24,
+    elevation: 0,
   },
   textoBotaoResponderQuiz: {
     color: '#FFFFFF',

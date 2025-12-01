@@ -9,6 +9,7 @@ export interface QuizResumido {
   titulo: string;
   descricao?: string;
   liberado: boolean;
+  jaRespondeu: boolean;
 }
 
 // Lista todos os quizzes (incluindo não liberados)
@@ -51,8 +52,18 @@ export async function listarQuizzesLiberados(): Promise<QuizResumido[]> {
 export async function buscarQuizPorAtividade(atividadeId: string): Promise<QuizResumido | null> {
   try {
     const apiRoot = process.env.EXPO_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiRoot}/palestras/${atividadeId}/quiz`);
-    // Se a resposta for 404 (Not Found), significa que não há quiz. Retornamos null.
+
+    const usuario = await authStorage.obterUsuario();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (usuario?.id) {
+      headers['x-participante-id'] = usuario.id;
+    }
+
+    const response = await fetch(`${apiRoot}/palestras/${atividadeId}/quiz`, { method: 'GET', headers: headers });
+
     if (!response.ok) {
       if (response.status === 404) {
         console.log(`Nenhum quiz encontrado para a atividade ${atividadeId}.`);
@@ -60,7 +71,6 @@ export async function buscarQuizPorAtividade(atividadeId: string): Promise<QuizR
       return null;
     }
 
-    // Extrai o quiz da resposta e retorna o objeto diretamente
     const quiz: QuizResumido = await response.json();
     return quiz;
   } catch (error) {
@@ -74,7 +84,20 @@ export async function buscarQuizPorAtividade(atividadeId: string): Promise<QuizR
 // Busca um quiz específico e completo pelo ID (com perguntas e opções)
 export async function buscarQuizCompleto(id: string): Promise<Quiz> {
   try {
-    const response = await fetch(`${API_BASE}/${id}`);
+    const usuario = await authStorage.obterUsuario();
+
+    if (!usuario?.id) {
+       throw new Error('Usuário não identificado.');
+    }
+
+    const response = await fetch(`${API_BASE}/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-participante-id': usuario.id, // <--- O PULO DO GATO ESTÁ AQUI
+      }
+    });
+
     if (!response.ok) {
       throw new Error('Falha ao buscar os detalhes do quiz.');
     }
