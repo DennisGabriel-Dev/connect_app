@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,7 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
 import { authStorage } from '../../services/programacao/authStorage';
 
 interface CadastroUsuarioProps {
@@ -81,7 +81,30 @@ export default function CadastroUsuario({
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
     } catch (erro: any) {
-      Alert.alert('Erro', erro.message || 'Erro ao realizar cadastro');
+      const mensagemErro = erro.message || 'Erro ao realizar cadastro';
+      
+      if (mensagemErro.toLowerCase().includes('inscrito')) {
+        Alert.alert(
+          'Email não inscrito',
+          'Seu email não está inscrito no evento. Deseja se inscrever agora?',
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+              text: 'Inscrever-se',
+              onPress: () => {
+                const urlEven = process.env.EXPO_PUBLIC_URL_EVEN;
+                if (urlEven) {
+                  Linking.openURL(urlEven).catch(() => 
+                    Alert.alert('Erro', 'Não foi possível abrir o link')
+                  );
+                }
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Erro', mensagemErro);
+      }
     } finally {
       setCarregando(false);
     }
