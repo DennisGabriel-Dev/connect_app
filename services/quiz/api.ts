@@ -9,6 +9,7 @@ export interface QuizResumido {
   titulo: string;
   descricao?: string;
   liberado: boolean;
+  jaRespondeu: boolean;
 }
 
 // Lista todos os quizzes (incluindo não liberados)
@@ -45,26 +46,69 @@ export async function listarQuizzesLiberados(): Promise<QuizResumido[]> {
   }
 }
 
-// Busca um quiz específico pelo ID (GET /api/v1/quizzes/:id)
-export async function buscarQuiz(quizId: string): Promise<Quiz> {
-  try {
-    // faz a requisição HTTP para o backend
-    const response = await fetch(`${API_BASE}/${quizId}`);
 
-    // se não for status 2xx, considera que o quiz não foi encontrado
-    if (!response.ok) {
-      throw new Error('Quiz não encontrado');
+// Lista o quiz associado a uma atividade/palestra específica
+
+export async function buscarQuizPorAtividade(atividadeId: string): Promise<QuizResumido | null> {
+  try {
+    const apiRoot = process.env.EXPO_PUBLIC_API_BASE_URL;
+
+    const usuario = await authStorage.obterUsuario();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (usuario?.id) {
+      headers['x-participante-id'] = usuario.id;
     }
 
-    // converte o JSON da resposta para o tipo Quiz
+    const response = await fetch(`${apiRoot}/palestras/${atividadeId}/quiz`, { method: 'GET', headers: headers });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log(`Nenhum quiz encontrado para a atividade ${atividadeId}.`);
+      }
+      return null;
+    }
+
+    const quiz: QuizResumido = await response.json();
+    return quiz;
+  } catch (error) {
+    console.error("Erro ao buscar quiz da atividade:", error);
+    // Em caso de erro de rede ou outro problema, também retorna null.
+    return null;
+  }
+}
+
+
+// Busca um quiz específico e completo pelo ID (com perguntas e opções)
+export async function buscarQuizCompleto(id: string): Promise<Quiz> {
+  try {
+    const usuario = await authStorage.obterUsuario();
+
+    if (!usuario?.id) {
+       throw new Error('Usuário não identificado.');
+    }
+
+    const response = await fetch(`${API_BASE}/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-participante-id': usuario.id, // <--- O PULO DO GATO ESTÁ AQUI
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Falha ao buscar os detalhes do quiz.');
+    }
     const data = await response.json();
     return data as Quiz;
   } catch (error) {
-    console.error('Erro ao buscar quiz', error);
-    // propaga o erro para o componente tratar (alerta, tela de erro, etc.)
+    console.error(`Erro ao buscar quiz com id ${id}:`, error);
     throw error;
   }
 }
+
 
 // Envia as respostas do usuário para o backend (POST /api/v1/quizzes/responder/:id)
 // O participanteId é obtido automaticamente do authStorage (salvo pelo login)
