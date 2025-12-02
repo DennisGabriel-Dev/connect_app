@@ -8,7 +8,6 @@ interface HeaderTelaProps {
   titulo: string;
   corFundo?: string;
   corTexto?: string;
-  onVoltar?: () => void;
 }
 
 /**

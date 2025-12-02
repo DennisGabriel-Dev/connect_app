@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import QuizAtividade from '../../components/quiz/QuizAtividade';
 import { useAuth } from '../../services/auth/context';
 import { presencaApi } from '../../services/presenca/api';
 import { apiProgramacao, Atividade, Palestrante } from '../../services/programacao/api';
@@ -96,8 +95,8 @@ export default function TelaDetalheProgramacao() {
 
   return (
     <View style={{ flex: 1 }}>
+      <HeaderTela titulo='Detalhes da Atividade'/>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <HeaderTela titulo="Detalhes da atividade" onVoltar={() => navegador.back()} />
         <View style={styles.cabecalho}>
           <Text style={styles.titulo}>{atividade.titulo}</Text>
         </View>
@@ -107,28 +106,24 @@ export default function TelaDetalheProgramacao() {
         <View style={styles.secao}>
           <Text style={styles.rotuloSecao}>Data</Text>
           <Text style={styles.conteudoSecao}>
-            {dataInicio
-              ? dataInicio.toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric',
-                })
-              : 'Data não informada'}
+            {dataInicio.toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric'
+            })}
           </Text>
         </View>
 
         <View style={styles.secao}>
           <Text style={styles.rotuloSecao}>Horário</Text>
           <Text style={styles.conteudoSecao}>
-            {dataInicio && dataFim
-              ? `${dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - ${dataFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-              : 'Horário não informado'}
+            {dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {dataFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
 
         <View style={styles.secao}>
           <Text style={styles.rotuloSecao}>Local</Text>
-          <Text style={styles.conteudoSecao}>{atividade.local || 'Local não informado'}</Text>
+          <Text style={styles.conteudoSecao}>{atividade.local}</Text>
         </View>
 
         {/* Palestrantes */}
@@ -164,6 +159,12 @@ export default function TelaDetalheProgramacao() {
           </View>
         )}
 
+        {/* <View style={styles.placeholderPresenca}>
+          <Text style={styles.textoPresenca}>
+            [Componente de Registrar Presença - Outra Equipe]
+          </Text>
+        </View> */}
+
         <BotaoPresenca
           atividadeId={atividade.id}
           onPresencaRegistrada={(dados) => {
@@ -184,10 +185,32 @@ export default function TelaDetalheProgramacao() {
           </TouchableOpacity>
         )}
 
-        {/* Quiz específico da atividade */}
-        <View style={{ marginTop: 24 }}>
-          <QuizAtividade atividadeId={atividade.id} />
-        </View>
+        {/* Botão para acessar perguntas da palestra */}
+        {/* <View style={styles.secaoPerguntas}>
+          <TouchableOpacity
+            style={styles.botaoPerguntas}
+            onPress={() => navegador.push({
+              pathname: '/perguntas',
+              params: { 
+                palestraId: atividade.id,
+                palestraTitulo: atividade.titulo 
+              }
+            })}
+          >
+            <View style={styles.botaoPerguntasConteudo}>
+              <View style={styles.botaoPerguntasIcone}>
+                <Text style={styles.botaoPerguntasIconeTexto}>💬</Text>
+              </View>
+              <View style={styles.botaoPerguntasTextos}>
+                <Text style={styles.botaoPerguntasTitulo}>Perguntas da Palestra</Text>
+                <Text style={styles.botaoPerguntasSubtitulo}>
+                  Faça perguntas e vote nas que você quer ver respondidas
+                </Text>
+              </View>
+              <Text style={styles.botaoPerguntasSeta}>→</Text>
+            </View>
+          </TouchableOpacity>
+        </View> */}
 
         <View style={styles.espacador} />
       </ScrollView>
@@ -281,7 +304,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   cabecalho: {
-    padding: 18,
+    padding: 24,
     backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -292,7 +315,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   titulo: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: '#1E293B',
     textAlign: 'center',

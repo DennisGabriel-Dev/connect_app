@@ -3,7 +3,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { buscarQuizCompleto, submeterRespostas } from '../../services/quiz/api';
+import { buscarQuiz, submeterRespostas } from '../../services/quiz/api';
 import { Opcao, Pergunta, Quiz, RespostaUsuario } from '../../services/quiz/type';
 
 // Tela responsável por exibir e responder um quiz
@@ -26,7 +26,7 @@ export default function TelaQuiz() {
   async function carregarQuiz() {
     try {
       setCarregando(true);
-      const quizData = await buscarQuizCompleto(String(id));
+      const quizData = await buscarQuiz(String(id));
       setQuiz(quizData);
     } catch (error) {
       console.error(error);
