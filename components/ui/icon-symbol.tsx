@@ -33,6 +33,7 @@ const MAPPING = {
   'arrow.clockwise': 'refresh',
   'hourglass': 'hourglass-empty',
   'clock.fill': 'schedule',
+  'arrow.right.square.fill': 'logout',
 } as IconMapping;
 
 /**

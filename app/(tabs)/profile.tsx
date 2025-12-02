@@ -61,6 +61,7 @@ export default function Profile() {
 
 
         <TouchableOpacity style={styles.botaoLogout} onPress={handleLogout}>
+          <IconSymbol size={20} name="arrow.right.square.fill" color="#FFFFFF" style={styles.icone} />
           <Text style={styles.textoBotao}>Sair</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -142,7 +143,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
   },
   textoBotao: {

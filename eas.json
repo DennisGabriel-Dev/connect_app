@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 16.24.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://connect.coupons/api/v1",
+        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/conectfake-661948/"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://connect.coupons/api/v1",
+        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/conectfake-661948/"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://connect.coupons/api/v1",
+        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/conectfake-661948/"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
