@@ -96,7 +96,7 @@ export default function TelaAvaliarPalestra() {
       if (erro.message.includes('já enviou um feedback')) {
         Alert.alert(
           'Avaliação Já Existente',
-          'Você já enviou uma avaliação para esta palestra.',
+          'Você já enviou uma avaliação para este evento.',
           [
             {
               text: 'Ver Minha Avaliação',
@@ -111,7 +111,7 @@ export default function TelaAvaliarPalestra() {
       } else if (erro.message.includes('precisa ter comparecido')) {
         Alert.alert(
           'Presença Não Registrada',
-          'Você precisa ter comparecido à palestra para enviar uma avaliação.',
+          'Você precisa ter comparecido ao evento para enviar uma avaliação.',
           [
             {
               text: 'Entendi',
@@ -167,7 +167,7 @@ export default function TelaAvaliarPalestra() {
     return (
       <View style={styles.containerCarregando}>
         <ActivityIndicator size="large" color="#1E88E5" />
-        <Text style={styles.textoCarregando}>Carregando palestra...</Text>
+        <Text style={styles.textoCarregando}>Carregando evento...</Text>
       </View>
     );
   }
@@ -176,9 +176,9 @@ export default function TelaAvaliarPalestra() {
     return (
       <View style={styles.containerErro}>
         <IconSymbol name="clipboard" size={48} color="#DC2626" />
-        <Text style={styles.tituloErro}>Palestra não encontrada</Text>
+        <Text style={styles.tituloErro}>Evento não encontrado</Text>
         <Text style={styles.textoErro}>
-          A palestra que você está tentando avaliar não foi encontrada.
+          O evento que você está tentando avaliar não foi encontrado.
         </Text>
         <TouchableOpacity 
           style={styles.botaoVoltar}
@@ -276,7 +276,7 @@ export default function TelaAvaliarPalestra() {
               style={styles.inputComentario}
               value={comentario}
               onChangeText={setComentario}
-              placeholder="Conte mais sobre sua experiência nesta palestra..."
+              placeholder="Conte mais sobre sua experiência nesta atividade..."
               placeholderTextColor="#94A3B8"
               multiline
               numberOfLines={4}

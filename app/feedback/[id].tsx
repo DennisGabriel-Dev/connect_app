@@ -11,16 +11,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../../services/auth/context';
 import apiFeedback, { Feedback } from '../../services/feedback/api';
 import { apiProgramacao, Atividade } from '../../services/programacao/api';
 
 export default function TelaAvaliacoesPalestra() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { usuario } = useAuth();
   const [palestra, setPalestra] = useState<Atividade | null>(null);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [mediaEstrelas, setMediaEstrelas] = useState(0);
+  const [jaAvaliou, setJaAvaliou] = useState(false);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -38,6 +41,12 @@ export default function TelaAvaliacoesPalestra() {
         if (dadosFeedbacks.length > 0) {
           const totalEstrelas = dadosFeedbacks.reduce((acc, feedback) => acc + feedback.estrelas, 0);
           setMediaEstrelas(totalEstrelas / dadosFeedbacks.length);
+        }
+
+        // Verificar se o usuário já avaliou
+        if (usuario?.id) {
+          const avaliou = await apiFeedback.verificarSeJaAvaliou(usuario.id, id as string);
+          setJaAvaliou(avaliou);
         }
       } catch (erro) {
         console.error('Erro ao carregar dados:', erro);
@@ -160,13 +169,20 @@ export default function TelaAvaliacoesPalestra() {
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.botaoAvaliar}
-          onPress={() => router.push(`/feedback/avaliar/${id}`)}
-        >
-          <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
-          <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
-        </TouchableOpacity>
+        {jaAvaliou ? (
+          <View style={[styles.botaoAvaliar, styles.botaoAvaliado]}>
+            <IconSymbol name="checkmark.seal.fill" size={24} color="#10B981" />
+            <Text style={styles.textoBotaoAvaliado}>Avaliação Enviada</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.botaoAvaliar}
+            onPress={() => router.push(`/feedback/avaliar/${id}`)}
+          >
+            <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
+            <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {feedbacks.length > 0 ? (
@@ -310,8 +326,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
+  botaoAvaliado: {
+    backgroundColor: '#E8F5E9',
+    borderWidth: 0,
+    borderColor: '#10B981',
+  },
   textoBotaoAvaliar: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  textoBotaoAvaliado: {
+    color: '#10B981',
     fontSize: 16,
     fontWeight: '600',
   },

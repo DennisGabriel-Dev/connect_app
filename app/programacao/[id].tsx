@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import QuizAtividade from '../../components/quiz/QuizAtividade';
 import { useAuth } from '../../services/auth/context';
+import { apiFeedback } from '../../services/feedback/api';
 import { presencaApi } from '../../services/presenca/api';
 import { apiProgramacao, Atividade, Palestrante } from '../../services/programacao/api';
 
@@ -27,6 +28,7 @@ export default function TelaDetalheProgramacao() {
   const [modalPalestranteVisivel, setModalPalestranteVisivel] = useState(false);
   const [palestranteSelecionado, setPalestranteSelecionado] = useState<Palestrante | null>(null);
   const [presencaRegistrada, setPresencaRegistrada] = useState(false);
+  const [jaAvaliou, setJaAvaliou] = useState(false);
 
   // Verificar se usuário já tem presença registrada nesta atividade
   useEffect(() => {
@@ -43,6 +45,22 @@ export default function TelaDetalheProgramacao() {
     };
 
     verificarPresenca();
+  }, [usuario?.id, id]);
+
+  // Verificar se usuário já avaliou esta atividade
+  useEffect(() => {
+    const verificarAvaliacao = async () => {
+      if (!usuario?.id || !id) return;
+
+      try {
+        const avaliou = await apiFeedback.verificarSeJaAvaliou(usuario.id, id as string);
+        setJaAvaliou(avaliou);
+      } catch (erro) {
+        console.error('Erro ao verificar avaliação:', erro);
+      }
+    };
+
+    verificarAvaliacao();
   }, [usuario?.id, id]);
 
   useEffect(() => {
@@ -175,13 +193,20 @@ export default function TelaDetalheProgramacao() {
 
         {/* Botão Avaliar Evento - aparece após presença registrada */}
         {presencaRegistrada && (
-          <TouchableOpacity
-            style={styles.botaoAvaliar}
-            onPress={() => navegador.push(`/feedback/avaliar/${atividade.id}`)}
-          >
-            <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
-            <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
-          </TouchableOpacity>
+          jaAvaliou ? (
+            <View style={[styles.botaoAvaliar, styles.botaoAvaliado]}>
+              <IconSymbol name="checkmark.seal.fill" size={24} color="#10B981" />
+              <Text style={styles.textoBotaoAvaliado}>Avaliação Enviada</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.botaoAvaliar}
+              onPress={() => navegador.push(`/feedback/avaliar/${atividade.id}`)}
+            >
+              <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
+              <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
+            </TouchableOpacity>
+          )
         )}
 
         {/* Quiz específico da atividade */}
@@ -502,8 +527,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  botaoAvaliado: {
+    backgroundColor: '#E8F5E9',
+    borderWidth: 0,
+    borderColor: '#10B981',
+  },
   textoBotaoAvaliar: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  textoBotaoAvaliado: {
+    color: '#10B981',
     fontSize: 16,
     fontWeight: '600',
   },
