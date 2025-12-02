@@ -56,7 +56,7 @@ export default function TelaMinhasAvaliacoes() {
               feedbackId: feedbackExistente?.id
             };
           } catch (erro) {
-            console.error(`Erro ao verificar feedback da palestra ${palestra.id}:`, erro);
+            console.error(`Erro ao verificar feedback do evento ${palestra.id}:`, erro);
             return {
               ...palestra,
               jaAvaliada: false
@@ -67,8 +67,8 @@ export default function TelaMinhasAvaliacoes() {
 
       setPalestrasComPresenca(palestrasComInfoAvaliacao);
     } catch (erro) {
-      console.error('Erro ao carregar minhas palestras:', erro);
-      Alert.alert('Erro', 'Não foi possível carregar suas palestras');
+      console.error('Erro ao carregar meus eventos:', erro);
+      Alert.alert('Erro', 'Não foi possível carregar seus eventos');
     } finally {
       setCarregando(false);
     }
@@ -84,7 +84,7 @@ export default function TelaMinhasAvaliacoes() {
     if (palestra.jaAvaliada) {
       Alert.alert(
         'Avaliação já enviada',
-        'Você já avaliou esta palestra. Deseja ver sua avaliação?',
+        'Você já avaliou este evento. Deseja ver sua avaliação?',
         [
           { text: 'Cancelar', style: 'cancel' },
           { 
@@ -187,7 +187,7 @@ export default function TelaMinhasAvaliacoes() {
         <View style={styles.infoHeader}>
           <Text style={styles.titulo}>Minhas Avaliações</Text>
           <Text style={styles.subtitulo}>
-            Palestras que você frequentou
+            Atividades que você frequentou
           </Text>
         </View>
 
