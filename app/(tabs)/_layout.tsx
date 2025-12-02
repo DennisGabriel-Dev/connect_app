@@ -37,6 +37,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="painel"
+        options={{
+          title: 'Painel',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
+          href:'/(tabs)/painel',
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Perfil',
