@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   cabecalho: {
-    padding: 24,
+    padding: 18,
     backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   titulo: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1E293B',
     textAlign: 'center',

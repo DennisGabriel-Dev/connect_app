@@ -3,7 +3,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { authStorage } from '../../services/programacao/authStorage'; // Verifique se este caminho está correto
 import { buscarQuizCompleto, submeterRespostas } from '../../services/quiz/api';
 import { Opcao, Pergunta, Quiz, RespostaUsuario } from '../../services/quiz/type';
 
