@@ -59,6 +59,14 @@ export default function Profile() {
           <Text style={styles.textoBotaoPresencas}>Minhas Presenças</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity 
+          style={styles.botaoQuizzes} 
+          onPress={() => router.push('/quiz/meus-quizzes')}
+        >
+          <IconSymbol size={20} name="questionmark.diamond.fill" color="#FFFFFF" style={styles.icone} />
+          <Text style={styles.textoBotaoQuizzes}>Meus Quizzes</Text>
+        </TouchableOpacity>
+
 
         <TouchableOpacity style={styles.botaoLogout} onPress={handleLogout}>
           <IconSymbol size={20} name="arrow.right.square.fill" color="#FFFFFF" style={styles.icone} />
@@ -134,6 +142,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   textoBotaoPresencas: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  botaoQuizzes: {
+    backgroundColor: '#F59E0B', // Um tom de amarelo/laranja
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  textoBotaoQuizzes: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
