@@ -10,6 +10,7 @@ export interface QuizResumido {
   descricao?: string;
   liberado: boolean;
   jaRespondeu: boolean;
+  presencaConfirmada: boolean;
 }
 
 // Lista todos os quizzes (incluindo não liberados)

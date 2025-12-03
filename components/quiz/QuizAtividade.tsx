@@ -36,6 +36,16 @@ const QuizAtividade: React.FC<QuizAtividadeProps> = ({ atividadeId }) => {
       return;
     }
 
+    if (quiz.presencaConfirmada === false) {
+      Alert.alert("Presença necessária", "Você precisa confirmar sua presença nesta atividade para liberar o quiz.")
+      return;
+    }
+
+    if (quiz.liberado === false) {
+      Alert.alert("Quiz Bloqueado", "Este quiz ainda não está liberado.");
+      return;
+    }
+
     navegador.push(`/quiz/${quiz.id}`);
   };
 
@@ -52,8 +62,19 @@ const QuizAtividade: React.FC<QuizAtividadeProps> = ({ atividadeId }) => {
     return null;
   }
 
-  const estiloBotao = quiz.jaRespondeu ? styles.botaoConcluido : styles.botaoResponderQuiz;
-  const textoBotao = quiz.jaRespondeu ? "Quiz Concluído" : "Responder Quiz";
+  let estiloBotao = quiz.jaRespondeu ? styles.botaoConcluido : styles.botaoResponderQuiz;
+  let textoBotao = "Responder Quiz";
+
+  if (quiz.jaRespondeu) {
+    estiloBotao = styles.botaoConcluido;
+    textoBotao = "Quiz Concluído";
+  } else if (quiz.presencaConfirmada === false) {
+    estiloBotao = styles.botaoBloqueado; 
+    textoBotao = "Responder Quiz";
+  } else if (quiz.liberado === false) {
+    estiloBotao = styles.botaoBloqueado;
+    textoBotao = "Quiz Bloqueado";
+  }
 
   // Exibe apenas o botão para responder quiz com título
   return (
@@ -107,6 +128,15 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 24,
     elevation: 0,
+  },
+  botaoBloqueado: {
+    backgroundColor: '#94A3B8',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 24,
+    elevation: 0,
+    minWidth: 200,
+    alignItems: 'center',
   },
   textoBotaoResponderQuiz: {
     color: '#FFFFFF',
