@@ -94,6 +94,17 @@ const apiFeedback = {
       }
     }
   },
+
+  // Verificar se participante já avaliou uma palestra específica
+  async verificarSeJaAvaliou(participanteId: string, palestraId: string): Promise<boolean> {
+    try {
+      const feedbacks = await this.buscarMeusFeedbacks(participanteId);
+      return feedbacks.some(feedback => feedback.palestraId === palestraId);
+    } catch (erro: any) {
+      console.error('Erro ao verificar avaliação:', erro.message);
+      return false;
+    }
+  },
 };
 
 export { apiFeedback };
