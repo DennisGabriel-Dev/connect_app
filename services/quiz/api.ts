@@ -1,4 +1,4 @@
-import { Quiz, RespostaUsuario } from './type';
+import { Quiz, QuizStatus, RespostaUsuario } from './type';
 import { authStorage } from '../programacao/authStorage';
 
 const API_BASE = `${process.env.EXPO_PUBLIC_API_BASE_URL}/quizzes`;
@@ -26,6 +26,32 @@ export async function listarQuizzes(): Promise<QuizResumido[]> {
     return data as QuizResumido[];
   } catch (error) {
     console.error('Erro ao listar quizzes', error);
+    throw error;
+  }
+}
+
+// Busca o status de todos os quizzes para o participante logado
+export async function buscarQuizzesStatus(): Promise<QuizStatus[]> {
+  try {
+    const usuario = await authStorage.obterUsuario();
+    if (!usuario?.id) {
+      throw new Error('Usuário não identificado para buscar status dos quizzes.');
+    }
+
+    const response = await fetch(`${API_BASE}/participante/status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-participante-id': usuario.id,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Falha ao buscar o status dos quizzes.');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar status dos quizzes:', error);
     throw error;
   }
 }

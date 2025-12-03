@@ -26,3 +26,15 @@ export interface RespostaUsuario {
   perguntaId: string; // ID da pergunta respondida
   opcaoId: string;    // ID da opção escolhida (não é índice, é o id da opção)
 }
+
+// Representa o status de um quiz para um participante
+export interface QuizStatus {
+  id: string;
+  titulo: string;
+  descricao: string;
+  palestraId: string;
+  palestraTitulo: string;
+  status: 'RESPONDIDO' | 'PENDENTE';
+  pontuacao: number | null;
+  dataResposta: string | null;
+}

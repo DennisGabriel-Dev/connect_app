@@ -2,7 +2,8 @@ import { HeaderTela } from '@/components/shared/HeaderTela';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { buscarQuizCompleto, submeterRespostas } from '../../services/quiz/api';
 import { Opcao, Pergunta, Quiz, RespostaUsuario } from '../../services/quiz/type';
 
@@ -149,29 +150,25 @@ export default function TelaQuiz() {
     quiz.perguntas.every(p => respostasUsuario[p.id] !== undefined);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={styles.safeArea}>
       <HeaderTela titulo="Teste seu conhecimento" />
 
-      <View style={{ marginBottom: 24, padding: 16 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 4 }}>
-          {quiz.titulo}
-        </Text>
-        <Text style={{ fontSize: 14, color: '#6b7280' }}>
+      <View style={styles.quizHeader}>
+        <Text style={styles.quizTitle}>{quiz.titulo}</Text>
+        <Text style={styles.quizProgress}>
           {perguntaAtual + 1} / {quiz.perguntas.length}
         </Text>
       </View>
 
-      <ScrollView style={{ flex: 1, padding: 16 }}>
-        <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 16 }}>
-          {perguntaAtualObj.texto}
-        </Text>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.questionText}>{perguntaAtualObj.texto}</Text>
 
         <View>
           {perguntaAtualObj.opcoes.map((opcao: Opcao, indice: number) => {
             const selecionada = respostasUsuario[perguntaAtualObj.id] === indice;
             return (
               <TouchableOpacity
-                key={opcao.id ?? indice}
+                key={opcao.id}
                 onPress={() => {
                   const perguntaId = quiz.perguntas[perguntaAtual].id;
                   setRespostasUsuario(prev => ({
@@ -180,91 +177,95 @@ export default function TelaQuiz() {
                   }));
                 }}
                 disabled={enviando}
-                style={{
-                  padding: 12,
-                  borderRadius: 8,
-                  marginBottom: 8,
-                  borderWidth: 1,
-                  borderColor: selecionada ? '#2563eb' : '#d4d4d4',
-                  backgroundColor: selecionada ? '#dbeafe' : '#f9fafb',
-                }}
+                style={[
+                  styles.optionButton,
+                  selecionada ? styles.optionSelected : styles.optionDefault,
+                ]}
               >
-                <Text style={{ fontSize: 16 }}>{opcao.texto}</Text>
+                <Text style={styles.optionText}>{opcao.texto}</Text>
               </TouchableOpacity>
             );
           })}
         </View>
       </ScrollView>
 
-      <View style={{ flexDirection: 'row', gap: 12, padding: 16 }}>
+      <View style={styles.navigationButtonsContainer}>
         <TouchableOpacity
           onPress={() => setPerguntaAtual(perguntaAtual - 1)}
           disabled={perguntaAtual === 0 || enviando}
-          style={{
-            flex: 1,
-            paddingVertical: 12,
-            borderRadius: 8,
-            backgroundColor: perguntaAtual === 0 ? '#e5e7eb' : '#f3f4f6',
-            borderWidth: 1,
-            borderColor: '#d1d5db',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-          }}
+          style={[styles.navButton, { opacity: perguntaAtual === 0 || enviando ? 0.5 : 1 }]}
         >
-          <IconSymbol name="chevron.left" size={20} color={perguntaAtual === 0 ? '#9ca3af' : '#374151'} />
-          <Text style={{ fontSize: 16, fontWeight: '600', color: perguntaAtual === 0 ? '#9ca3af' : '#374151' }}>
-            Anterior
-          </Text>
+          <IconSymbol name="chevron.left" size={20} color="#374151" />
+          <Text style={styles.navButtonText}>Anterior</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => setPerguntaAtual(perguntaAtual + 1)}
           disabled={perguntaAtual === quiz.perguntas.length - 1 || enviando}
-          style={{
-            flex: 1,
-            paddingVertical: 12,
-            borderRadius: 8,
-            backgroundColor: perguntaAtual === quiz.perguntas.length - 1 ? '#e5e7eb' : '#f3f4f6',
-            borderWidth: 1,
-            borderColor: '#d1d5db',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-          }}
+          style={[
+            styles.navButton,
+            { opacity: perguntaAtual === quiz.perguntas.length - 1 || enviando ? 0.5 : 1 },
+          ]}
         >
-          <Text style={{ fontSize: 16, fontWeight: '600', color: perguntaAtual === quiz.perguntas.length - 1 ? '#9ca3af' : '#374151' }}>
-            Próxima
-          </Text>
-          <IconSymbol name="chevron.right" size={20} color={perguntaAtual === quiz.perguntas.length - 1 ? '#9ca3af' : '#374151'} />
+          <Text style={styles.navButtonText}>Próxima</Text>
+          <IconSymbol name="chevron.right" size={20} color="#374151" />
         </TouchableOpacity>
-      </View>
+      </View> 
 
       <TouchableOpacity
         onPress={finalizarQuiz}
         disabled={!todasRespondidas || enviando}
-        style={{
-          margin: 16,
-          marginTop: 0,
-          paddingVertical: 12,
-          borderRadius: 8,
-          backgroundColor: !todasRespondidas || enviando ? '#9ca3af' : '#2563eb',
-          opacity: !todasRespondidas || enviando ? 0.6 : 1,
-        }}
+        style={[
+          styles.submitButton,
+          {
+            backgroundColor: !todasRespondidas || enviando ? '#9ca3af' : '#2563eb',
+            opacity: !todasRespondidas || enviando ? 0.6 : 1,
+          },
+        ]}
       >
-        <Text
-          style={{
-            color: '#fff',
-            textAlign: 'center',
-            fontSize: 18,
-            fontWeight: '600',
-          }}
-        >
+        <Text style={styles.submitButtonText}>
           {enviando ? 'Enviando...' : 'Finalizar Quiz'}
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#fff' },
+  quizHeader: { marginBottom: 24, paddingHorizontal: 16 },
+  quizTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
+  quizProgress: { fontSize: 14, color: '#6b7280' },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingHorizontal: 16 },
+  questionText: { fontSize: 20, fontWeight: '600', marginBottom: 16 },
+  optionButton: { padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1 },
+  optionDefault: { borderColor: '#d4d4d4', backgroundColor: '#f9fafb' },
+  optionSelected: { borderColor: '#2563eb', backgroundColor: '#dbeafe' },
+  optionText: { fontSize: 16 },
+  navigationButtonsContainer: { flexDirection: 'row', gap: 12, padding: 16 },
+  navButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  navButtonText: { fontSize: 16, fontWeight: '600', color: '#374151' },
+  submitButton: {
+    marginHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  submitButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+});
