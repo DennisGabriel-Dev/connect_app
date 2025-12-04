@@ -5,6 +5,11 @@ export interface UsuarioLogado {
   id: string;
   email: string;
   nome: string;
+  // Papel do usuário na aplicação (ex: 'admin', 'user', etc.)
+  role?: string;
+  // Flag opcional para facilitar checagens de admin
+  isAdmin?: boolean;
+  // Permite campos adicionais vindos da API sem quebrar o tipo
   [key: string]: any;
 }
 
@@ -33,6 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: usuarioArmazenado.id,
             email: usuarioArmazenado.email,
             nome: usuarioArmazenado.email.split('@')[0],
+            // Mantém o papel/flag de admin caso tenha sido salvo
+            role: usuarioArmazenado.role,
+            isAdmin: (usuarioArmazenado as any).isAdmin,
           });
         }
       } catch (erro) {

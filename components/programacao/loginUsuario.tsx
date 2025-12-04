@@ -1,17 +1,17 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useAuth } from '../../services/auth/context';
 import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
@@ -47,10 +47,14 @@ export default function LoginUsuario({
       if (resultado.usuario) {
         // Salvar usuário logado no context e localStorage
         definirUsuario(resultado.usuario);
+
+        // Mantém informações de papel/admin retornadas pela API, se existirem
         await authStorage.salvarUsuario({
           id: resultado.usuario.id,
           email: resultado.usuario.email,
-          token: resultado.usuario.token
+          token: resultado.usuario.token,
+          role: (resultado.usuario as any).role,
+          isAdmin: (resultado.usuario as any).isAdmin,
         }, resultado.usuario.token);
         
         onLoginSucesso?.();
@@ -61,7 +65,7 @@ export default function LoginUsuario({
     } catch (erro: any) {
       if (erro.message === 'FIRST_ACCESS') {
         Alert.alert('Primeiro Acesso', 'Detectado primeiro acesso. Redirecionando...');
-        // Adicione lógica para primeiro acesso se necessário
+        
       } else {
         Alert.alert('Erro', erro.message || 'Erro ao fazer login');
       }

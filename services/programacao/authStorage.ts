@@ -4,6 +4,10 @@ export interface UsuarioArmazenado {
   id: string;
   email: string;
   token?: string;
+  // Papel do usuário (ex: 'admin', 'user', etc.)
+  role?: string;
+  // Flag opcional para facilitar checagens de admin
+  isAdmin?: boolean;
 }
 
 const CHAVE_USUARIO = '@connect_usuario';
