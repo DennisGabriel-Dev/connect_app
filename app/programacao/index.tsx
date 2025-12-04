@@ -11,14 +11,18 @@ import {
   View,
 } from 'react-native';
 import api, { Atividade } from '../../services/programacao/api';
+import { extrairDatasUnicas, filtrarPorDia, filtrarPorTipo, formatarData } from './utils';
 
 export default function TelaProgramacao() {
   const navegador = useRouter();
-  const [, setAtividades] = useState<Atividade[]>([]);
+  const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [atividadesFiltradas, setAtividadesFiltradas] = useState<Atividade[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [filtroSelecionado, setFiltroSelecionado] = useState<string>('Todos');
+  const [filtroDia, setFiltroDia] = useState<string>('Todos os dias');
+  const [filtroTipo, setFiltroTipo] = useState<string>('Todos');
   const [tiposAtividade, setTiposAtividade] = useState<string[]>(['Todos']);
+  const [dropdownAberto, setDropdownAberto] = useState(false);
+  const [datasUnicas, setDatasUnicas] = useState<string[]>([]);
 
   useEffect(() => {
     const carregarAtividades = async () => {
@@ -42,7 +46,10 @@ export default function TelaProgramacao() {
           tiposOrdenados.push('Outro');
         }
         
-        setTiposAtividade(['Todos', 'Dia 1', 'Dia 2', ...tiposOrdenados]);
+        setTiposAtividade(['Todos', ...tiposOrdenados]);
+
+        const datas = extrairDatasUnicas(dados);
+        setDatasUnicas(datas);
       } catch (erro) {
         console.error('Erro ao carregar atividades:', erro);
       } finally {
@@ -53,27 +60,22 @@ export default function TelaProgramacao() {
     carregarAtividades();
   }, []);
 
-  const filtrarAtividades = async (tipo: string) => {
-    setFiltroSelecionado(tipo);
-    setCarregando(true);
+  const aplicarFiltros = (dia: string, tipo: string) => {
+    let dadosFiltrados = filtrarPorTipo(atividades, tipo);
+    const diaFiltro = dia === 'Todos os dias' ? 'Todos' : dia;
+    dadosFiltrados = filtrarPorDia(dadosFiltrados, diaFiltro, datasUnicas);
+    setAtividadesFiltradas(dadosFiltrados);
+  };
 
-    try {
-      if (tipo === 'Todos') {
-        const dados = await api.programacao.buscarAtividades();
-        setAtividadesFiltradas(dados);
-      } else if (tipo === 'Dia 1' || tipo === 'Dia 2') {
-        // Filtro mockado por dia - implementar lógica real depois
-        const dados = await api.programacao.buscarAtividades();
-        setAtividadesFiltradas(dados);
-      } else {
-        const dados = await api.programacao.buscarAtividades(tipo);
-        setAtividadesFiltradas(dados);
-      }
-    } catch (erro) {
-      console.error('Erro ao filtrar atividades:', erro);
-    } finally {
-      setCarregando(false);
-    }
+  const selecionarDia = (dia: string) => {
+    setFiltroDia(dia);
+    setDropdownAberto(false);
+    aplicarFiltros(dia, filtroTipo);
+  };
+
+  const selecionarTipo = (tipo: string) => {
+    setFiltroTipo(tipo);
+    aplicarFiltros(filtroDia, tipo);
   };
 
   const manipularPressionarAtividade = (atividade: Atividade) => {
@@ -152,18 +154,18 @@ export default function TelaProgramacao() {
     );
   };
 
-  const renderizarFiltro = (tipo: string) => (
+  const renderizarFiltroTipo = (tipo: string) => (
     <TouchableOpacity
       key={tipo}
       style={[
         styles.botaoFiltro,
-        filtroSelecionado === tipo && styles.botaoFiltroAtivo
+        filtroTipo === tipo && styles.botaoFiltroAtivo
       ]}
-      onPress={() => filtrarAtividades(tipo)}
+      onPress={() => selecionarTipo(tipo)}
     >
       <Text style={[
         styles.textoFiltro,
-        filtroSelecionado === tipo && styles.textoFiltroAtivo
+        filtroTipo === tipo && styles.textoFiltroAtivo
       ]}>
         {tipo}
       </Text>
@@ -174,14 +176,49 @@ export default function TelaProgramacao() {
     <>
       <View style={styles.container}>
 
-        {/* Container de Filtros Scrollavel */}
+        {/* Dropdown de Dias */}
+        <View style={styles.containerDropdown}>
+          <TouchableOpacity 
+            style={styles.botaoDropdown}
+            onPress={() => setDropdownAberto(!dropdownAberto)}
+          >
+            <Text style={styles.textoDropdown}>{filtroDia}</Text>
+            <IconSymbol name={dropdownAberto ? "chevron.up" : "chevron.down"} size={16} color="#64748B" />
+          </TouchableOpacity>
+          
+          {dropdownAberto && (
+            <View style={styles.menuDropdown}>
+              <TouchableOpacity
+                style={styles.itemDropdown}
+                onPress={() => selecionarDia('Todos os dias')}
+              >
+                <Text style={[styles.textoItemDropdown, filtroDia === 'Todos os dias' && styles.textoItemDropdownAtivo]}>
+                  Todos os dias
+                </Text>
+              </TouchableOpacity>
+              {datasUnicas.map((data, index) => (
+                <TouchableOpacity
+                  key={data}
+                  style={styles.itemDropdown}
+                  onPress={() => selecionarDia(`Dia ${index + 1}`)}
+                >
+                  <Text style={[styles.textoItemDropdown, filtroDia === `Dia ${index + 1}` && styles.textoItemDropdownAtivo]}>
+                    Dia {index + 1} ({formatarData(data)})
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Container de Filtros de Tipo */}
         <View style={styles.containerFiltrosWrapper}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.containerFiltros}
           >
-            {tiposAtividade.map(renderizarFiltro)}
+            {tiposAtividade.map(renderizarFiltroTipo)}
           </ScrollView>
         </View>
 
@@ -240,8 +277,57 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
 
+  containerDropdown: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 0,
+  },
+  botaoDropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  textoDropdown: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
+  menuDropdown: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  itemDropdown: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  textoItemDropdown: {
+    fontSize: 16,
+    color: '#64748B',
+  },
+  textoItemDropdownAtivo: {
+    color: '#1E88E5',
+    fontWeight: '600',
+  },
   containerFiltrosWrapper: {
     backgroundColor: '#FFFFFF',
+    paddingBottom: 2,
   },
   containerFiltros: {
     flexDirection: 'row',
