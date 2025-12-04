@@ -1,17 +1,18 @@
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useAuth } from '@/services/auth/context';
+import { listarTudo } from '@/services/sorteio/api';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { listarTudo } from '@/services/sorteio/api';
 
 export default function PainelScreen() {
+  const { usuario } = useAuth();
   const { filtros } = useLocalSearchParams();
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +34,19 @@ export default function PainelScreen() {
       carregar({});
     }
   }, [filtros]);
+
+  const isAdmin = usuario?.role === 'admin' || usuario?.isAdmin === true;
+
+  // Guardão simples no cliente: impede acesso direto via rota se não for admin
+  if (!isAdmin) {
+    return (
+      <View style={styles.screenContainer}>
+        <Text style={styles.errorText}>
+          Você não tem permissão para acessar este painel.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screenContainer}>
