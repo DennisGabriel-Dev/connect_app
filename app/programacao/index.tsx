@@ -73,6 +73,19 @@ export default function TelaProgramacao() {
     aplicarFiltros(dia, filtroTipo);
   };
 
+  const obterTextoDropdown = () => {
+    if (filtroDia === 'Todos os dias') return filtroDia;
+    
+    const indiceDia = parseInt(filtroDia.replace('Dia ', '')) - 1;
+    const data = datasUnicas[indiceDia];
+    
+    if (data) {
+      return `${filtroDia} - ${formatarData(data)}`;
+    }
+    
+    return filtroDia;
+  };
+
   const selecionarTipo = (tipo: string) => {
     setFiltroTipo(tipo);
     aplicarFiltros(filtroDia, tipo);
@@ -182,7 +195,7 @@ export default function TelaProgramacao() {
             style={styles.botaoDropdown}
             onPress={() => setDropdownAberto(!dropdownAberto)}
           >
-            <Text style={styles.textoDropdown}>{filtroDia}</Text>
+            <Text style={styles.textoDropdown}>{obterTextoDropdown()}</Text>
             <IconSymbol name={dropdownAberto ? "chevron.up" : "chevron.down"} size={16} color="#64748B" />
           </TouchableOpacity>
           
@@ -203,7 +216,7 @@ export default function TelaProgramacao() {
                   onPress={() => selecionarDia(`Dia ${index + 1}`)}
                 >
                   <Text style={[styles.textoItemDropdown, filtroDia === `Dia ${index + 1}` && styles.textoItemDropdownAtivo]}>
-                    Dia {index + 1} ({formatarData(data)})
+                    Dia {index + 1} - {formatarData(data)}
                   </Text>
                 </TouchableOpacity>
               ))}

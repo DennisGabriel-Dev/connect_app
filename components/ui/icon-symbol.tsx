@@ -36,6 +36,7 @@ const MAPPING = {
   'hourglass': 'hourglass-empty',
   'clock.fill': 'schedule',
   'arrow.right.square.fill': 'logout',
+  'questionmark.diamond.fill': 'help',
 } as IconMapping;
 
 /** 
