@@ -1,3 +1,4 @@
+import { HeaderTela } from '@/components/shared/HeaderTela';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/services/auth/context';
 import { buscarQuizzesStatus } from '@/services/quiz/api';
@@ -6,13 +7,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Stack, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 function formatarData(dataString: string | null) {
@@ -94,6 +95,7 @@ export default function MeusQuizzesScreen() {
 
   return (
     <>
+     <HeaderTela titulo='Meus Quizzes'/>
       <Stack.Screen options={{ title: 'Meus Quizzes' }} />
       <FlatList
         data={quizzes}

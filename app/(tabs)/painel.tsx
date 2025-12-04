@@ -4,6 +4,7 @@ import { listarTudo } from '@/services/sorteio/api';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     FlatList,
     StyleSheet,
     Text,
@@ -62,36 +63,43 @@ export default function PainelScreen() {
       </View>
 
       {/* Lista de usuários */}
-      <FlatList
-        data={usuarios}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: '/sorteio/details',
-                params: { data: JSON.stringify(item) },
-              })
-            }
-            style={styles.card}
-          >
-            <Text style={styles.cardTitle}>{item.nome}</Text>
-            <Text style={styles.cardEmail}>{item.email}</Text>
+      {loading ? (
+        <View style={styles.containerCarregando}>
+          <ActivityIndicator size="large" color="#1E88E5" />
+          <Text style={styles.textoCarregando}>Carregando usuários...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={usuarios}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: '/sorteio/details',
+                  params: { data: JSON.stringify(item) },
+                })
+              }
+              style={styles.card}
+            >
+              <Text style={styles.cardTitle}>{item.nome}</Text>
+              <Text style={styles.cardEmail}>{item.email}</Text>
 
-            <View style={styles.statsContainer}>
-              <Text style={styles.statText}>Feedbacks: {item.feedbacks}</Text>
-              <Text style={styles.statText}>Perguntas: {item.perguntas}</Text>
-              <Text style={styles.statText}>Votos: {item.votosPerguntas}</Text>
-              <Text style={styles.statText}>Presenças: {item.presencas}</Text>
-              <Text style={styles.totalScore}>
-                Pontuação total: {item.scoreTotal}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+              <View style={styles.statsContainer}>
+                <Text style={styles.statText}>Feedbacks: {item.feedbacks}</Text>
+                <Text style={styles.statText}>Perguntas: {item.perguntas}</Text>
+                <Text style={styles.statText}>Votos: {item.votosPerguntas}</Text>
+                <Text style={styles.statText}>Presenças: {item.presencas}</Text>
+                <Text style={styles.totalScore}>
+                  Pontuação total: {item.scoreTotal}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -174,6 +182,16 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     textAlign: 'center',
     fontWeight: '600',
+  },
+  containerCarregando: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  textoCarregando: {
+    marginTop: 16,
+    color: '#64748B',
+    fontSize: 16,
   },
 });
 
