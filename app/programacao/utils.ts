@@ -49,6 +49,7 @@ export function formatarData(data: string): string {
   return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
 }
 
+export default {extrairDatasUnicas, filtrarPorDia, filtrarPorTipo, formatarData}
 /*
  ex:
 "2025-12-12T19:00:00",  -->  Dia 1

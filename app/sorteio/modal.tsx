@@ -332,7 +332,8 @@ export default function AdminFiltersModal() {
         style={{
           flexDirection: 'row',
           gap: 12,
-          paddingVertical: 12,
+          paddingVertical: 4,
+          marginBottom: 42
         }}
       >
         <TouchableOpacity
