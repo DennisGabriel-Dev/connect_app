@@ -194,7 +194,8 @@ export default function TelaAvaliarPalestra() {
     <KeyboardAvoidingView 
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+      >
+      <HeaderTela titulo='Avaliar Atividade'/>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -212,7 +213,6 @@ export default function TelaAvaliarPalestra() {
             <Text style={styles.tituloHeader}>Avaliar Palestra</Text>
           </View>
         </View> */}
-         <HeaderTela titulo='Avaliar Atividade'/>
 
         <View style={styles.cardPalestra}>
           <Text style={styles.tituloPalestra}>{palestra.titulo}</Text>
@@ -324,6 +324,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+    paddingBottom: 20
   },
   scrollView: {
     flex: 1,

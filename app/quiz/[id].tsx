@@ -150,8 +150,11 @@ export default function TelaQuiz() {
     quiz.perguntas.every(p => respostasUsuario[p.id] !== undefined);
 
   return (
+    <>
+   
+    <HeaderTela titulo="Teste seu conhecimento" />
+    
     <SafeAreaView style={styles.safeArea}>
-      <HeaderTela titulo="Teste seu conhecimento" />
 
       <View style={styles.quizHeader}>
         <Text style={styles.quizTitle}>{quiz.titulo}</Text>
@@ -220,6 +223,7 @@ export default function TelaQuiz() {
           {
             backgroundColor: !todasRespondidas || enviando ? '#9ca3af' : '#2563eb',
             opacity: !todasRespondidas || enviando ? 0.6 : 1,
+            
           },
         ]}
       >
@@ -228,11 +232,12 @@ export default function TelaQuiz() {
         </Text>
       </TouchableOpacity>
     </SafeAreaView>
+     </>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
+  safeArea: { flex: 1, backgroundColor: '#fff', paddingBottom: 8 },
   quizHeader: { marginBottom: 24, paddingHorizontal: 16 },
   quizTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
   quizProgress: { fontSize: 14, color: '#6b7280' },
