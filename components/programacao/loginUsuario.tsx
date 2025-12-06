@@ -30,8 +30,27 @@ export default function LoginUsuario({
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [mostrarPerfilForm, setMostrarPerfilForm] = useState(false);
+  const [usuarioLogadoId, setUsuarioLogadoId] = useState<string>('');
   const router = useRouter();
   const { definirUsuario } = useAuth();
+
+  const finalizarLogin = async (usuario: any) => {
+    // Salvar usuário logado no context e localStorage
+    definirUsuario(usuario);
+    
+    // Mantém informações de papel/admin retornadas pela API, se existirem
+    await authStorage.salvarUsuario({
+      id: usuario.id,
+      email: usuario.email,
+      token: usuario.token,
+      role: usuario.role,
+      isAdmin: usuario.isAdmin,
+    }, usuario.token);
+    
+    onLoginSucesso?.();
+    router.replace('/(tabs)');
+  };
 
   const manipularLogin = async () => {
     if (!email || !senha) {
@@ -45,20 +64,15 @@ export default function LoginUsuario({
       const resultado = await apiAuth.login(credenciais);
 
       if (resultado.usuario) {
-        // Salvar usuário logado no context e localStorage
-        definirUsuario(resultado.usuario);
-
-        // Mantém informações de papel/admin retornadas pela API, se existirem
-        await authStorage.salvarUsuario({
-          id: resultado.usuario.id,
-          email: resultado.usuario.email,
-          token: resultado.usuario.token,
-          role: (resultado.usuario as any).role,
-          isAdmin: (resultado.usuario as any).isAdmin,
-        }, resultado.usuario.token);
-        
-        onLoginSucesso?.();
-        router.replace('/(tabs)');
+        // Verifica se o perfil está completo
+        if (resultado.usuario.perfilCompleto === false) {
+          // Perfil incompleto, mostra formulário
+          setUsuarioLogadoId(resultado.usuario.id);
+          setMostrarPerfilForm(true);
+        } else {
+          // Perfil completo, prossegue normalmente
+          await finalizarLogin(resultado.usuario);
+        }
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
@@ -77,6 +91,26 @@ export default function LoginUsuario({
   const irParaCadastro = () => {
     onAlternarParaCadastro?.();
   };
+  // Função para completar o perfil
+  const handlePerfilCompleto = async () => {
+    // Após completar o perfil, salva usuário no storage
+    const resultado = await apiAuth.login({ email, senha });
+    
+    if (resultado.usuario) {
+      await finalizarLogin(resultado.usuario);
+    }
+  };
+
+  // Se o login foi bem-sucedido mas perfil incompleto, mostra formulário
+  if (mostrarPerfilForm && usuarioLogadoId) {
+    const PerfilForm = require('./perfilForm').default;
+    return (
+      <PerfilForm 
+        usuarioId={usuarioLogadoId} 
+        onPerfilCompleto={handlePerfilCompleto}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
