@@ -2,7 +2,7 @@
   "expo": {
     "name": "Connect",
     "slug": "connect_app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/logo-connect-apk.png",
     "scheme": "connectapp",
@@ -33,12 +33,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png", // logo do primeiro carregamento
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff", // fundo com aparelho no modo claro
+          "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#ffffff" // fundo com aparelho no modo escuro - antes era #000000
+            "backgroundColor": "#ffffff"
           }
         }
       ]
@@ -52,6 +52,12 @@
       "eas": {
         "projectId": "0730a914-5047-49c3-a3c4-ed7df2be375a"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0730a914-5047-49c3-a3c4-ed7df2be375a"
     }
   }
 }
