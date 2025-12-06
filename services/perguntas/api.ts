@@ -1,7 +1,9 @@
 import axios from 'axios';
-import { CriarPerguntaDTO, Pergunta } from './types';
+import { CriarPerguntaDTO, Pergunta, StatusPergunta } from './types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const URL_BASE_API = `${process.env.EXPO_PUBLIC_API_BASE_URL}/perguntas`;
+const STORAGE_KEY_CURTIDAS = '@perguntas:curtidas_usuario';
 
 // Interface para o formato retornado pelo backend
 interface PerguntaBackend {
@@ -37,6 +39,7 @@ function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pe
     descricao: descricao.trim(),
     votos: perguntaBackend.curtidas || 0,
     usuariosVotaram: [], // O backend não tem esse campo ainda
+    status: StatusPergunta.PENDENTE, // Status padrão para perguntas do backend antigo
     respondida: perguntaBackend.respondida || false,
     resposta: perguntaBackend.resposta,
     dataResposta: perguntaBackend.dataResposta,
@@ -136,6 +139,104 @@ export const perguntasApi = {
       return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao responder pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Gerenciamento de curtidas locais (máximo 3 perguntas diferentes)
+  async obterCurtidasUsuario(usuarioId: string): Promise<string[]> {
+    try {
+      const key = `${STORAGE_KEY_CURTIDAS}:${usuarioId}`;
+      const curtidas = await AsyncStorage.getItem(key);
+      return curtidas ? JSON.parse(curtidas) : [];
+    } catch (error) {
+      console.error('Erro ao obter curtidas do usuário:', error);
+      return [];
+    }
+  },
+
+  async adicionarCurtida(usuarioId: string, perguntaId: string): Promise<boolean> {
+    try {
+      const curtidas = await this.obterCurtidasUsuario(usuarioId);
+      
+      // Verificar se já curtiu esta pergunta
+      if (curtidas.includes(perguntaId)) {
+        return false;
+      }
+      
+      // Verificar limite de 3 curtidas
+      if (curtidas.length >= 3) {
+        throw new Error('Você já atingiu o limite de 3 curtidas em perguntas diferentes');
+      }
+      
+      const novasCurtidas = [...curtidas, perguntaId];
+      const key = `${STORAGE_KEY_CURTIDAS}:${usuarioId}`;
+      await AsyncStorage.setItem(key, JSON.stringify(novasCurtidas));
+      return true;
+    } catch (error) {
+      console.error('Erro ao adicionar curtida:', error);
+      throw error;
+    }
+  },
+
+  async removerCurtida(usuarioId: string, perguntaId: string): Promise<void> {
+    try {
+      const curtidas = await this.obterCurtidasUsuario(usuarioId);
+      const novasCurtidas = curtidas.filter(id => id !== perguntaId);
+      const key = `${STORAGE_KEY_CURTIDAS}:${usuarioId}`;
+      await AsyncStorage.setItem(key, JSON.stringify(novasCurtidas));
+    } catch (error) {
+      console.error('Erro ao remover curtida:', error);
+      throw error;
+    }
+  },
+
+  async verificarPodeCurtir(usuarioId: string, perguntaId: string): Promise<{ pode: boolean; jaCurtiu: boolean; motivo?: string }> {
+    try {
+      const curtidas = await this.obterCurtidasUsuario(usuarioId);
+      const jaCurtiu = curtidas.includes(perguntaId);
+      
+      if (jaCurtiu) {
+        return { pode: true, jaCurtiu: true }; // Pode descurtir
+      }
+      
+      if (curtidas.length >= 3) {
+        return { 
+          pode: false, 
+          jaCurtiu: false, 
+          motivo: 'Você já curtiu 3 perguntas diferentes. Remova uma curtida antes de adicionar outra.' 
+        };
+      }
+      
+      return { pode: true, jaCurtiu: false };
+    } catch (error) {
+      console.error('Erro ao verificar se pode curtir:', error);
+      return { pode: false, jaCurtiu: false, motivo: 'Erro ao verificar curtidas' };
+    }
+  },
+
+  // Aprovar pergunta (admin)
+  async aprovarPergunta(perguntaId: string): Promise<Pergunta> {
+    try {
+      // Como o backend não tem endpoint específico, vamos simular localmente
+      const pergunta = await this.buscarPerguntaPorId(perguntaId);
+      pergunta.status = StatusPergunta.APROVADA;
+      return pergunta;
+    } catch (error) {
+      console.error('Erro ao aprovar pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Rejeitar pergunta (admin)
+  async rejeitarPergunta(perguntaId: string): Promise<Pergunta> {
+    try {
+      // Como o backend não tem endpoint específico, vamos simular localmente
+      const pergunta = await this.buscarPerguntaPorId(perguntaId);
+      pergunta.status = StatusPergunta.REJEITADA;
+      return pergunta;
+    } catch (error) {
+      console.error('Erro ao rejeitar pergunta:', error);
       throw error;
     }
   },

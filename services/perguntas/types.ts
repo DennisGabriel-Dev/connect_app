@@ -1,4 +1,10 @@
 // Tipos TypeScript para perguntas
+export enum StatusPergunta {
+  PENDENTE = 'pendente',
+  APROVADA = 'aprovada',
+  REJEITADA = 'rejeitada'
+}
+
 export interface Pergunta {
   id: string;
   palestraId: string;
@@ -8,6 +14,7 @@ export interface Pergunta {
   descricao: string;
   votos: number;
   usuariosVotaram: string[];
+  status: StatusPergunta;
   respondida: boolean;
   resposta?: string;
   dataResposta?: string;
@@ -25,4 +32,9 @@ export interface CriarPerguntaDTO {
 export interface VotarPerguntaDTO {
   perguntaId: string;
   usuarioId: string;
+}
+
+export interface AprovarRejeitarPerguntaDTO {
+  perguntaId: string;
+  status: StatusPergunta;
 }
