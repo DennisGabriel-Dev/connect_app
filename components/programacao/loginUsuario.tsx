@@ -1,17 +1,17 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../../services/auth/context';
 import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
@@ -104,7 +104,7 @@ export default function LoginUsuario({
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              style={styles.input}
+              style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -113,7 +113,7 @@ export default function LoginUsuario({
               value={senha}
               onChangeText={setSenha}
               secureTextEntry
-              style={styles.input}
+              style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -204,11 +204,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     fontSize: 16,
     backgroundColor: '#FFFFFF',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
   },
   botao: {
     padding: 18,
