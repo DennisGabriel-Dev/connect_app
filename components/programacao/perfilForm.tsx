@@ -27,14 +27,22 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
 
   // Opções de turmas disponíveis
   const turmasDisponiveis = [
-    '2023.1',
-    '2023.2',
-    '2024.1',
-    '2024.2',
-    '2025.1',
-    '2025.2',
-    '2026.1',
-    '2026.2',
+    '1 TDS - Matutino',
+    '1 ADM - Matutino',
+    '2 AUT - Matutino',
+    '2 TI - Matutino',
+    '3 TI - Matutino',
+    '3 ADM - Matutino',
+    '1 AUT - Vespertino',
+    '2 ADM - Vespertino',
+    '3 TI A - Vespertino',
+    '3 TI B - Vespertino',
+    'ADS - Módulo IV',
+    'ADS - Módulo V',
+    'ADM - Módulo V',
+    'ADM - Módulo IX',
+    'PROEJA',
+    'AUT SUB',
   ];
 
   const selecionarTurma = (turmaSelecionada: string) => {
