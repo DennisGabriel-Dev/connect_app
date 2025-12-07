@@ -192,7 +192,7 @@ export default function CadastroUsuario({
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              style={styles.input}
+               style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -201,7 +201,7 @@ export default function CadastroUsuario({
               value={senha}
               onChangeText={setSenha}
               secureTextEntry
-              style={styles.input}
+              style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -210,7 +210,7 @@ export default function CadastroUsuario({
               value={confirmarSenha}
               onChangeText={setConfirmarSenha}
               secureTextEntry
-              style={styles.input}
+               style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -327,11 +327,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     fontSize: 16,
     backgroundColor: '#FFFFFF',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
   },
   dicasSenha: {
     marginBottom: 24,

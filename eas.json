@@ -9,21 +9,21 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://connect.coupons/api/v1",
-        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/conectfake-661948/"
+        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/connect2025-665343/"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://connect.coupons/api/v1",
-        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/conectfake-661948/"
+        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/connect2025-665343/"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://connect.coupons/api/v1",
-        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/conectfake-661948/"
+        "EXPO_PUBLIC_URL_EVEN": "https://www.even3.com.br/connect2025-665343/"
       }
     }
   },
