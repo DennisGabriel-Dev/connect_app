@@ -9,7 +9,9 @@ import {
   View,
   ScrollView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Modal,
+  FlatList
 } from 'react-native';
 
 interface PerfilFormProps {
@@ -21,6 +23,24 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
   const [tipoUsuario, setTipoUsuario] = useState<string>('');
   const [turma, setTurma] = useState<string>('');
   const [carregando, setCarregando] = useState(false);
+  const [modalVisivel, setModalVisivel] = useState(false);
+
+  // Opções de turmas disponíveis
+  const turmasDisponiveis = [
+    '2023.1',
+    '2023.2',
+    '2024.1',
+    '2024.2',
+    '2025.1',
+    '2025.2',
+    '2026.1',
+    '2026.2',
+  ];
+
+  const selecionarTurma = (turmaSelecionada: string) => {
+    setTurma(turmaSelecionada);
+    setModalVisivel(false);
+  };
 
   const handleSubmit = async () => {
     if (!tipoUsuario) {
@@ -28,8 +48,8 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
       return;
     }
 
-    if (tipoUsuario === 'discente' && !turma.trim()) {
-      Alert.alert('Erro', 'Por favor, informe a turma');
+    if (tipoUsuario === 'discente' && !turma) {
+      Alert.alert('Erro', 'Por favor, selecione a turma');
       return;
     }
 
@@ -38,7 +58,7 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
       const { apiPerfil } = await import('../../services/perfil/api');
       await apiPerfil.atualizarPerfil(usuarioId, {
         tipoUsuario,
-        turma: tipoUsuario === 'discente' ? turma.trim() : undefined
+        turma: tipoUsuario === 'discente' ? turma : undefined
       });
 
       Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
@@ -109,14 +129,15 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
           {tipoUsuario === 'discente' && (
             <View style={styles.campoTurma}>
               <Text style={styles.label}>Turma:</Text>
-              <TextInput
-                placeholder="Ex: ADS 2025.2"
-                value={turma}
-                onChangeText={setTurma}
-                style={styles.input}
-                placeholderTextColor="#999"
-                autoCapitalize="words"
-              />
+              <TouchableOpacity 
+                style={styles.selectButton}
+                onPress={() => setModalVisivel(true)}
+              >
+                <Text style={turma ? styles.selectText : styles.selectPlaceholder}>
+                  {turma || 'Selecione a turma...'}
+                </Text>
+                <Text style={styles.selectIcon}>▼</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -133,6 +154,53 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Modal de seleção de turma */}
+      <Modal
+        visible={modalVisivel}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisivel(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setModalVisivel(false)}
+        >
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitulo}>Selecione a Turma</Text>
+              <TouchableOpacity 
+                onPress={() => setModalVisivel(false)}
+                style={styles.modalBotaoFechar}
+              >
+                <Text style={styles.modalTextoFechar}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={turmasDisponiveis}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalOpcao,
+                    turma === item && styles.modalOpcaoSelecionada
+                  ]}
+                  onPress={() => selecionarTurma(item)}
+                >
+                  <Text style={[
+                    styles.modalOpcaoTexto,
+                    turma === item && styles.modalOpcaoTextoSelecionada
+                  ]}>
+                    {item}
+                  </Text>
+                  {turma === item && <Text style={styles.checkmark}>✓</Text>}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -208,19 +276,98 @@ const styles = StyleSheet.create({
   campoTurma: {
     marginTop: 24,
   },
-  input: {
+  selectButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
     padding: 18,
-    marginBottom: 8,
     borderRadius: 12,
-    fontSize: 16,
     backgroundColor: '#FFFFFF',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
+  },
+  selectText: {
+    fontSize: 16,
+    color: '#334155',
+  },
+  selectPlaceholder: {
+    fontSize: 16,
+    color: '#999',
+  },
+  selectIcon: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    maxHeight: '70%',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  modalTitulo: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  modalBotaoFechar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalTextoFechar: {
+    fontSize: 20,
+    color: '#64748B',
+    fontWeight: 'bold',
+  },
+  modalOpcao: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalOpcaoSelecionada: {
+    backgroundColor: '#EBF5FF',
+  },
+  modalOpcaoTexto: {
+    fontSize: 16,
+    color: '#334155',
+  },
+  modalOpcaoTextoSelecionada: {
+    color: '#1E88E5',
+    fontWeight: '600',
+  },
+  checkmark: {
+    fontSize: 20,
+    color: '#1E88E5',
+    fontWeight: 'bold',
   },
   botao: {
     padding: 18,
