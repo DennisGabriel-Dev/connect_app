@@ -28,11 +28,9 @@ export default function PerguntasPalestraScreen() {
   const [novaPerguntaTitulo, setNovaPerguntaTitulo] = useState('');
   const [novaPerguntaDescricao, setNovaPerguntaDescricao] = useState('');
   const [enviando, setEnviando] = useState(false);
-  const [curtidasUsuario, setCurtidasUsuario] = useState<string[]>([]);
 
   useEffect(() => {
     carregarPerguntas();
-    carregarCurtidasUsuario();
   }, [id]);
 
   const carregarPerguntas = async () => {
@@ -40,10 +38,8 @@ export default function PerguntasPalestraScreen() {
       setCarregando(true);
       const dados = await perguntasApi.listarPerguntasPorPalestra(id as string);
       
-      // Filtrar apenas perguntas aprovadas e ordenar por curtidas
-      const perguntasAprovadas = dados
-        .filter(p => p.status === StatusPergunta.APROVADA)
-        .sort((a, b) => b.votos - a.votos);
+      // Filtrar apenas perguntas aprovadas
+      const perguntasAprovadas = dados.filter(p => p.status === StatusPergunta.APROVADA);
       
       setPerguntas(perguntasAprovadas);
     } catch (error) {
@@ -51,64 +47,6 @@ export default function PerguntasPalestraScreen() {
       Alert.alert('Erro', 'Não foi possível carregar as perguntas.');
     } finally {
       setCarregando(false);
-    }
-  };
-
-  const carregarCurtidasUsuario = async () => {
-    if (!usuario?.id) return;
-    try {
-      const curtidas = await perguntasApi.obterCurtidasUsuario(usuario.id);
-      setCurtidasUsuario(curtidas);
-    } catch (error) {
-      console.error('Erro ao carregar curtidas:', error);
-    }
-  };
-
-  const handleCurtir = async (pergunta: Pergunta) => {
-    if (!usuario?.id) {
-      Alert.alert('Erro', 'Você precisa estar logado para curtir perguntas.');
-      return;
-    }
-
-    try {
-      const jaCurtiu = curtidasUsuario.includes(pergunta.id);
-
-      if (jaCurtiu) {
-        // Remover curtida
-        await perguntasApi.removerCurtida(usuario.id, pergunta.id);
-        await perguntasApi.removerVoto(pergunta.id, usuario.id);
-        
-        // Atualizar estado local
-        setCurtidasUsuario((prev: string[]) => prev.filter((id: string) => id !== pergunta.id));
-        setPerguntas((prev: Pergunta[]) =>
-          prev
-            .map((p: Pergunta) => (p.id === pergunta.id ? { ...p, votos: p.votos - 1 } : p))
-            .sort((a: Pergunta, b: Pergunta) => b.votos - a.votos)
-        );
-      } else {
-        // Verificar se pode curtir
-        const { pode, motivo } = await perguntasApi.verificarPodeCurtir(usuario.id, pergunta.id);
-        
-        if (!pode) {
-          Alert.alert('Limite atingido', motivo || 'Você não pode curtir mais perguntas.');
-          return;
-        }
-
-        // Adicionar curtida
-        await perguntasApi.adicionarCurtida(usuario.id, pergunta.id);
-        await perguntasApi.votarPergunta(pergunta.id, usuario.id);
-        
-        // Atualizar estado local
-        setCurtidasUsuario((prev: string[]) => [...prev, pergunta.id]);
-        setPerguntas((prev: Pergunta[]) =>
-          prev
-            .map((p: Pergunta) => (p.id === pergunta.id ? { ...p, votos: p.votos + 1 } : p))
-            .sort((a: Pergunta, b: Pergunta) => b.votos - a.votos)
-        );
-      }
-    } catch (error: any) {
-      console.error('Erro ao curtir pergunta:', error);
-      Alert.alert('Erro', error.message || 'Não foi possível registrar sua curtida.');
     }
   };
 
@@ -151,15 +89,9 @@ export default function PerguntasPalestraScreen() {
     }
   };
 
-  const renderPergunta = ({ item, index }: { item: Pergunta; index: number }) => {
-    const jaCurtiu = curtidasUsuario.includes(item.id);
-
+  const renderPergunta = ({ item }: { item: Pergunta }) => {
     return (
       <View style={styles.perguntaCard}>
-        <View style={styles.rankingBadge}>
-          <Text style={styles.rankingTexto}>#{index + 1}</Text>
-        </View>
-
         <View style={styles.perguntaHeader}>
           <Text style={styles.perguntaTitulo}>{item.titulo}</Text>
           <View style={styles.autorInfo}>
@@ -172,28 +104,12 @@ export default function PerguntasPalestraScreen() {
           <Text style={styles.perguntaDescricao}>{item.descricao}</Text>
         )}
 
-        <View style={styles.perguntaFooter}>
-          <TouchableOpacity
-            style={[styles.botaoCurtir, jaCurtiu && styles.botaoCurtido]}
-            onPress={() => handleCurtir(item)}
-          >
-            <IconSymbol
-              name={jaCurtiu ? 'heart.fill' : 'heart'}
-              size={20}
-              color={jaCurtiu ? '#E53E3E' : '#666'}
-            />
-            <Text style={[styles.curtidasTexto, jaCurtiu && styles.curtidasTextoCurtido]}>
-              {item.votos}
-            </Text>
-          </TouchableOpacity>
-
-          {item.respondida && item.resposta && (
-            <View style={styles.respostaContainer}>
-              <Text style={styles.respostaLabel}>Resposta:</Text>
-              <Text style={styles.respostaTexto}>{item.resposta}</Text>
-            </View>
-          )}
-        </View>
+        {item.respondida && item.resposta && (
+          <View style={styles.respostaContainer}>
+            <Text style={styles.respostaLabel}>Resposta:</Text>
+            <Text style={styles.respostaTexto}>{item.resposta}</Text>
+          </View>
+        )}
       </View>
     );
   };
@@ -211,15 +127,6 @@ export default function PerguntasPalestraScreen() {
   return (
     <View style={styles.container}>
       <HeaderTela titulo="Perguntas da Palestra" onVoltar={() => router.back()} />
-
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoTexto}>
-          Você pode curtir até 3 perguntas diferentes
-        </Text>
-        <Text style={styles.infoContador}>
-          {curtidasUsuario.length}/3 curtidas usadas
-        </Text>
-      </View>
 
       {carregando ? (
         <View style={styles.loadingContainer}>
@@ -316,25 +223,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  infoContainer: {
-    backgroundColor: '#EBF8FF',
-    padding: 12,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#1E88E5',
-  },
-  infoTexto: {
-    fontSize: 14,
-    color: '#2C5282',
-    marginBottom: 4,
-  },
-  infoContador: {
-    fontSize: 12,
-    color: '#2C5282',
-    fontWeight: '600',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -360,23 +248,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  rankingBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#1E88E5',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  rankingTexto: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
   perguntaHeader: {
     marginBottom: 8,
-    paddingRight: 50,
   },
   perguntaTitulo: {
     fontSize: 16,
@@ -398,34 +271,6 @@ const styles = StyleSheet.create({
     color: '#4A5568',
     marginBottom: 12,
     lineHeight: 20,
-  },
-  perguntaFooter: {
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingTop: 12,
-  },
-  botaoCurtir: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignSelf: 'flex-start',
-  },
-  botaoCurtido: {
-    backgroundColor: '#FFF5F5',
-    borderColor: '#FEB2B2',
-  },
-  curtidasTexto: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '600',
-  },
-  curtidasTextoCurtido: {
-    color: '#E53E3E',
   },
   respostaContainer: {
     marginTop: 12,
