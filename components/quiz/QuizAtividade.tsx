@@ -5,20 +5,23 @@ import { QuizResumido, buscarQuizPorAtividade } from '../../services/quiz/api';
 
 interface QuizAtividadeProps {
   atividadeId: string;
+  presencaConfirmada?: boolean;
 }
 
-const QuizAtividade: React.FC<QuizAtividadeProps> = ({ atividadeId }) => {
+const QuizAtividade: React.FC<QuizAtividadeProps> = ({ atividadeId, presencaConfirmada }) => {
   const navegador = useRouter();
   const [quiz, setQuiz] = useState<QuizResumido | null>(null);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     carregarQuizAtividade();
-  }, [atividadeId]);
+  }, [atividadeId, presencaConfirmada]);
 
   async function carregarQuizAtividade() {
     try {
-      setCarregando(true);
+
+      if (!quiz) setCarregando(true);
+
       const dados = await buscarQuizPorAtividade(atividadeId);
       setQuiz(dados);
     } catch (erro) {

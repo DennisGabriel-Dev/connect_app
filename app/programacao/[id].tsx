@@ -211,7 +211,7 @@ export default function TelaDetalheProgramacao() {
 
         {/* Quiz específico da atividade */}
         <View style={{ marginTop: 2, marginBottom: 10 }}>
-          <QuizAtividade atividadeId={atividade.id} />
+          <QuizAtividade atividadeId={atividade.id} presencaConfirmada={presencaRegistrada} />
         </View>
 
         <View style={styles.espacador} />
