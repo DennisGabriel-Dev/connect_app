@@ -9,6 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
+  FlatList,
 } from 'react-native';
 
 export default function AdminFiltersModal() {
@@ -23,6 +25,31 @@ export default function AdminFiltersModal() {
   const [nomeContains, setNomeContains] = useState('');
   const [atividadeNome, setAtividadeNome] = useState('');
   const [palestraNome, setPalestraNome] = useState('');
+  
+  // FILTROS DE TIPO E TURMA
+  const [tipoUsuario, setTipoUsuario] = useState<string>('');
+  const [turma, setTurma] = useState<string>('');
+  const [modalTurmaVisivel, setModalTurmaVisivel] = useState(false);
+
+  // Lista de turmas disponíveis
+  const turmasDisponiveis = [
+    '1 TDS - Matutino',
+    '1 ADM - Matutino',
+    '2 AUT - Matutino',
+    '2 TI - Matutino',
+    '3 TI - Matutino',
+    '3 ADM - Matutino',
+    '1 AUT - Vespertino',
+    '2 ADM - Vespertino',
+    '3 TI A - Vespertino',
+    '3 TI B - Vespertino',
+    'ADS - Módulo IV',
+    'ADS - Módulo V',
+    'ADM - Módulo V',
+    'ADM - Módulo IX',
+    'PROEJA',
+    'AUT SUB',
+  ];
 
   async function handleApply() {
     const filtros = {
@@ -37,6 +64,8 @@ export default function AdminFiltersModal() {
       nomeContains: nomeContains.trim() || undefined,
       atividadeNome: atividadeNome.trim() || undefined,
       palestraNome: palestraNome.trim() || undefined,
+      tipoUsuario: tipoUsuario || undefined,
+      turma: turma || undefined,
     };
 
     router.push({
@@ -55,6 +84,8 @@ export default function AdminFiltersModal() {
     setNomeContains('');
     setAtividadeNome('');
     setPalestraNome('');
+    setTipoUsuario('');
+    setTurma('');
   }
 
   return (
@@ -280,6 +311,190 @@ export default function AdminFiltersModal() {
           </View>
         </View>
 
+        {/* Tipo de Usuário */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Tipo de Usuário</Text>
+          <Text style={{ color: '#6B7280', marginBottom: 6 }}>
+            Filtrar por tipo de participante.
+          </Text>
+          
+          <View style={{ gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => {
+                setTipoUsuario('');
+                setTurma('');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 12,
+                borderRadius: 8,
+                backgroundColor: tipoUsuario === '' ? '#EBF5FF' : '#F9FAFB',
+                borderWidth: 1,
+                borderColor: tipoUsuario === '' ? '#1E88E5' : '#E5E7EB',
+              }}
+            >
+              <View style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: tipoUsuario === '' ? '#1E88E5' : '#94A3B8',
+                marginRight: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                {tipoUsuario === '' && (
+                  <View style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: '#1E88E5',
+                  }} />
+                )}
+              </View>
+              <Text style={{ color: '#111827', fontSize: 15 }}>Todos os tipos</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setTipoUsuario('publico_externo');
+                setTurma('');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 12,
+                borderRadius: 8,
+                backgroundColor: tipoUsuario === 'publico_externo' ? '#EBF5FF' : '#F9FAFB',
+                borderWidth: 1,
+                borderColor: tipoUsuario === 'publico_externo' ? '#1E88E5' : '#E5E7EB',
+              }}
+            >
+              <View style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: tipoUsuario === 'publico_externo' ? '#1E88E5' : '#94A3B8',
+                marginRight: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                {tipoUsuario === 'publico_externo' && (
+                  <View style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: '#1E88E5',
+                  }} />
+                )}
+              </View>
+              <Text style={{ color: '#111827', fontSize: 15 }}>Público Externo</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setTipoUsuario('docente');
+                setTurma('');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 12,
+                borderRadius: 8,
+                backgroundColor: tipoUsuario === 'docente' ? '#EBF5FF' : '#F9FAFB',
+                borderWidth: 1,
+                borderColor: tipoUsuario === 'docente' ? '#1E88E5' : '#E5E7EB',
+              }}
+            >
+              <View style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: tipoUsuario === 'docente' ? '#1E88E5' : '#94A3B8',
+                marginRight: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                {tipoUsuario === 'docente' && (
+                  <View style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: '#1E88E5',
+                  }} />
+                )}
+              </View>
+              <Text style={{ color: '#111827', fontSize: 15 }}>Docente</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setTipoUsuario('discente')}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 12,
+                borderRadius: 8,
+                backgroundColor: tipoUsuario === 'discente' ? '#EBF5FF' : '#F9FAFB',
+                borderWidth: 1,
+                borderColor: tipoUsuario === 'discente' ? '#1E88E5' : '#E5E7EB',
+              }}
+            >
+              <View style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: tipoUsuario === 'discente' ? '#1E88E5' : '#94A3B8',
+                marginRight: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                {tipoUsuario === 'discente' && (
+                  <View style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: '#1E88E5',
+                  }} />
+                )}
+              </View>
+              <Text style={{ color: '#111827', fontSize: 15 }}>Discente</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Turma - aparece apenas quando discente */}
+        {tipoUsuario === 'discente' && (
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ fontWeight: '600', marginBottom: 4 }}>Turma</Text>
+            <Text style={{ color: '#6B7280', marginBottom: 6 }}>
+              Filtrar por turma específica.
+            </Text>
+            <TouchableOpacity
+              onPress={() => setModalTurmaVisivel(true)}
+              style={{
+                borderWidth: 1,
+                borderColor: '#D1D5DB',
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 12,
+                backgroundColor: '#FFFFFF',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ color: turma ? '#111827' : '#9CA3AF' }}>
+                {turma || 'Selecione a turma...'}
+              </Text>
+              <Text style={{ color: '#6B7280' }}>▼</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Período */}
         <View style={{ marginBottom: 16 }}>
           <Text style={{ fontWeight: '600', marginBottom: 4 }}>Período da atividade</Text>
@@ -365,6 +580,97 @@ export default function AdminFiltersModal() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modal de seleção de turma */}
+      <Modal
+        visible={modalTurmaVisivel}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalTurmaVisivel(false)}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          activeOpacity={1}
+          onPress={() => setModalTurmaVisivel(false)}
+        >
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 16,
+              maxHeight: '70%',
+              elevation: 5,
+            }}
+            onStartShouldSetResponder={() => true}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: '#E2E8F0',
+              }}
+            >
+              <Text style={{ fontSize: 20, fontWeight: '700', color: '#1E293B' }}>
+                Selecione a Turma
+              </Text>
+              <TouchableOpacity
+                onPress={() => setModalTurmaVisivel(false)}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#F1F5F9',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 20, color: '#64748B', fontWeight: 'bold' }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={turmasDisponiveis}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: 18,
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#F1F5F9',
+                    backgroundColor: turma === item ? '#EBF5FF' : '#FFFFFF',
+                  }}
+                  onPress={() => {
+                    setTurma(item);
+                    setModalTurmaVisivel(false);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: turma === item ? '#1E88E5' : '#334155',
+                      fontWeight: turma === item ? '600' : 'normal',
+                    }}
+                  >
+                    {item}
+                  </Text>
+                  {turma === item && (
+                    <Text style={{ fontSize: 20, color: '#1E88E5', fontWeight: 'bold' }}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }

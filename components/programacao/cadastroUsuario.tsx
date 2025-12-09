@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../../services/auth/context';
 import { authStorage } from '../../services/programacao/authStorage';
 
 interface CadastroUsuarioProps {
@@ -30,7 +31,10 @@ export default function CadastroUsuario({
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [mostrarPerfilForm, setMostrarPerfilForm] = useState(false);
+  const [usuarioLogadoId, setUsuarioLogadoId] = useState<string>('');
   const router = useRouter();
+  const { definirUsuario } = useAuth();
 
   const validarCampos = () => {
     if (!email || !senha || !confirmarSenha) {
@@ -57,6 +61,34 @@ export default function CadastroUsuario({
     return true;
   };
 
+  const finalizarCadastro = async (usuario: any) => {
+    // Salvar usuário logado no context e localStorage
+    definirUsuario(usuario);
+    
+    // Mantém informações de papel/admin retornadas pela API, se existirem
+    await authStorage.salvarUsuario({
+      id: usuario.id,
+      email: usuario.email,
+      token: usuario.token,
+      role: usuario.role,
+      isAdmin: usuario.isAdmin,
+    }, usuario.token);
+    
+    onCadastroSucesso?.();
+    router.replace('/(tabs)');
+  };
+
+  // Função para completar o perfil
+  const handlePerfilCompleto = async () => {
+    // Após completar o perfil, faz login para pegar dados atualizados
+    const { apiAuth } = await import('../../services/programacao/api');
+    const resultado = await apiAuth.login({ email, senha });
+    
+    if (resultado.usuario) {
+      await finalizarCadastro(resultado.usuario);
+    }
+  };
+
   const manipularCadastro = async () => {
     if (!validarCampos()) {
       return;
@@ -70,13 +102,19 @@ export default function CadastroUsuario({
 
       if (resultado.message) {
         if (resultado.usuario) {
-          await authStorage.salvarUsuario(
-            { id: resultado.usuario.id, email: resultado.usuario.email },
-            resultado.usuario.token
-          );
+          // Verifica se o perfil está completo
+          if (resultado.usuario.perfilCompleto === false) {
+            // Perfil incompleto, mostra formulário
+            setUsuarioLogadoId(resultado.usuario.id);
+            setMostrarPerfilForm(true);
+          } else {
+            // Perfil completo, prossegue normalmente
+            await finalizarCadastro(resultado.usuario);
+          }
+        } else {
+          onCadastroSucesso?.();
+          router.replace('/(tabs)');
         }
-        onCadastroSucesso?.();
-        router.replace('/(tabs)');
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
@@ -114,6 +152,17 @@ export default function CadastroUsuario({
     onAlternarParaLogin?.();
   };
 
+  // Se o cadastro foi bem-sucedido mas perfil incompleto, mostra formulário
+  if (mostrarPerfilForm && usuarioLogadoId) {
+    const PerfilForm = require('./perfilForm').default;
+    return (
+      <PerfilForm 
+        usuarioId={usuarioLogadoId} 
+        onPerfilCompleto={handlePerfilCompleto}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView
@@ -143,7 +192,7 @@ export default function CadastroUsuario({
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              style={styles.input}
+               style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -152,7 +201,7 @@ export default function CadastroUsuario({
               value={senha}
               onChangeText={setSenha}
               secureTextEntry
-              style={styles.input}
+              style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -161,7 +210,7 @@ export default function CadastroUsuario({
               value={confirmarSenha}
               onChangeText={setConfirmarSenha}
               secureTextEntry
-              style={styles.input}
+               style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -278,11 +327,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     fontSize: 16,
     backgroundColor: '#FFFFFF',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
   },
   dicasSenha: {
     marginBottom: 24,

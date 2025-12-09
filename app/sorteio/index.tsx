@@ -28,7 +28,8 @@ export default function AdminUserListScreen() {
 
   useEffect(() => {
     if (filtros) {
-      carregar(JSON.parse(filtros));
+      const filtrosString = Array.isArray(filtros) ? filtros[0] : filtros;
+      carregar(JSON.parse(filtrosString));
     } else {
       carregar({});
     }
@@ -64,7 +65,7 @@ export default function AdminUserListScreen() {
           Usuários
         </Text>
 
-        
+
 
         <TouchableOpacity
           onPress={() => router.push("/sorteio/modal")}
@@ -107,6 +108,16 @@ export default function AdminUserListScreen() {
               {item.nome}
             </Text>
             <Text style={{ color: "#6B7280" }}>{item.email}</Text>
+
+            {/* Informações de perfil */}
+            {item.tipoUsuario && (
+              <Text style={{ color: "#4B5563", marginTop: 6, fontSize: 13 }}>
+                {item.tipoUsuario === 'publico_externo' && 'Público Externo'}
+                {item.tipoUsuario === 'docente' && 'Docente'}
+                {item.tipoUsuario === 'discente' && 'Discente'}
+                {item.tipoUsuario === 'discente' && item.turma && ` - ${item.turma}`}
+              </Text>
+            )}
 
             <View style={{ marginTop: 10 }}>
               <Text>Feedbacks: {item.feedbacks}</Text>
