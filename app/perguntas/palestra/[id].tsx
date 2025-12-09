@@ -128,6 +128,16 @@ export default function PerguntasPalestraScreen() {
     <View style={styles.container}>
       <HeaderTela titulo="Perguntas da Palestra" onVoltar={() => router.back()} />
 
+      <TouchableOpacity 
+        style={styles.refreshButton}
+        onPress={carregarPerguntas}
+        disabled={carregando}
+      >
+        <Text style={styles.refreshButtonText}>
+          Atualizar
+        </Text>
+      </TouchableOpacity>
+
       {carregando ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E88E5" />
@@ -401,4 +411,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  refreshButton:{
+    borderColor: '#1e88e5', 
+    borderWidth: 2,
+    padding: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16, 
+    marginTop: 10,
+    marginRight: 16,
+  },
+  refreshButtonText:{ 
+    color: '#1e88e5', 
+    fontWeight: 'bold' 
+  }
 });
