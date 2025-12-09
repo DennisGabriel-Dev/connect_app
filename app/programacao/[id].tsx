@@ -191,6 +191,32 @@ export default function TelaDetalheProgramacao() {
           }}
         />
 
+        {/* Botão Perguntas */}
+        <TouchableOpacity
+          style={styles.botaoPerguntas}
+          onPress={() => navegador.push(`/perguntas/palestra/${atividade.id}`)}
+        >
+          <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#1E88E5" />
+          <Text style={styles.textoBotaoPerguntas}>Ver Perguntas</Text>
+        </TouchableOpacity>
+
+        {/* Botão Gerenciar Perguntas - apenas para admin */}
+        {(usuario?.role === 'admin' || usuario?.isAdmin === true) && (
+          <TouchableOpacity
+            style={styles.botaoGerenciarPerguntas}
+            onPress={() => navegador.push({
+              pathname: '/perguntas/admin/gerenciar',
+              params: {
+                palestraId: atividade.id,
+                palestraTitulo: atividade.titulo
+              }
+            })}
+          >
+            <IconSymbol name="checkmark.shield.fill" size={20} color="#9333EA" />
+            <Text style={styles.textoBotaoGerenciarPerguntas}>Gerenciar Perguntas</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Botão Avaliar Evento - aparece após presença registrada */}
         {presencaRegistrada && (
           jaAvaliou ? (
@@ -550,6 +576,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  botaoPerguntas: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 12,
+    marginTop: 8,
+    flexDirection: 'row',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: '#1E88E5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  textoBotaoPerguntas: {
+    color: '#1E88E5',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   botaoAvaliado: {
     backgroundColor: '#E8F5E9',
     borderWidth: 0,
@@ -562,6 +612,30 @@ const styles = StyleSheet.create({
   },
   textoBotaoAvaliado: {
     color: '#10B981',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  botaoGerenciarPerguntas: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 12,
+    marginTop: 8,
+    flexDirection: 'row',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: '#9333EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  textoBotaoGerenciarPerguntas: {
+    color: '#9333EA',
     fontSize: 16,
     fontWeight: '600',
   },

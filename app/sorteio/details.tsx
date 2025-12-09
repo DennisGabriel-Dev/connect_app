@@ -51,6 +51,22 @@ export default function AdminUserDetailScreen() {
           {usuario.nome}
         </Text>
         <Text style={{ color: "#6B7280", marginTop: 4 }}>{usuario.email}</Text>
+        
+        {/* Informações de perfil */}
+        {usuario.tipoUsuario && (
+          <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+            <Text style={{ color: "#374151", fontSize: 14, fontWeight: "600" }}>
+              Tipo: {usuario.tipoUsuario === 'publico_externo' && 'Público Externo'}
+              {usuario.tipoUsuario === 'docente' && 'Docente'}
+              {usuario.tipoUsuario === 'discente' && 'Discente'}
+            </Text>
+            {usuario.tipoUsuario === 'discente' && usuario.turma && (
+              <Text style={{ color: "#374151", fontSize: 14, marginTop: 4 }}>
+                Turma: {usuario.turma}
+              </Text>
+            )}
+          </View>
+        )}
       </View>
 
       {/* CARD DO RESUMO */}

@@ -1,17 +1,17 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../../services/auth/context';
 import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
@@ -30,8 +30,27 @@ export default function LoginUsuario({
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [mostrarPerfilForm, setMostrarPerfilForm] = useState(false);
+  const [usuarioLogadoId, setUsuarioLogadoId] = useState<string>('');
   const router = useRouter();
   const { definirUsuario } = useAuth();
+
+  const finalizarLogin = async (usuario: any) => {
+    // Salvar usuário logado no context e localStorage
+    definirUsuario(usuario);
+    
+    // Mantém informações de papel/admin retornadas pela API, se existirem
+    await authStorage.salvarUsuario({
+      id: usuario.id,
+      email: usuario.email,
+      token: usuario.token,
+      role: usuario.role,
+      isAdmin: usuario.isAdmin,
+    }, usuario.token);
+    
+    onLoginSucesso?.();
+    router.replace('/(tabs)');
+  };
 
   const manipularLogin = async () => {
     if (!email || !senha) {
@@ -45,20 +64,15 @@ export default function LoginUsuario({
       const resultado = await apiAuth.login(credenciais);
 
       if (resultado.usuario) {
-        // Salvar usuário logado no context e localStorage
-        definirUsuario(resultado.usuario);
-
-        // Mantém informações de papel/admin retornadas pela API, se existirem
-        await authStorage.salvarUsuario({
-          id: resultado.usuario.id,
-          email: resultado.usuario.email,
-          token: resultado.usuario.token,
-          role: (resultado.usuario as any).role,
-          isAdmin: (resultado.usuario as any).isAdmin,
-        }, resultado.usuario.token);
-        
-        onLoginSucesso?.();
-        router.replace('/(tabs)');
+        // Verifica se o perfil está completo
+        if (resultado.usuario.perfilCompleto === false) {
+          // Perfil incompleto, mostra formulário
+          setUsuarioLogadoId(resultado.usuario.id);
+          setMostrarPerfilForm(true);
+        } else {
+          // Perfil completo, prossegue normalmente
+          await finalizarLogin(resultado.usuario);
+        }
       } else {
         Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
       }
@@ -77,6 +91,26 @@ export default function LoginUsuario({
   const irParaCadastro = () => {
     onAlternarParaCadastro?.();
   };
+  // Função para completar o perfil
+  const handlePerfilCompleto = async () => {
+    // Após completar o perfil, salva usuário no storage
+    const resultado = await apiAuth.login({ email, senha });
+    
+    if (resultado.usuario) {
+      await finalizarLogin(resultado.usuario);
+    }
+  };
+
+  // Se o login foi bem-sucedido mas perfil incompleto, mostra formulário
+  if (mostrarPerfilForm && usuarioLogadoId) {
+    const PerfilForm = require('./perfilForm').default;
+    return (
+      <PerfilForm 
+        usuarioId={usuarioLogadoId} 
+        onPerfilCompleto={handlePerfilCompleto}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -104,7 +138,7 @@ export default function LoginUsuario({
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              style={styles.input}
+              style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -113,7 +147,7 @@ export default function LoginUsuario({
               value={senha}
               onChangeText={setSenha}
               secureTextEntry
-              style={styles.input}
+              style={[styles.input,{color: "#000"}]}
               placeholderTextColor="#999"
             />
 
@@ -204,11 +238,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     fontSize: 16,
     backgroundColor: '#FFFFFF',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
   },
   botao: {
     padding: 18,

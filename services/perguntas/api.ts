@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { CriarPerguntaDTO, Pergunta } from './types';
+import { CriarPerguntaDTO, Pergunta, StatusPergunta } from './types';
 
 const URL_BASE_API = `${process.env.EXPO_PUBLIC_API_BASE_URL}/perguntas`;
+const STORAGE_KEY_CURTIDAS = '@perguntas:curtidas_usuario';
 
 // Interface para o formato retornado pelo backend
 interface PerguntaBackend {
@@ -19,6 +21,7 @@ interface PerguntaBackend {
   dataResposta?: string;
   curtidas: number;
   usuariosVotaram?: string[]; // Array de IDs dos participantes que votaram
+  status?: string; // 'pendente', 'aprovada', 'rejeitada'
 }
 
 // Função para mapear dados do backend para o formato do frontend
@@ -29,6 +32,17 @@ function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pe
   const titulo = linhas[0] || perguntaBackend.texto;
   const descricao = linhas.slice(1).join('\n\n') || '';
 
+  // Mapear status do backend para enum
+  let status = StatusPergunta.PENDENTE;
+  if (perguntaBackend.status) {
+    const statusLower = perguntaBackend.status.toLowerCase();
+    if (statusLower === 'aprovada' || statusLower === 'aprovado') {
+      status = StatusPergunta.APROVADA;
+    } else if (statusLower === 'rejeitada' || statusLower === 'rejeitado') {
+      status = StatusPergunta.REJEITADA;
+    }
+  }
+
   return {
     id: perguntaBackend._id || perguntaBackend.id || '',
     palestraId: perguntaBackend.palestraId,
@@ -38,6 +52,7 @@ function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pe
     descricao: descricao.trim(),
     votos: perguntaBackend.curtidas || 0,
     usuariosVotaram: perguntaBackend.usuariosVotaram || [], // Agora vem do backend
+    status: status,
     respondida: perguntaBackend.respondida || false,
     resposta: perguntaBackend.resposta,
     dataResposta: perguntaBackend.dataResposta,
@@ -156,6 +171,54 @@ export const perguntasApi = {
     } catch (error) {
       console.error('Erro ao contar votos:', error);
       return 0;
+    }
+  },
+
+  // Listar todas as perguntas (admin) - com filtros opcionais
+  async listarTodasPerguntasAdmin(filtros?: { status?: StatusPergunta; palestraId?: string }): Promise<Pergunta[]> {
+    try {
+      const params = new URLSearchParams();
+      if (filtros?.status) {
+        params.append('status', filtros.status);
+      }
+      if (filtros?.palestraId) {
+        params.append('palestraId', filtros.palestraId);
+      }
+
+      const url = `${URL_BASE_API}/admin/todas${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await axios.get(url);
+
+      const perguntasBackend = response.data.data || response.data;
+      const perguntasArray = Array.isArray(perguntasBackend) ? perguntasBackend : [];
+
+      return perguntasArray.map(mapearPerguntaBackendParaFrontend);
+    } catch (error) {
+      console.error('Erro ao listar perguntas admin:', error);
+      throw error;
+    }
+  },
+
+  // Aprovar pergunta (admin)
+  async aprovarPergunta(perguntaId: string): Promise<Pergunta> {
+    try {
+      const response = await axios.patch(`${URL_BASE_API}/${perguntaId}/aprovar`);
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
+    } catch (error) {
+      console.error('Erro ao aprovar pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Rejeitar pergunta (admin)
+  async rejeitarPergunta(perguntaId: string): Promise<Pergunta> {
+    try {
+      const response = await axios.patch(`${URL_BASE_API}/${perguntaId}/rejeitar`);
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
+    } catch (error) {
+      console.error('Erro ao rejeitar pergunta:', error);
+      throw error;
     }
   },
 };
