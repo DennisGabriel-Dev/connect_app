@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { perguntasApi } from '@/services/perguntas/api';
-import { Pergunta, StatusPergunta } from '@/services/perguntas/types';
-import { useAuth } from '@/services/auth/context';
 import { HeaderTela } from '@/components/shared/HeaderTela';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useAuth } from '@/services/auth/context';
+import { perguntasApi } from '@/services/perguntas/api';
+import { Pergunta, StatusPergunta } from '@/services/perguntas/types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function GerenciarPerguntasScreen() {
   const router = useRouter();
   const { usuario } = useAuth();
+  const { palestraId, palestraTitulo } = useLocalSearchParams();
 
   const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -32,20 +33,24 @@ export default function GerenciarPerguntasScreen() {
     }
 
     carregarPerguntas();
-  }, [filtro]);
+  }, [filtro, palestraId]);
 
   const carregarPerguntas = async () => {
     try {
       setCarregando(true);
-      // Como não temos endpoint para listar todas as perguntas, 
-      // vamos usar um storage local simulado
-      const todasPerguntas: Pergunta[] = [];
-      
-      // Aqui você poderia fazer chamadas para cada palestra conhecida
-      // Por simplicidade, vamos mostrar apenas as perguntas pendentes do storage
-      
-      const perguntasFiltradas = todasPerguntas.filter(p => p.status === filtro);
-      setPerguntas(perguntasFiltradas);
+
+      // Se há palestraId, filtrar por palestra e status
+      // Se não há palestraId, listar todas as perguntas com o status filtrado
+      const filtros: { status?: StatusPergunta; palestraId?: string } = {
+        status: filtro,
+      };
+
+      if (palestraId) {
+        filtros.palestraId = palestraId as string;
+      }
+
+      const todasPerguntas = await perguntasApi.listarTodasPerguntasAdmin(filtros);
+      setPerguntas(todasPerguntas);
     } catch (error) {
       console.error('Erro ao carregar perguntas:', error);
       Alert.alert('Erro', 'Não foi possível carregar as perguntas.');
@@ -183,9 +188,13 @@ export default function GerenciarPerguntasScreen() {
     }
   };
 
+  const tituloTela = palestraTitulo
+    ? `Gerenciar Perguntas - ${palestraTitulo}`
+    : 'Gerenciar Perguntas';
+
   return (
     <View style={styles.container}>
-      <HeaderTela titulo="Gerenciar Perguntas" onVoltar={() => router.back()} />
+      <HeaderTela titulo={tituloTela} onVoltar={() => router.back()} />
 
       <View style={styles.filtrosContainer}>
         <TouchableOpacity

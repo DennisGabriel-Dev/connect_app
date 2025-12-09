@@ -114,7 +114,7 @@ export default function TelaDetalheProgramacao() {
 
   return (
     <View style={{ flex: 1 }}>
-        <HeaderTela titulo="Detalhes da atividade" onVoltar={() => navegador.back()} />
+      <HeaderTela titulo="Detalhes da atividade" onVoltar={() => navegador.back()} />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.cabecalho}>
           <Text style={styles.titulo}>{atividade.titulo}</Text>
@@ -127,10 +127,10 @@ export default function TelaDetalheProgramacao() {
           <Text style={styles.conteudoSecao}>
             {dataInicio
               ? dataInicio.toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric',
-                })
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+              })
               : 'Data não informada'}
           </Text>
         </View>
@@ -199,6 +199,23 @@ export default function TelaDetalheProgramacao() {
           <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#1E88E5" />
           <Text style={styles.textoBotaoPerguntas}>Ver Perguntas</Text>
         </TouchableOpacity>
+
+        {/* Botão Gerenciar Perguntas - apenas para admin */}
+        {(usuario?.role === 'admin' || usuario?.isAdmin === true) && (
+          <TouchableOpacity
+            style={styles.botaoGerenciarPerguntas}
+            onPress={() => navegador.push({
+              pathname: '/perguntas/admin/gerenciar',
+              params: {
+                palestraId: atividade.id,
+                palestraTitulo: atividade.titulo
+              }
+            })}
+          >
+            <IconSymbol name="checkmark.shield.fill" size={20} color="#9333EA" />
+            <Text style={styles.textoBotaoGerenciarPerguntas}>Gerenciar Perguntas</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Botão Avaliar Evento - aparece após presença registrada */}
         {presencaRegistrada && (
@@ -572,6 +589,30 @@ const styles = StyleSheet.create({
   },
   textoBotaoAvaliado: {
     color: '#10B981',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  botaoGerenciarPerguntas: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 12,
+    marginTop: 8,
+    flexDirection: 'row',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: '#9333EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  textoBotaoGerenciarPerguntas: {
+    color: '#9333EA',
     fontSize: 16,
     fontWeight: '600',
   },
