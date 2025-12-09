@@ -1,5 +1,6 @@
 import PerguntaCard from '@/components/perguntas/PerguntaCard';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { HeaderTela } from '@/components/shared/HeaderTela';
 import { useAuth } from '@/services/auth/context';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
@@ -212,10 +213,7 @@ export default function PerguntasScreen() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={styles.headerTitulo}>Perguntas</Text>
-      {palestraTitulo && (
-        <Text style={styles.headerSubtitulo}>{palestraTitulo}</Text>
-      )}
+      <Text style={styles.headerTitulo}>{palestraTitulo}</Text>
       <View style={styles.headerInfoContainer}>
         <Text style={styles.headerInfo}>
           {perguntas.length} {perguntas.length === 1 ? 'pergunta' : 'perguntas'}
@@ -279,7 +277,8 @@ export default function PerguntasScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1 }}>
+      <HeaderTela titulo="Perguntas" />
       <FlatList
         data={perguntas}
         renderItem={renderPergunta}

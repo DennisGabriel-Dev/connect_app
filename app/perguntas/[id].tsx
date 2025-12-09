@@ -13,6 +13,7 @@ import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
 import { useAuth } from '@/services/auth/context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { HeaderTela } from '@/components/shared/HeaderTela';
 
 export default function DetalhePerguntaScreen() {
   const { id } = useLocalSearchParams();
@@ -174,115 +175,118 @@ export default function DetalhePerguntaScreen() {
   });
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header com ranking */}
-      <View style={styles.header}>
-        <View style={styles.rankingContainer}>
-          <IconSymbol name="trophy.fill" size={32} color="#1E88E5" />
-          <View>
-            <Text style={styles.rankingNumero}>{pergunta.votos}</Text>
-            <Text style={styles.rankingLabel}>
-              {pergunta.votos === 1 ? 'voto' : 'votos'}
-            </Text>
-          </View>
-        </View>
-
-        {pergunta.respondida && (
-          <View style={styles.badgeRespondida}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
-              <Text style={styles.badgeTexto}>Respondida</Text>
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* Conteúdo da pergunta */}
-      <View style={styles.conteudo}>
-        <Text style={styles.titulo}>{pergunta.titulo}</Text>
-
-        {pergunta.descricao && (
-          <Text style={styles.descricao}>{pergunta.descricao}</Text>
-        )}
-
-        {/* Informações do autor */}
-        <View style={styles.autorContainer}>
-          <View style={styles.autorInfo}>
-            <Text style={styles.autorLabel}>Pergunta feita por:</Text>
-            <Text style={styles.autorNome}>{pergunta.usuarioNome || 'Anônimo'}</Text>
-            <Text style={styles.autorData}>{dataFormatada}</Text>
-          </View>
-        </View>
-
-        {/* Botão de votar - ou badge se for o autor */}
-        {pergunta.usuarioId === usuario?.id ? (
-          <View style={styles.autorBadge}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <IconSymbol name="person.fill" size={16} color="#4F46E5" />
-              <Text style={styles.autorBadgeTexto}>Esta é sua pergunta</Text>
-            </View>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[
-              styles.botaoVotar,
-              usuarioJaVotou && styles.botaoVotarAtivo,
-              mostrarLimite && styles.botaoVotarDesabilitado
-            ]}
-            onPress={handleVotar}
-            activeOpacity={0.7}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <IconSymbol
-                name={mostrarLimite ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
-                size={20}
-                color={mostrarLimite ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
-              />
-              <Text style={[
-                styles.botaoVotarTexto,
-                usuarioJaVotou && styles.botaoVotarTextoAtivo,
-                mostrarLimite && styles.botaoVotarTextoDesabilitado
-              ]}>
-                {mostrarLimite
-                  ? 'Limite atingido'
-                  : usuarioJaVotou
-                    ? 'Você votou nesta pergunta'
-                    : 'Votar nesta pergunta'}
+    <>
+      <HeaderTela titulo="Detalhes da pergunta" />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header com ranking */}
+        <View style={styles.header}>
+          <View style={styles.rankingContainer}>
+            <IconSymbol name="trophy.fill" size={32} color="#1E88E5" />
+            <View>
+              <Text style={styles.rankingNumero}>{pergunta.votos}</Text>
+              <Text style={styles.rankingLabel}>
+                {pergunta.votos === 1 ? 'voto' : 'votos'}
               </Text>
             </View>
-          </TouchableOpacity>
-        )}
+          </View>
 
-        {/* Resposta do palestrante */}
-        {pergunta.respondida && pergunta.resposta && (
-          <View style={styles.respostaContainer}>
-            <IconSymbol name="bubble.right.fill" size={18} color="#1E88E5" />
-            <View style={styles.respostaConteudo}>
-              <Text style={styles.respostaTexto}>{pergunta.resposta}</Text>
-              {pergunta.dataResposta && (
-                <Text style={styles.respostaData}>
-                  Respondida em {new Date(pergunta.dataResposta).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </Text>
-              )}
+          {pergunta.respondida && (
+            <View style={styles.badgeRespondida}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
+                <Text style={styles.badgeTexto}>Respondida</Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Conteúdo da pergunta */}
+        <View style={styles.conteudo}>
+          <Text style={styles.titulo}>{pergunta.titulo}</Text>
+
+          {pergunta.descricao && (
+            <Text style={styles.descricao}>{pergunta.descricao}</Text>
+          )}
+
+          {/* Informações do autor */}
+          <View style={styles.autorContainer}>
+            <View style={styles.autorInfo}>
+              <Text style={styles.autorLabel}>Pergunta feita por:</Text>
+              <Text style={styles.autorNome}>{pergunta.usuarioNome || 'Anônimo'}</Text>
+              <Text style={styles.autorData}>{dataFormatada}</Text>
             </View>
           </View>
-        )}
 
-        {/* Aguardando resposta */}
-        {!pergunta.respondida && (
-          <View style={styles.aguardandoContainer}>
-            <IconSymbol name="hourglass" size={48} color="#7b7b63ff" />
-            <Text style={styles.aguardandoTexto}>
-              Aguardando resposta do palestrante
-            </Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+          {/* Botão de votar - ou badge se for o autor */}
+          {pergunta.usuarioId === usuario?.id ? (
+            <View style={styles.autorBadge}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <IconSymbol name="person.fill" size={16} color="#4F46E5" />
+                <Text style={styles.autorBadgeTexto}>Esta é sua pergunta</Text>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.botaoVotar,
+                usuarioJaVotou && styles.botaoVotarAtivo,
+                mostrarLimite && styles.botaoVotarDesabilitado
+              ]}
+              onPress={handleVotar}
+              activeOpacity={0.7}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <IconSymbol
+                  name={mostrarLimite ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
+                  size={20}
+                  color={mostrarLimite ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
+                />
+                <Text style={[
+                  styles.botaoVotarTexto,
+                  usuarioJaVotou && styles.botaoVotarTextoAtivo,
+                  mostrarLimite && styles.botaoVotarTextoDesabilitado
+                ]}>
+                  {mostrarLimite
+                    ? 'Limite atingido'
+                    : usuarioJaVotou
+                      ? 'Você votou nesta pergunta'
+                      : 'Votar nesta pergunta'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Resposta do palestrante */}
+          {pergunta.respondida && pergunta.resposta && (
+            <View style={styles.respostaContainer}>
+              <IconSymbol name="bubble.right.fill" size={18} color="#1E88E5" />
+              <View style={styles.respostaConteudo}>
+                <Text style={styles.respostaTexto}>{pergunta.resposta}</Text>
+                {pergunta.dataResposta && (
+                  <Text style={styles.respostaData}>
+                    Respondida em {new Date(pergunta.dataResposta).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </Text>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* Aguardando resposta */}
+          {!pergunta.respondida && (
+            <View style={styles.aguardandoContainer}>
+              <IconSymbol name="hourglass" size={48} color="#7b7b63ff" />
+              <Text style={styles.aguardandoTexto}>
+                Aguardando resposta do palestrante
+              </Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </>
   );
 }
 

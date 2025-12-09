@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
+import {
+  View,
+  Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet, 
+  StyleSheet,
   ScrollView,
   Alert,
   KeyboardAvoidingView,
@@ -14,12 +14,13 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { useAuth } from '@/services/auth/context';
+import { HeaderTela } from '@/components/shared/HeaderTela';
 
 export default function CriarPerguntaScreen() {
   const router = useRouter();
   const { palestraId, palestraTitulo } = useLocalSearchParams();
   const { usuario } = useAuth();
-  
+
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -98,96 +99,96 @@ export default function CriarPerguntaScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <View style={{ flex: 1 }}>
+      <HeaderTela titulo="Nova Pergunta" />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitulo}>Nova Pergunta</Text>
-          {palestraTitulo && (
-            <Text style={styles.headerSubtitulo}>Para: {palestraTitulo}</Text>
-          )}
-        </View>
-
-        {/* Formulário */}
-        <View style={styles.formulario}>
-          {/* Campo Título */}
-          <View style={styles.campoContainer}>
-            <Text style={styles.label}>Título da Pergunta *</Text>
-            <TextInput
-              style={styles.inputTitulo}
-              placeholder="Ex: Como implementar autenticação JWT?"
-              placeholderTextColor="#94A3B8"
-              value={titulo}
-              onChangeText={setTitulo}
-              maxLength={200}
-              editable={!enviando}
-            />
-            <Text style={styles.contador}>
-              {titulo.length}/200 caracteres
-            </Text>
-          </View>
-
-          {/* Campo Descrição */}
-          <View style={styles.campoContainer}>
-            <Text style={styles.label}>Descrição (opcional)</Text>
-            <TextInput
-              style={styles.inputDescricao}
-              placeholder="Adicione mais detalhes sobre sua pergunta..."
-              placeholderTextColor="#94A3B8"
-              value={descricao}
-              onChangeText={setDescricao}
-              maxLength={1000}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              editable={!enviando}
-            />
-            <Text style={styles.contador}>
-              {descricao.length}/1000 caracteres
-            </Text>
-          </View>
-
-          {/* Dica */}
-          <View style={styles.dicaContainer}>
-            <Text style={styles.dicaIcon}>💡</Text>
-            <Text style={styles.dicaTexto}>
-              Perguntas claras e objetivas têm mais chances de serem respondidas!
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Botões de ação */}
-      <View style={styles.botoesContainer}>
-        <TouchableOpacity 
-          style={[styles.botao, styles.botaoCancelar]}
-          onPress={handleCancelar}
-          disabled={enviando}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.botaoCancelarTexto}>Cancelar</Text>
-        </TouchableOpacity>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitulo}>{palestraTitulo}</Text>
+          </View>
 
-        <TouchableOpacity 
-          style={[styles.botao, styles.botaoEnviar, enviando && styles.botaoDesabilitado]}
-          onPress={handleEnviar}
-          disabled={enviando}
-        >
-          {enviando ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.botaoEnviarTexto}>Enviar Pergunta</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          {/* Formulário */}
+          <View style={styles.formulario}>
+            {/* Campo Título */}
+            <View style={styles.campoContainer}>
+              <Text style={styles.label}>Título da Pergunta *</Text>
+              <TextInput
+                style={styles.inputTitulo}
+                placeholder="Ex: Como implementar autenticação JWT?"
+                placeholderTextColor="#94A3B8"
+                value={titulo}
+                onChangeText={setTitulo}
+                maxLength={200}
+                editable={!enviando}
+              />
+              <Text style={styles.contador}>
+                {titulo.length}/200 caracteres
+              </Text>
+            </View>
+
+            {/* Campo Descrição */}
+            <View style={styles.campoContainer}>
+              <Text style={styles.label}>Descrição (opcional)</Text>
+              <TextInput
+                style={styles.inputDescricao}
+                placeholder="Adicione mais detalhes sobre sua pergunta..."
+                placeholderTextColor="#94A3B8"
+                value={descricao}
+                onChangeText={setDescricao}
+                maxLength={1000}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                editable={!enviando}
+              />
+              <Text style={styles.contador}>
+                {descricao.length}/1000 caracteres
+              </Text>
+            </View>
+
+            {/* Dica */}
+            <View style={styles.dicaContainer}>
+              <Text style={styles.dicaIcon}>💡</Text>
+              <Text style={styles.dicaTexto}>
+                Perguntas claras e objetivas têm mais chances de serem respondidas!
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Botões de ação */}
+        <View style={styles.botoesContainer}>
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoCancelar]}
+            onPress={handleCancelar}
+            disabled={enviando}
+          >
+            <Text style={styles.botaoCancelarTexto}>Cancelar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoEnviar, enviando && styles.botaoDesabilitado]}
+            onPress={handleEnviar}
+            disabled={enviando}
+          >
+            {enviando ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.botaoEnviarTexto}>Enviar Pergunta</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 

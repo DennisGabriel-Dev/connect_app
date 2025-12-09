@@ -3,10 +3,10 @@ import React from 'react';
 
 export default function PerguntasLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: 'Perguntas' }} />
-      <Stack.Screen name="criar" options={{ title: 'Criar Pergunta' }} />
-      <Stack.Screen name="[id]" options={{ title: 'Detalhes da Pergunta' }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="criar" />
+      <Stack.Screen name="[id]" />
     </Stack>
   );
 }
