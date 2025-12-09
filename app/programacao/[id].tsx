@@ -114,7 +114,7 @@ export default function TelaDetalheProgramacao() {
 
   return (
     <View style={{ flex: 1 }}>
-        <HeaderTela titulo="Detalhes da atividade" onVoltar={() => navegador.back()} />
+      <HeaderTela titulo="Detalhes da atividade" onVoltar={() => navegador.back()} />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.cabecalho}>
           <Text style={styles.titulo}>{atividade.titulo}</Text>
@@ -127,10 +127,10 @@ export default function TelaDetalheProgramacao() {
           <Text style={styles.conteudoSecao}>
             {dataInicio
               ? dataInicio.toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric',
-                })
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+              })
               : 'Data não informada'}
           </Text>
         </View>
@@ -207,6 +207,29 @@ export default function TelaDetalheProgramacao() {
               <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
             </TouchableOpacity>
           )
+        )}
+
+        {/* Botão de Perguntas - aparece após presença registrada */}
+        {presencaRegistrada && (
+          <View style={styles.secaoPerguntas}>
+            <TouchableOpacity
+              style={styles.botaoPerguntas}
+              onPress={() => navegador.push(`/perguntas?palestraId=${atividade.id}&palestraTitulo=${encodeURIComponent(atividade.titulo)}`)}
+            >
+              <View style={styles.botaoPerguntasConteudo}>
+                <View style={styles.botaoPerguntasIcone}>
+                  <Text style={styles.botaoPerguntasIconeTexto}>💬</Text>
+                </View>
+                <View style={styles.botaoPerguntasTextos}>
+                  <Text style={styles.botaoPerguntasTitulo}>Perguntas</Text>
+                  <Text style={styles.botaoPerguntasSubtitulo}>
+                    Vote nas melhores perguntas para os palestrantes
+                  </Text>
+                </View>
+                <Text style={styles.botaoPerguntasSeta}>→</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Quiz específico da atividade */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Pergunta } from '@/services/perguntas/types';
 
 interface PerguntaCardProps {
@@ -7,17 +7,32 @@ interface PerguntaCardProps {
   usuarioAtualId: string;
   onVotar: (perguntaId: string) => void;
   onPressionar?: (pergunta: Pergunta) => void;
+  limiteAtingido?: boolean; // Indica se o limite de 3 votos foi atingido
 }
 
-export default function PerguntaCard({ 
-  pergunta, 
-  usuarioAtualId, 
-  onVotar, 
-  onPressionar 
+export default function PerguntaCard({
+  pergunta,
+  usuarioAtualId,
+  onVotar,
+  onPressionar,
+  limiteAtingido = false
 }: PerguntaCardProps) {
   const usuarioJaVotou = pergunta.usuariosVotaram?.includes(usuarioAtualId) || false;
+  const ehAutor = pergunta.usuarioId === usuarioAtualId;
+
+  // Mostrar estilo de limite se atingido E usuário ainda não votou nesta pergunta
+  const mostrarLimite = limiteAtingido && !usuarioJaVotou;
 
   const handleVotar = () => {
+    // Se limite atingido e não votou, mostrar alert
+    if (mostrarLimite) {
+      Alert.alert(
+        'Limite de votos atingido',
+        'Você já usou seus 3 votos. Desfaça um voto antes de votar em outra pergunta.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
     onVotar(pergunta.id);
   };
 
@@ -28,8 +43,8 @@ export default function PerguntaCard({
   };
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
+    <TouchableOpacity
+      style={styles.card}
       onPress={handlePress}
       activeOpacity={0.7}
     >
@@ -64,20 +79,37 @@ export default function PerguntaCard({
             Por: {pergunta.usuarioNome || 'Anônimo'}
           </Text>
 
-          <TouchableOpacity 
-            style={[
-              styles.botaoVotar,
-              usuarioJaVotou && styles.botaoVotarAtivo
-            ]} 
-            onPress={handleVotar}
-          >
-            <Text style={[
-              styles.botaoVotarTexto,
-              usuarioJaVotou && styles.botaoVotarTextoAtivo
-            ]}>
-              {usuarioJaVotou ? '❤️ Votado' : '🤍 Votar'}
-            </Text>
-          </TouchableOpacity>
+          {/* Ocultar botão se for o autor */}
+          {!ehAutor && (
+            <TouchableOpacity
+              style={[
+                styles.botaoVotar,
+                usuarioJaVotou && styles.botaoVotarAtivo,
+                mostrarLimite && styles.botaoVotarDesabilitado
+              ]}
+              onPress={handleVotar}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.botaoVotarTexto,
+                usuarioJaVotou && styles.botaoVotarTextoAtivo,
+                mostrarLimite && styles.botaoVotarTextoDesabilitado
+              ]}>
+                {mostrarLimite
+                  ? '🔒 Limite atingido'
+                  : usuarioJaVotou
+                    ? '❤️ Votado'
+                    : '🤍 Votar'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Mostrar badge se for o autor */}
+          {ehAutor && (
+            <View style={styles.autorBadge}>
+              <Text style={styles.autorBadgeTexto}>✍️ Sua pergunta</Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -177,5 +209,26 @@ const styles = StyleSheet.create({
   },
   botaoVotarTextoAtivo: {
     color: '#DC2626',
+  },
+  autorBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#A5B4FC',
+  },
+  autorBadgeTexto: {
+    color: '#4F46E5',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  botaoVotarDesabilitado: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+    opacity: 0.6,
+  },
+  botaoVotarTextoDesabilitado: {
+    color: '#94A3B8',
   },
 });

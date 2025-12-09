@@ -18,6 +18,7 @@ interface PerguntaBackend {
   palestranteNome?: string;
   dataResposta?: string;
   curtidas: number;
+  usuariosVotaram?: string[]; // Array de IDs dos participantes que votaram
 }
 
 // Função para mapear dados do backend para o formato do frontend
@@ -36,7 +37,7 @@ function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pe
     titulo: titulo.trim(),
     descricao: descricao.trim(),
     votos: perguntaBackend.curtidas || 0,
-    usuariosVotaram: [], // O backend não tem esse campo ainda
+    usuariosVotaram: perguntaBackend.usuariosVotaram || [], // Agora vem do backend
     respondida: perguntaBackend.respondida || false,
     resposta: perguntaBackend.resposta,
     dataResposta: perguntaBackend.dataResposta,
@@ -54,7 +55,7 @@ export const perguntasApi = {
       // A resposta vem no formato { success, data, count }
       const perguntasBackend = response.data.data || response.data;
       const perguntasArray = Array.isArray(perguntasBackend) ? perguntasBackend : [];
-      
+
       // Mapear cada pergunta do formato backend para o formato frontend
       return perguntasArray.map(mapearPerguntaBackendParaFrontend);
     } catch (error) {
@@ -75,7 +76,7 @@ export const perguntasApi = {
         palestraId: dados.palestraId,
         palestraTitulo: dados.palestraTitulo || 'Palestra',
       };
-      
+
       const response = await axios.post(`${URL_BASE_API}`, pergunta);
       // A resposta vem no formato { success, message, data }
       const perguntaBackend = response.data.data || response.data;
@@ -89,7 +90,9 @@ export const perguntasApi = {
   // Votar em uma pergunta (curtir)
   async votarPergunta(perguntaId: string, usuarioId: string): Promise<Pergunta> {
     try {
-      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/curtir`);
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/curtir`, {}, {
+        headers: { 'x-participante-id': usuarioId }
+      });
       // A resposta vem no formato { success, message, data }
       const perguntaBackend = response.data.data || response.data;
       return mapearPerguntaBackendParaFrontend(perguntaBackend);
@@ -99,13 +102,15 @@ export const perguntasApi = {
     }
   },
 
-  // Remover voto de uma pergunta (não implementado no backend ainda)
+  // Remover voto de uma pergunta
   async removerVoto(perguntaId: string, usuarioId: string): Promise<Pergunta> {
     try {
-      // Por enquanto, apenas retorna a pergunta sem o voto
-      // TODO: Implementar endpoint de remover curtida no backend
-      const pergunta = await this.buscarPerguntaPorId(perguntaId);
-      return pergunta;
+      // Usa o mesmo endpoint /curtir que faz toggle
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/curtir`, {}, {
+        headers: { 'x-participante-id': usuarioId }
+      });
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao remover voto:', error);
       throw error;
@@ -137,6 +142,20 @@ export const perguntasApi = {
     } catch (error) {
       console.error('Erro ao responder pergunta:', error);
       throw error;
+    }
+  },
+
+  // Contar votos usados pelo participante em uma palestra
+  async contarVotosParticipante(palestraId: string, participanteId: string): Promise<number> {
+    try {
+      const response = await axios.get(
+        `${URL_BASE_API}/participante/${participanteId}/votos`,
+        { params: { palestraId } }
+      );
+      return response.data.count || 0;
+    } catch (error) {
+      console.error('Erro ao contar votos:', error);
+      return 0;
     }
   },
 };

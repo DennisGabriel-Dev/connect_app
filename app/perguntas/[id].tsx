@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
+import {
+  View,
+  Text,
   ScrollView,
-  StyleSheet, 
+  StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
   Alert
@@ -17,13 +17,25 @@ export default function DetalhePerguntaScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { usuario } = useAuth();
-  
+
   const [pergunta, setPergunta] = useState<Pergunta | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const [votosUsados, setVotosUsados] = useState(0);
+  const [carregandoVotos, setCarregandoVotos] = useState(true);
+  const LIMITE_VOTOS = 3;
 
   useEffect(() => {
     carregarPergunta();
   }, [id]);
+
+  // Carregar votos quando pergunta e usuário estiverem disponíveis
+  useEffect(() => {
+    if (pergunta?.palestraId && usuario?.id) {
+      carregarVotosParticipante();
+    } else {
+      setCarregandoVotos(false);
+    }
+  }, [pergunta?.palestraId, usuario?.id]);
 
   const carregarPergunta = async () => {
     try {
@@ -38,19 +50,56 @@ export default function DetalhePerguntaScreen() {
     }
   };
 
+  const carregarVotosParticipante = async () => {
+    try {
+      setCarregandoVotos(true);
+      if (!usuario?.id || !pergunta?.palestraId) return;
+
+      const count = await perguntasApi.contarVotosParticipante(
+        pergunta.palestraId,
+        usuario.id
+      );
+      setVotosUsados(count);
+    } catch (error) {
+      console.error('Erro ao carregar votos:', error);
+    } finally {
+      setCarregandoVotos(false);
+    }
+  };
+
   const handleVotar = async () => {
     if (!usuario?.id || !pergunta) {
       Alert.alert('Erro', 'Você precisa estar logado para votar.');
       return;
     }
 
+    // Verificar se é o autor
+    if (pergunta.usuarioId === usuario.id) {
+      Alert.alert(
+        'Ação não permitida',
+        'Você não pode votar na sua própria pergunta.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       const jaVotou = pergunta.usuariosVotaram?.includes(usuario.id);
 
-      // Atualizar UI imediatamente
+      // Verificar limite ANTES de votar
+      if (!jaVotou && votosUsados >= LIMITE_VOTOS) {
+        Alert.alert(
+          'Limite de votos atingido',
+          `Você já usou seus ${LIMITE_VOTOS} votos. Desfaça um voto antes de votar em outra pergunta.`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Atualizar UI imediatamente (optimistic update)
       setPergunta(prev => {
         if (!prev) return prev;
-        
+
         if (jaVotou) {
           return {
             ...prev,
@@ -66,6 +115,9 @@ export default function DetalhePerguntaScreen() {
         }
       });
 
+      // Atualizar contador de votos usados
+      setVotosUsados(prev => jaVotou ? prev - 1 : prev + 1);
+
       // Fazer requisição
       if (jaVotou) {
         await perguntasApi.removerVoto(pergunta.id, usuario.id);
@@ -73,11 +125,15 @@ export default function DetalhePerguntaScreen() {
         await perguntasApi.votarPergunta(pergunta.id, usuario.id);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao votar:', error);
       // Reverter em caso de erro
       await carregarPergunta();
-      Alert.alert('Erro', 'Não foi possível registrar seu voto.');
+      await carregarVotosParticipante();
+
+      // Mostrar mensagem de erro específica do backend
+      const mensagemErro = error.response?.data?.error || error.message || 'Não foi possível registrar seu voto.';
+      Alert.alert('Erro', mensagemErro);
     }
   };
 
@@ -95,7 +151,7 @@ export default function DetalhePerguntaScreen() {
       <View style={styles.errorContainer}>
         <Text style={styles.errorIcon}>❌</Text>
         <Text style={styles.errorText}>Pergunta não encontrada</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.botaoVoltar}
           onPress={() => router.back()}
         >
@@ -106,6 +162,8 @@ export default function DetalhePerguntaScreen() {
   }
 
   const usuarioJaVotou = pergunta.usuariosVotaram?.includes(usuario?.id || '');
+  // Só mostra limite se já carregou os votos
+  const mostrarLimite = !carregandoVotos && votosUsados >= LIMITE_VOTOS && !usuarioJaVotou;
   const dataFormatada = new Date(pergunta.createdAt).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
@@ -138,7 +196,7 @@ export default function DetalhePerguntaScreen() {
       {/* Conteúdo da pergunta */}
       <View style={styles.conteudo}>
         <Text style={styles.titulo}>{pergunta.titulo}</Text>
-        
+
         {pergunta.descricao && (
           <Text style={styles.descricao}>{pergunta.descricao}</Text>
         )}
@@ -152,21 +210,34 @@ export default function DetalhePerguntaScreen() {
           </View>
         </View>
 
-        {/* Botão de votar */}
-        <TouchableOpacity 
-          style={[
-            styles.botaoVotar,
-            usuarioJaVotou && styles.botaoVotarAtivo
-          ]}
-          onPress={handleVotar}
-        >
-          <Text style={[
-            styles.botaoVotarTexto,
-            usuarioJaVotou && styles.botaoVotarTextoAtivo
-          ]}>
-            {usuarioJaVotou ? '❤️ Você votou nesta pergunta' : '🤍 Votar nesta pergunta'}
-          </Text>
-        </TouchableOpacity>
+        {/* Botão de votar - ou badge se for o autor */}
+        {pergunta.usuarioId === usuario?.id ? (
+          <View style={styles.autorBadge}>
+            <Text style={styles.autorBadgeTexto}>✍️ Esta é sua pergunta</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.botaoVotar,
+              usuarioJaVotou && styles.botaoVotarAtivo,
+              mostrarLimite && styles.botaoVotarDesabilitado
+            ]}
+            onPress={handleVotar}
+            activeOpacity={0.7}
+          >
+            <Text style={[
+              styles.botaoVotarTexto,
+              usuarioJaVotou && styles.botaoVotarTextoAtivo,
+              mostrarLimite && styles.botaoVotarTextoDesabilitado
+            ]}>
+              {mostrarLimite
+                ? '🔒 Limite atingido'
+                : usuarioJaVotou
+                  ? '❤️ Você votou nesta pergunta'
+                  : '🤍 Votar nesta pergunta'}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Resposta do palestrante */}
         {pergunta.respondida && pergunta.resposta && (
@@ -400,5 +471,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#92400E',
     fontWeight: '500',
+  },
+  autorBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: '#A5B4FC',
+  },
+  autorBadgeTexto: {
+    color: '#4F46E5',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  botaoVotarDesabilitado: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+    opacity: 0.6,
+  },
+  botaoVotarTextoDesabilitado: {
+    color: '#94A3B8',
   },
 });

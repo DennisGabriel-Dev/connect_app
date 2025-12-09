@@ -3,8 +3,8 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/services/auth/context';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -20,10 +20,13 @@ export default function PerguntasScreen() {
   const router = useRouter();
   const { palestraId, palestraTitulo } = useLocalSearchParams();
   const { usuario } = useAuth();
-  
+
   const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
+  const [votosUsados, setVotosUsados] = useState(0);
+
+  const LIMITE_VOTOS = 3;
 
   // Carregar perguntas da palestra
   useEffect(() => {
@@ -34,6 +37,25 @@ export default function PerguntasScreen() {
       setCarregando(false);
     }
   }, [palestraId]);
+
+  // Carregar votos do participante
+  useEffect(() => {
+    if (palestraId && usuario?.id) {
+      carregarVotosParticipante();
+    }
+  }, [palestraId, usuario?.id]);
+
+  // Recarregar dados quando a tela ganhar foco (ao voltar da tela de detalhes)
+  useFocusEffect(
+    useCallback(() => {
+      if (palestraId) {
+        carregarPerguntas();
+        if (usuario?.id) {
+          carregarVotosParticipante();
+        }
+      }
+    }, [palestraId, usuario?.id])
+  );
 
   const carregarPerguntas = async () => {
     try {
@@ -58,6 +80,20 @@ export default function PerguntasScreen() {
     }
   };
 
+  const carregarVotosParticipante = async () => {
+    try {
+      if (!usuario?.id || !palestraId) return;
+
+      const count = await perguntasApi.contarVotosParticipante(
+        palestraId as string,
+        usuario.id
+      );
+      setVotosUsados(count);
+    } catch (error) {
+      console.error('Erro ao carregar votos:', error);
+    }
+  };
+
   const handleVotar = async (perguntaId: string) => {
     if (!usuario?.id) {
       Alert.alert('Erro', 'Você precisa estar logado para votar.');
@@ -68,7 +104,27 @@ export default function PerguntasScreen() {
       const pergunta = perguntas.find(p => p.id === perguntaId);
       if (!pergunta) return;
 
+      // Verificar se é o autor
+      if (pergunta.usuarioId === usuario.id) {
+        Alert.alert(
+          'Ação não permitida',
+          'Você não pode votar na sua própria pergunta.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       const jaVotou = pergunta.usuariosVotaram?.includes(usuario.id);
+
+      // Verificar limite ANTES de votar
+      if (!jaVotou && votosUsados >= LIMITE_VOTOS) {
+        Alert.alert(
+          'Limite de votos atingido',
+          `Você já usou seus ${LIMITE_VOTOS} votos. Desfaça um voto antes de votar em outra pergunta.`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
 
       // Otimistic update - atualiza UI imediatamente
       setPerguntas(prevPerguntas => {
@@ -97,6 +153,13 @@ export default function PerguntasScreen() {
         return novasPerguntas.sort((a, b) => b.votos - a.votos);
       });
 
+      // Atualizar contador local
+      if (jaVotou) {
+        setVotosUsados(prev => Math.max(0, prev - 1));
+      } else {
+        setVotosUsados(prev => prev + 1);
+      }
+
       // Fazer requisição para API
       if (jaVotou) {
         await perguntasApi.removerVoto(perguntaId, usuario.id);
@@ -104,11 +167,15 @@ export default function PerguntasScreen() {
         await perguntasApi.votarPergunta(perguntaId, usuario.id);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao votar:', error);
-      // Reverter mudança em caso de erro
+      // Reverter mudanças em caso de erro
       await carregarPerguntas();
-      Alert.alert('Erro', 'Não foi possível registrar seu voto. Tente novamente.');
+      await carregarVotosParticipante();
+
+      // Mostrar mensagem de erro específica
+      const mensagemErro = error.response?.data?.error || 'Não foi possível registrar seu voto. Tente novamente.';
+      Alert.alert('Erro', mensagemErro);
     }
   };
 
@@ -135,6 +202,7 @@ export default function PerguntasScreen() {
         usuarioAtualId={usuario?.id || ''}
         onVotar={handleVotar}
         onPressionar={handlePressionarPergunta}
+        limiteAtingido={votosUsados >= LIMITE_VOTOS}
       />
     </View>
   );
@@ -145,9 +213,19 @@ export default function PerguntasScreen() {
       {palestraTitulo && (
         <Text style={styles.headerSubtitulo}>{palestraTitulo}</Text>
       )}
-      <Text style={styles.headerInfo}>
-        {perguntas.length} {perguntas.length === 1 ? 'pergunta' : 'perguntas'}
-      </Text>
+      <View style={styles.headerInfoContainer}>
+        <Text style={styles.headerInfo}>
+          {perguntas.length} {perguntas.length === 1 ? 'pergunta' : 'perguntas'}
+        </Text>
+        {usuario?.id && (
+          <Text style={[
+            styles.votosContador,
+            votosUsados >= LIMITE_VOTOS && styles.votosContadorLimite
+          ]}>
+            💙 Votos: {votosUsados}/{LIMITE_VOTOS}
+          </Text>
+        )}
+      </View>
     </View>
   );
 
@@ -164,7 +242,7 @@ export default function PerguntasScreen() {
         </View>
       );
     }
-    
+
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>💭</Text>
@@ -206,8 +284,8 @@ export default function PerguntasScreen() {
 
       {/* Botão flutuante para criar pergunta - só mostra se houver palestraId */}
       {palestraId && (
-        <TouchableOpacity 
-          style={styles.botaoFlutuante} 
+        <TouchableOpacity
+          style={styles.botaoFlutuante}
           onPress={handleCriarPergunta}
           activeOpacity={0.8}
         >
@@ -260,10 +338,32 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginBottom: 8,
   },
+  headerInfoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
   headerInfo: {
     fontSize: 14,
     color: '#94A3B8',
     fontWeight: '500',
+  },
+  votosContador: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  votosContadorLimite: {
+    color: '#DC2626',
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
   },
   bannerTop: {
     backgroundColor: '#FFF3E0',
