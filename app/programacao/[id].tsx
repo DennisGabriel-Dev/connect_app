@@ -218,7 +218,7 @@ export default function TelaDetalheProgramacao() {
             >
               <View style={styles.botaoPerguntasConteudo}>
                 <View style={styles.botaoPerguntasIcone}>
-                  <Text style={styles.botaoPerguntasIconeTexto}>💬</Text>
+                  <IconSymbol name="bubble.right.fill" size={28} color="#1E88E5" />
                 </View>
                 <View style={styles.botaoPerguntasTextos}>
                   <Text style={styles.botaoPerguntasTitulo}>Perguntas</Text>

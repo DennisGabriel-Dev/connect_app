@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Pergunta } from '@/services/perguntas/types';
+import { IconSymbol } from '../ui/icon-symbol';
 
 interface PerguntaCardProps {
   pergunta: Pergunta;
@@ -52,11 +53,17 @@ export default function PerguntaCard({
         {/* Header com ranking */}
         <View style={styles.header}>
           <View style={styles.rankingBadge}>
-            <Text style={styles.rankingTexto}>🏆 {pergunta.votos} votos</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <IconSymbol name="trophy.fill" size={14} color="#1E88E5" />
+              <Text style={styles.rankingTexto}>{pergunta.votos} votos</Text>
+            </View>
           </View>
           {pergunta.respondida && (
             <View style={styles.respondidaBadge}>
-              <Text style={styles.respondidaTexto}>✓ Respondida</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
+                <Text style={styles.respondidaTexto}>Respondida</Text>
+              </View>
             </View>
           )}
         </View>
@@ -90,24 +97,30 @@ export default function PerguntaCard({
               onPress={handleVotar}
               activeOpacity={0.7}
             >
-              <Text style={[
-                styles.botaoVotarTexto,
-                usuarioJaVotou && styles.botaoVotarTextoAtivo,
-                mostrarLimite && styles.botaoVotarTextoDesabilitado
-              ]}>
-                {mostrarLimite
-                  ? '🔒 Limite atingido'
-                  : usuarioJaVotou
-                    ? '❤️ Votado'
-                    : '🤍 Votar'}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <IconSymbol
+                  name={mostrarLimite ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
+                  size={16}
+                  color={mostrarLimite ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
+                />
+                <Text style={[
+                  styles.botaoVotarTexto,
+                  usuarioJaVotou && styles.botaoVotarTextoAtivo,
+                  mostrarLimite && styles.botaoVotarTextoDesabilitado
+                ]}>
+                  {mostrarLimite ? 'Limite atingido' : usuarioJaVotou ? 'Votado' : 'Votar'}
+                </Text>
+              </View>
             </TouchableOpacity>
           )}
 
           {/* Mostrar badge se for o autor */}
           {ehAutor && (
             <View style={styles.autorBadge}>
-              <Text style={styles.autorBadgeTexto}>✍️ Sua pergunta</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <IconSymbol name="person.fill" size={14} color="#4F46E5" />
+                <Text style={styles.autorBadgeTexto}>Sua pergunta</Text>
+              </View>
             </View>
           )}
         </View>
@@ -138,15 +151,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   rankingBadge: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: '#E3F2FD',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FFB74D',
+    borderColor: '#64B5F6',
   },
   rankingTexto: {
-    color: '#F57C00',
+    color: '#1565C0',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -199,8 +212,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   botaoVotarAtivo: {
-    backgroundColor: '#FEE2E2',
-    borderColor: '#EF4444',
+    backgroundColor: '#EDE9FE',
+    borderColor: 'rgba(139, 92, 246, 1.00)',
   },
   botaoVotarTexto: {
     color: '#64748B',
@@ -208,7 +221,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   botaoVotarTextoAtivo: {
-    color: '#DC2626',
+    color: 'rgba(139, 92, 246, 1.00)',
   },
   autorBadge: {
     backgroundColor: '#EEF2FF',

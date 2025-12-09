@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
 import { useAuth } from '@/services/auth/context';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 
 export default function DetalhePerguntaScreen() {
   const { id } = useLocalSearchParams();
@@ -149,7 +150,7 @@ export default function DetalhePerguntaScreen() {
   if (!pergunta) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorIcon}>❌</Text>
+        <IconSymbol name="xmark.circle.fill" size={64} color="#DC2626" />
         <Text style={styles.errorText}>Pergunta não encontrada</Text>
         <TouchableOpacity
           style={styles.botaoVoltar}
@@ -177,7 +178,7 @@ export default function DetalhePerguntaScreen() {
       {/* Header com ranking */}
       <View style={styles.header}>
         <View style={styles.rankingContainer}>
-          <Text style={styles.rankingIcon}>🏆</Text>
+          <IconSymbol name="trophy.fill" size={32} color="#1E88E5" />
           <View>
             <Text style={styles.rankingNumero}>{pergunta.votos}</Text>
             <Text style={styles.rankingLabel}>
@@ -188,7 +189,10 @@ export default function DetalhePerguntaScreen() {
 
         {pergunta.respondida && (
           <View style={styles.badgeRespondida}>
-            <Text style={styles.badgeTexto}>✓ Respondida</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
+              <Text style={styles.badgeTexto}>Respondida</Text>
+            </View>
           </View>
         )}
       </View>
@@ -213,7 +217,10 @@ export default function DetalhePerguntaScreen() {
         {/* Botão de votar - ou badge se for o autor */}
         {pergunta.usuarioId === usuario?.id ? (
           <View style={styles.autorBadge}>
-            <Text style={styles.autorBadgeTexto}>✍️ Esta é sua pergunta</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <IconSymbol name="person.fill" size={16} color="#4F46E5" />
+              <Text style={styles.autorBadgeTexto}>Esta é sua pergunta</Text>
+            </View>
           </View>
         ) : (
           <TouchableOpacity
@@ -225,24 +232,31 @@ export default function DetalhePerguntaScreen() {
             onPress={handleVotar}
             activeOpacity={0.7}
           >
-            <Text style={[
-              styles.botaoVotarTexto,
-              usuarioJaVotou && styles.botaoVotarTextoAtivo,
-              mostrarLimite && styles.botaoVotarTextoDesabilitado
-            ]}>
-              {mostrarLimite
-                ? '🔒 Limite atingido'
-                : usuarioJaVotou
-                  ? '❤️ Você votou nesta pergunta'
-                  : '🤍 Votar nesta pergunta'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <IconSymbol
+                name={mostrarLimite ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
+                size={20}
+                color={mostrarLimite ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
+              />
+              <Text style={[
+                styles.botaoVotarTexto,
+                usuarioJaVotou && styles.botaoVotarTextoAtivo,
+                mostrarLimite && styles.botaoVotarTextoDesabilitado
+              ]}>
+                {mostrarLimite
+                  ? 'Limite atingido'
+                  : usuarioJaVotou
+                    ? 'Você votou nesta pergunta'
+                    : 'Votar nesta pergunta'}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
 
         {/* Resposta do palestrante */}
         {pergunta.respondida && pergunta.resposta && (
           <View style={styles.respostaContainer}>
-            <Text style={styles.respostaLabel}>💬 Resposta do Palestrante:</Text>
+            <IconSymbol name="bubble.right.fill" size={18} color="#1E88E5" />
             <View style={styles.respostaConteudo}>
               <Text style={styles.respostaTexto}>{pergunta.resposta}</Text>
               {pergunta.dataResposta && (
@@ -261,7 +275,7 @@ export default function DetalhePerguntaScreen() {
         {/* Aguardando resposta */}
         {!pergunta.respondida && (
           <View style={styles.aguardandoContainer}>
-            <Text style={styles.aguardandoIcon}>⏳</Text>
+            <IconSymbol name="hourglass" size={48} color="#7b7b63ff" />
             <Text style={styles.aguardandoTexto}>
               Aguardando resposta do palestrante
             </Text>
@@ -332,12 +346,12 @@ const styles = StyleSheet.create({
   rankingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF3E0',
+    backgroundColor: '#E3F2FD',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#FFB74D',
+    borderColor: '#64B5F6',
   },
   rankingIcon: {
     fontSize: 32,
@@ -346,11 +360,11 @@ const styles = StyleSheet.create({
   rankingNumero: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#F57C00',
+    color: '#1565C0',
   },
   rankingLabel: {
     fontSize: 12,
-    color: '#F57C00',
+    color: '#1565C0',
     fontWeight: '600',
   },
   badgeRespondida: {
@@ -417,8 +431,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   botaoVotarAtivo: {
-    backgroundColor: '#FEE2E2',
-    borderColor: '#EF4444',
+    backgroundColor: '#EDE9FE',
+    borderColor: 'rgba(139, 92, 246, 1.00)',
   },
   botaoVotarTexto: {
     fontSize: 16,
@@ -426,7 +440,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   botaoVotarTextoAtivo: {
-    color: '#DC2626',
+    color: 'rgba(139, 92, 246, 1.00)',
   },
   respostaContainer: {
     marginTop: 8,

@@ -194,7 +194,10 @@ export default function PerguntasScreen() {
     <View>
       {index === 0 && item.votos > 0 && (
         <View style={styles.bannerTop}>
-          <Text style={styles.bannerTexto}>⭐ Pergunta mais votada</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <IconSymbol name="star.fill" size={16} color="#1E88E5" />
+            <Text style={styles.bannerTexto}>Pergunta mais votada</Text>
+          </View>
         </View>
       )}
       <PerguntaCard
@@ -218,12 +221,24 @@ export default function PerguntasScreen() {
           {perguntas.length} {perguntas.length === 1 ? 'pergunta' : 'perguntas'}
         </Text>
         {usuario?.id && (
-          <Text style={[
+          <View style={[
             styles.votosContador,
             votosUsados >= LIMITE_VOTOS && styles.votosContadorLimite
           ]}>
-            💙 Votos: {votosUsados}/{LIMITE_VOTOS}
-          </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <IconSymbol
+                name={votosUsados >= LIMITE_VOTOS ? 'lock.fill' : 'heart.fill'}
+                size={16}
+                color={votosUsados >= LIMITE_VOTOS ? '#DC2626' : '#1E88E5'}
+              />
+              <Text style={[
+                styles.votosContadorTexto,
+                votosUsados >= LIMITE_VOTOS && styles.votosContadorTextoLimite
+              ]}>
+                Votos: {votosUsados}/{LIMITE_VOTOS}
+              </Text>
+            </View>
+          </View>
         )}
       </View>
     </View>
@@ -366,7 +381,7 @@ const styles = StyleSheet.create({
     borderColor: '#FCA5A5',
   },
   bannerTop: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: '#E3F2FD',
     paddingVertical: 8,
     paddingHorizontal: 16,
     marginHorizontal: 16,
@@ -376,10 +391,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     borderWidth: 1,
     borderBottomWidth: 0,
-    borderColor: '#FFB74D',
+    borderColor: '#1E88E5',
   },
   bannerTexto: {
-    color: '#F57C00',
+    color: '#1E88E5',
     fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
@@ -423,5 +438,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  votosContadorTexto: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+  },
+  votosContadorTextoLimite: {
+    color: '#DC2626',
   },
 });
