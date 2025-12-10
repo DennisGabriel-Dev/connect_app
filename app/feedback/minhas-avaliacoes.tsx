@@ -17,6 +17,7 @@ import { HeaderTela } from '@/components/shared/HeaderTela';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../../services/auth/context';
 import { apiFeedback } from '../../services/feedback/api';
+import { presencaApi } from '../../services/presenca/api';
 import { apiProgramacao } from '../../services/programacao/api';
 
 interface PalestraComPresenca extends Atividade {
@@ -39,13 +40,22 @@ export default function TelaMinhasAvaliacoes() {
     try {
       setCarregando(true);
 
+      // Buscar todas as presenças do usuário
+      const minhasPresencas = await presencaApi.listarPresencas(usuario.id);
+
+      // Extrair os IDs das palestras com presença
+      const idsPalestrasComPresenca = minhasPresencas.map(p => p.palestraId);
+
+      // Buscar todas as atividades
       const todasPalestras = await apiProgramacao.buscarAtividades();
 
-      // TODO: Substituir por apiPresenca.buscarMinhasPresencas(usuario.id)
-      const palestrasComPresencaSimuladas = todasPalestras.slice(0, 3);
+      // Filtrar apenas as palestras que o usuário tem presença
+      const palestrasComPresenca = todasPalestras.filter(palestra => 
+        idsPalestrasComPresenca.includes(palestra.id)
+      );
 
       const palestrasComInfoAvaliacao = await Promise.all(
-        palestrasComPresencaSimuladas.map(async (palestra) => {
+        palestrasComPresenca.map(async (palestra) => {
           try {
             const meusFeedbacks = await apiFeedback.buscarMeusFeedbacks(usuario.id);
             const feedbackExistente = meusFeedbacks.find(fb => fb.palestraId === palestra.id);
