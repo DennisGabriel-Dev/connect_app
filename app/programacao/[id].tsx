@@ -182,6 +182,17 @@ export default function TelaDetalheProgramacao() {
           </View>
         )}
 
+        {/* Botão Perguntas */}
+        {presencaRegistrada && (
+          <TouchableOpacity
+            style={styles.botaoPerguntas}
+            onPress={() => navegador.push(`/perguntas?palestraId=${atividade.id}&palestraTitulo=${encodeURIComponent(atividade.titulo)}`)}
+          >
+            <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#1E88E5" />
+            <Text style={styles.textoBotaoPerguntas}>Ver Perguntas</Text>
+          </TouchableOpacity>
+        )}
+
         <BotaoPresenca
           atividadeId={atividade.id}
           onPresencaRegistrada={(dados) => {
@@ -190,15 +201,6 @@ export default function TelaDetalheProgramacao() {
             navegador.push(`/feedback/avaliar/${dados.atividadeId}`);
           }}
         />
-
-        {/* Botão Perguntas */}
-        <TouchableOpacity
-          style={styles.botaoPerguntas}
-          onPress={() => navegador.push(`/perguntas/palestra/${atividade.id}`)}
-        >
-          <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#1E88E5" />
-          <Text style={styles.textoBotaoPerguntas}>Ver Perguntas</Text>
-        </TouchableOpacity>
 
         {/* Botão Gerenciar Perguntas - apenas para admin */}
         {(usuario?.role === 'admin' || usuario?.isAdmin === true) && (
@@ -236,7 +238,7 @@ export default function TelaDetalheProgramacao() {
         )}
 
         {/* Botão de Perguntas - aparece após presença registrada */}
-        {presencaRegistrada && (
+        {/* {presencaRegistrada && (
           <View style={styles.secaoPerguntas}>
             <TouchableOpacity
               style={styles.botaoPerguntas}
@@ -256,7 +258,7 @@ export default function TelaDetalheProgramacao() {
               </View>
             </TouchableOpacity>
           </View>
-        )}
+        )} */}
 
         {/* Quiz específico da atividade */}
         <View style={{ marginTop: 2, marginBottom: 10 }}>
@@ -518,17 +520,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 24,
   },
-  botaoPerguntas: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    borderWidth: 2,
-    borderColor: '#1E88E5',
-  },
+  // BOTÃO PERGUNTAS QUE NÃO ESTA SENDO UTILIZADO
+  // botaoPerguntas: {
+  //   backgroundColor: '#FFFFFF',
+  //   borderRadius: 16,
+  //   elevation: 3,
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 8,
+  //   borderWidth: 2,
+  //   borderColor: '#1E88E5',
+  // },
   botaoPerguntasConteudo: {
     flexDirection: 'row',
     alignItems: 'center',
