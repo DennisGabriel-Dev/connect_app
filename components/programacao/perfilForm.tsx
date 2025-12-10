@@ -79,12 +79,12 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
   };
 
   return (
-    <KeyboardAvoidingView
-      // Correção aqui, behavior = height estava causando tremedeira na tela em alguns dispositivos
-      behavior='padding'
-      // behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+    // Correção aqui, KeyboardAvoidingView com behavior = height estava causando tremedeira na tela em alguns dispositivos, como não há mais inputs do teclado, removi o KeyboardAvoidingView
+    <View style={styles.container}>
+    {/* <KeyboardAvoidingView
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    style={styles.container}
+    >  */}
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -211,7 +211,7 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
           </View>
         </TouchableOpacity>
       </Modal>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
