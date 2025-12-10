@@ -38,3 +38,21 @@ export interface AprovarRejeitarPerguntaDTO {
   perguntaId: string;
   status: StatusPergunta;
 }
+
+// Tipos para período de votação
+export interface PeriodoVotacao {
+  votacaoInicio: Date | null;
+  votacaoFim: Date | null;
+  isPadrao: boolean;
+}
+
+export interface PeriodoVotacaoStatus {
+  palestraId: string;
+  palestraTitulo: string;
+  votacaoInicio: string | null;
+  votacaoFim: string | null;
+  periodoAtivo: boolean;
+  periodoEfetivo: PeriodoVotacao | null;
+  usandoPadrao: boolean;
+  motivo: string | null;
+}

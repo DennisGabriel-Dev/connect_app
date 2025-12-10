@@ -9,6 +9,7 @@ interface PerguntaCardProps {
   onVotar: (perguntaId: string) => void;
   onPressionar?: (pergunta: Pergunta) => void;
   limiteAtingido?: boolean; // Indica se o limite de 3 votos foi atingido
+  periodoAtivo?: boolean; // Indica se o período de votação está ativo
 }
 
 export default function PerguntaCard({
@@ -16,7 +17,8 @@ export default function PerguntaCard({
   usuarioAtualId,
   onVotar,
   onPressionar,
-  limiteAtingido = false
+  limiteAtingido = false,
+  periodoAtivo = true
 }: PerguntaCardProps) {
   const usuarioJaVotou = pergunta.usuariosVotaram?.includes(usuarioAtualId) || false;
   const ehAutor = pergunta.usuarioId === usuarioAtualId;
@@ -24,7 +26,15 @@ export default function PerguntaCard({
   // Mostrar estilo de limite se atingido E usuário ainda não votou nesta pergunta
   const mostrarLimite = limiteAtingido && !usuarioJaVotou;
 
+  // Botão bloqueado se período inativo OU se limite atingido
+  const botaoBloqueado = !periodoAtivo || mostrarLimite;
+
   const handleVotar = () => {
+    // Se período inativo, não fazer nada
+    if (!periodoAtivo) {
+      return;
+    }
+
     // Se limite atingido e não votou, mostrar alert
     if (mostrarLimite) {
       Alert.alert(
@@ -92,23 +102,24 @@ export default function PerguntaCard({
               style={[
                 styles.botaoVotar,
                 usuarioJaVotou && styles.botaoVotarAtivo,
-                mostrarLimite && styles.botaoVotarDesabilitado
+                botaoBloqueado && styles.botaoVotarDesabilitado
               ]}
               onPress={handleVotar}
               activeOpacity={0.7}
+              disabled={botaoBloqueado}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <IconSymbol
-                  name={mostrarLimite ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
+                  name={botaoBloqueado ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
                   size={16}
-                  color={mostrarLimite ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
+                  color={botaoBloqueado ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
                 />
                 <Text style={[
                   styles.botaoVotarTexto,
                   usuarioJaVotou && styles.botaoVotarTextoAtivo,
-                  mostrarLimite && styles.botaoVotarTextoDesabilitado
+                  botaoBloqueado && styles.botaoVotarTextoDesabilitado
                 ]}>
-                  {mostrarLimite ? 'Limite atingido' : usuarioJaVotou ? 'Votado' : 'Votar'}
+                  {!periodoAtivo ? 'Encerrado' : mostrarLimite ? 'Limite atingido' : usuarioJaVotou ? 'Votado' : 'Votar'}
                 </Text>
               </View>
             </TouchableOpacity>

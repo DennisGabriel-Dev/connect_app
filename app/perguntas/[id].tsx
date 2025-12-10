@@ -24,6 +24,8 @@ export default function DetalhePerguntaScreen() {
   const [carregando, setCarregando] = useState(true);
   const [votosUsados, setVotosUsados] = useState(0);
   const [carregandoVotos, setCarregandoVotos] = useState(true);
+  const [periodoAtivo, setPeriodoAtivo] = useState(true);
+  const [motivoPeriodoInativo, setMotivoPeriodoInativo] = useState<string | null>(null);
   const LIMITE_VOTOS = 3;
 
   useEffect(() => {
@@ -34,10 +36,23 @@ export default function DetalhePerguntaScreen() {
   useEffect(() => {
     if (pergunta?.palestraId && usuario?.id) {
       carregarVotosParticipante();
+      verificarPeriodo(pergunta.palestraId);
     } else {
       setCarregandoVotos(false);
     }
   }, [pergunta?.palestraId, usuario?.id]);
+
+  const verificarPeriodo = async (palestraId: string) => {
+    try {
+      const status = await perguntasApi.verificarPeriodoAtivo(palestraId);
+      setPeriodoAtivo(status.periodoAtivo);
+      setMotivoPeriodoInativo(status.motivo);
+    } catch (error) {
+      console.error('Erro ao verificar período:', error);
+      // Em caso de erro, permitir votação
+      setPeriodoAtivo(true);
+    }
+  };
 
   const carregarPergunta = async () => {
     try {
@@ -166,6 +181,8 @@ export default function DetalhePerguntaScreen() {
   const usuarioJaVotou = pergunta.usuariosVotaram?.includes(usuario?.id || '');
   // Só mostra limite se já carregou os votos
   const mostrarLimite = !carregandoVotos && votosUsados >= LIMITE_VOTOS && !usuarioJaVotou;
+  // Bloquear se período encerrou
+  const bloqueadoPorPeriodo = !periodoAtivo;
   const dataFormatada = new Date(pergunta.createdAt).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
@@ -190,14 +207,7 @@ export default function DetalhePerguntaScreen() {
             </View>
           </View>
 
-          {pergunta.respondida && (
-            <View style={styles.badgeRespondida}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
-                <Text style={styles.badgeTexto}>Respondida</Text>
-              </View>
-            </View>
-          )}
+
         </View>
 
         {/* Conteúdo da pergunta */}
@@ -226,64 +236,54 @@ export default function DetalhePerguntaScreen() {
               </View>
             </View>
           ) : (
-            <TouchableOpacity
-              style={[
-                styles.botaoVotar,
-                usuarioJaVotou && styles.botaoVotarAtivo,
-                mostrarLimite && styles.botaoVotarDesabilitado
-              ]}
-              onPress={handleVotar}
-              activeOpacity={0.7}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <IconSymbol
-                  name={mostrarLimite ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
-                  size={20}
-                  color={mostrarLimite ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
-                />
-                <Text style={[
-                  styles.botaoVotarTexto,
-                  usuarioJaVotou && styles.botaoVotarTextoAtivo,
-                  mostrarLimite && styles.botaoVotarTextoDesabilitado
-                ]}>
-                  {mostrarLimite
-                    ? 'Limite atingido'
-                    : usuarioJaVotou
-                      ? 'Você votou nesta pergunta'
-                      : 'Votar nesta pergunta'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
+            <>
+              {/* Alerta de período inativo */}
+              {bloqueadoPorPeriodo && (
+                <View style={styles.alertaPeriodoContainer}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <IconSymbol name="clock.fill" size={16} color="#92400E" />
+                    <Text style={styles.alertaPeriodoTexto}>
+                      {motivoPeriodoInativo || 'Período de votação encerrado'}
+                    </Text>
+                  </View>
+                </View>
+              )}
 
-          {/* Resposta do palestrante */}
-          {pergunta.respondida && pergunta.resposta && (
-            <View style={styles.respostaContainer}>
-              <IconSymbol name="bubble.right.fill" size={18} color="#1E88E5" />
-              <View style={styles.respostaConteudo}>
-                <Text style={styles.respostaTexto}>{pergunta.resposta}</Text>
-                {pergunta.dataResposta && (
-                  <Text style={styles.respostaData}>
-                    Respondida em {new Date(pergunta.dataResposta).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
+              <TouchableOpacity
+                style={[
+                  styles.botaoVotar,
+                  usuarioJaVotou && styles.botaoVotarAtivo,
+                  (mostrarLimite || bloqueadoPorPeriodo) && styles.botaoVotarDesabilitado
+                ]}
+                onPress={handleVotar}
+                activeOpacity={0.7}
+                disabled={mostrarLimite || bloqueadoPorPeriodo}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <IconSymbol
+                    name={bloqueadoPorPeriodo ? 'lock.fill' : mostrarLimite ? 'lock.fill' : usuarioJaVotou ? 'heart.fill' : 'heart'}
+                    size={20}
+                    color={(mostrarLimite || bloqueadoPorPeriodo) ? '#94A3B8' : usuarioJaVotou ? 'rgba(139, 92, 246, 1.00)' : '#64748B'}
+                  />
+                  <Text style={[
+                    styles.botaoVotarTexto,
+                    usuarioJaVotou && styles.botaoVotarTextoAtivo,
+                    (mostrarLimite || bloqueadoPorPeriodo) && styles.botaoVotarTextoDesabilitado
+                  ]}>
+                    {bloqueadoPorPeriodo
+                      ? 'Votação encerrada'
+                      : mostrarLimite
+                        ? 'Limite atingido'
+                        : usuarioJaVotou
+                          ? 'Você votou nesta pergunta'
+                          : 'Votar nesta pergunta'}
                   </Text>
-                )}
-              </View>
-            </View>
+                </View>
+              </TouchableOpacity>
+            </>
           )}
 
-          {/* Aguardando resposta */}
-          {!pergunta.respondida && (
-            <View style={styles.aguardandoContainer}>
-              <IconSymbol name="hourglass" size={48} color="#7b7b63ff" />
-              <Text style={styles.aguardandoTexto}>
-                Aguardando resposta do palestrante
-              </Text>
-            </View>
-          )}
+
         </View>
       </ScrollView>
     </>
@@ -371,19 +371,7 @@ const styles = StyleSheet.create({
     color: '#1565C0',
     fontWeight: '600',
   },
-  badgeRespondida: {
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#66BB6A',
-  },
-  badgeTexto: {
-    color: '#2E7D32',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   conteudo: {
     padding: 20,
   },
@@ -446,50 +434,7 @@ const styles = StyleSheet.create({
   botaoVotarTextoAtivo: {
     color: 'rgba(139, 92, 246, 1.00)',
   },
-  respostaContainer: {
-    marginTop: 8,
-  },
-  respostaLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 12,
-  },
-  respostaConteudo: {
-    backgroundColor: '#E0F2FE',
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#7DD3FC',
-  },
-  respostaTexto: {
-    fontSize: 16,
-    color: '#0C4A6E',
-    lineHeight: 24,
-    marginBottom: 12,
-  },
-  respostaData: {
-    fontSize: 13,
-    color: '#0369A1',
-    fontStyle: 'italic',
-  },
-  aguardandoContainer: {
-    backgroundColor: '#FEF3C7',
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FCD34D',
-  },
-  aguardandoIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  aguardandoTexto: {
-    fontSize: 14,
-    color: '#92400E',
-    fontWeight: '500',
-  },
+
   autorBadge: {
     backgroundColor: '#EEF2FF',
     paddingVertical: 16,
@@ -511,5 +456,20 @@ const styles = StyleSheet.create({
   },
   botaoVotarTextoDesabilitado: {
     color: '#94A3B8',
+  },
+  alertaPeriodoContainer: {
+    backgroundColor: '#FEF3C7',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  alertaPeriodoTexto: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400E',
+    flex: 1,
   },
 });

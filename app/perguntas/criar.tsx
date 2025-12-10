@@ -23,6 +23,28 @@ export default function CriarPerguntaScreen() {
 
   const [pergunta, setPergunta] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [carregandoPeriodo, setCarregandoPeriodo] = useState(true);
+  const [periodoAtivo, setPeriodoAtivo] = useState(true);
+  const [motivoPeriodoInativo, setMotivoPeriodoInativo] = useState<string | null>(null);
+
+  useEffect(() => {
+    verificarPeriodo();
+  }, [palestraId]);
+
+  const verificarPeriodo = async () => {
+    try {
+      setCarregandoPeriodo(true);
+      const status = await perguntasApi.verificarPeriodoAtivo(palestraId as string);
+      setPeriodoAtivo(status.periodoAtivo);
+      setMotivoPeriodoInativo(status.motivo);
+    } catch (error) {
+      console.error('Erro ao verificar período:', error);
+      // Em caso de erro, permitir criação
+      setPeriodoAtivo(true);
+    } finally {
+      setCarregandoPeriodo(false);
+    }
+  };
 
   const validarFormulario = (): boolean => {
     if (!pergunta.trim()) {
@@ -132,13 +154,28 @@ export default function CriarPerguntaScreen() {
               </Text>
             </View>
 
+            {/* Alerta de período inativo */}
+            {!carregandoPeriodo && !periodoAtivo && (
+              <View style={styles.alertaContainer}>
+                <Text style={styles.alertaIcon}>⏰</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.alertaTitulo}>Período encerrado</Text>
+                  <Text style={styles.alertaTexto}>
+                    {motivoPeriodoInativo || 'O período para criar perguntas encerrou'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
             {/* Dica */}
-            <View style={styles.dicaContainer}>
-              <Text style={styles.dicaIcon}>💡</Text>
-              <Text style={styles.dicaTexto}>
-                Perguntas claras e objetivas têm mais chances de serem respondidas!
-              </Text>
-            </View>
+            {periodoAtivo && (
+              <View style={styles.dicaContainer}>
+                <Text style={styles.dicaIcon}>💡</Text>
+                <Text style={styles.dicaTexto}>
+                  Perguntas claras e objetivas têm mais chances de serem respondidas!
+                </Text>
+              </View>
+            )}
           </View>
         </ScrollView>
 
@@ -153,14 +190,16 @@ export default function CriarPerguntaScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.botao, styles.botaoEnviar, enviando && styles.botaoDesabilitado]}
+            style={[styles.botao, styles.botaoEnviar, (enviando || !periodoAtivo) && styles.botaoDesabilitado]}
             onPress={handleEnviar}
-            disabled={enviando}
+            disabled={enviando || !periodoAtivo}
           >
             {enviando ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.botaoEnviarTexto}>Enviar Pergunta</Text>
+              <Text style={styles.botaoEnviarTexto}>
+                {!periodoAtivo ? 'Período encerrado' : 'Enviar Pergunta'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -285,5 +324,29 @@ const styles = StyleSheet.create({
   },
   botaoDesabilitado: {
     backgroundColor: '#94A3B8',
+  },
+  alertaContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF3C7',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+    marginBottom: 16,
+  },
+  alertaIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  alertaTitulo: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 4,
+  },
+  alertaTexto: {
+    fontSize: 14,
+    color: '#92400E',
+    lineHeight: 20,
   },
 });

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { CriarPerguntaDTO, Pergunta, StatusPergunta } from './types';
+import { CriarPerguntaDTO, Pergunta, StatusPergunta, PeriodoVotacaoStatus } from './types';
 
 const URL_BASE_API = `${process.env.EXPO_PUBLIC_API_BASE_URL}/perguntas`;
 const STORAGE_KEY_CURTIDAS = '@perguntas:curtidas_usuario';
@@ -219,6 +219,29 @@ export const perguntasApi = {
     } catch (error) {
       console.error('Erro ao rejeitar pergunta:', error);
       throw error;
+    }
+  },
+
+  // Verificar período de votação ativo
+  async verificarPeriodoAtivo(palestraId: string): Promise<PeriodoVotacaoStatus> {
+    try {
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao`
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error('Erro ao verificar período de votação:', error);
+      // Em caso de erro, retornar período ativo por segurança
+      return {
+        palestraId,
+        palestraTitulo: '',
+        votacaoInicio: null,
+        votacaoFim: null,
+        periodoAtivo: true,
+        periodoEfetivo: null,
+        usandoPadrao: false,
+        motivo: null
+      };
     }
   },
 };

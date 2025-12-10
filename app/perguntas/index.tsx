@@ -26,6 +26,8 @@ export default function PerguntasScreen() {
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
   const [votosUsados, setVotosUsados] = useState(0);
+  const [periodoAtivo, setPeriodoAtivo] = useState(true);
+  const [motivoPeriodoInativo, setMotivoPeriodoInativo] = useState<string | null>(null);
 
   const LIMITE_VOTOS = 3;
 
@@ -39,12 +41,27 @@ export default function PerguntasScreen() {
     }
   }, [palestraId]);
 
-  // Carregar votos do participante
+  // Carregar votos do participante e verificar período
   useEffect(() => {
     if (palestraId && usuario?.id) {
       carregarVotosParticipante();
+      verificarPeriodo();
+    } else if (palestraId) {
+      verificarPeriodo();
     }
   }, [palestraId, usuario?.id]);
+
+  const verificarPeriodo = async () => {
+    try {
+      if (!palestraId) return;
+      const status = await perguntasApi.verificarPeriodoAtivo(palestraId as string);
+      setPeriodoAtivo(status.periodoAtivo);
+      setMotivoPeriodoInativo(status.motivo);
+    } catch (error) {
+      console.error('Erro ao verificar período:', error);
+      setPeriodoAtivo(true);
+    }
+  };
 
   // Recarregar dados quando a tela ganhar foco (ao voltar da tela de detalhes)
   useFocusEffect(
@@ -211,6 +228,7 @@ export default function PerguntasScreen() {
         onVotar={handleVotar}
         onPressionar={handlePressionarPergunta}
         limiteAtingido={votosUsados >= LIMITE_VOTOS}
+        periodoAtivo={periodoAtivo}
       />
     </View>
   );
@@ -243,6 +261,27 @@ export default function PerguntasScreen() {
           </View>
         )}
       </View>
+
+      {/* Badge de período ativo/inativo */}
+      {!periodoAtivo && (
+        <View style={styles.periodoBadge}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <IconSymbol name="clock.fill" size={14} color="#92400E" />
+            <Text style={styles.periodoBadgeTexto}>
+              {motivoPeriodoInativo || 'Período de perguntas encerrado'}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {periodoAtivo && (
+        <View style={styles.periodoAtivoBadge}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
+            <Text style={styles.periodoAtivoBadgeTexto}>Período ativo</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 
@@ -303,11 +342,14 @@ export default function PerguntasScreen() {
       {/* Botão flutuante para criar pergunta - só mostra se houver palestraId */}
       {palestraId && (
         <TouchableOpacity
-          style={styles.botaoFlutuante}
+          style={[styles.botaoFlutuante, !periodoAtivo && styles.botaoFlutuanteDesabilitado]}
           onPress={handleCriarPergunta}
           activeOpacity={0.8}
+          disabled={!periodoAtivo}
         >
-          <Text style={styles.botaoFlutuanteTexto}>+ Nova Pergunta</Text>
+          <Text style={styles.botaoFlutuanteTexto}>
+            {periodoAtivo ? '+ Nova Pergunta' : 'Período encerrado'}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -449,5 +491,36 @@ const styles = StyleSheet.create({
   },
   votosContadorTextoLimite: {
     color: '#DC2626',
+  },
+  periodoBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  periodoBadgeTexto: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  periodoAtivoBadge: {
+    backgroundColor: '#D1FAE5',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#6EE7B7',
+  },
+  periodoAtivoBadgeTexto: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#047857',
+  },
+  botaoFlutuanteDesabilitado: {
+    backgroundColor: '#94A3B8',
   },
 });
