@@ -80,7 +80,9 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      // Correção aqui, behavior = height estava causando tremedeira na tela em alguns dispositivos
+      behavior='padding'
+      // behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <ScrollView 
