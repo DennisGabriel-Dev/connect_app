@@ -21,23 +21,17 @@ export default function CriarPerguntaScreen() {
   const { palestraId, palestraTitulo } = useLocalSearchParams();
   const { usuario } = useAuth();
 
-  const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState('');
+  const [pergunta, setPergunta] = useState('');
   const [enviando, setEnviando] = useState(false);
 
   const validarFormulario = (): boolean => {
-    if (!titulo.trim()) {
-      Alert.alert('Atenção', 'Por favor, insira um título para sua pergunta.');
+    if (!pergunta.trim()) {
+      Alert.alert('Atenção', 'Por favor, escreva sua pergunta.');
       return false;
     }
 
-    if (titulo.trim().length < 10) {
-      Alert.alert('Atenção', 'O título deve ter pelo menos 10 caracteres.');
-      return false;
-    }
-
-    if (!descricao.trim()) {
-      Alert.alert('Atenção', 'Por favor, adicione uma descrição à sua pergunta.');
+    if (pergunta.trim().length < 10) {
+      Alert.alert('Atenção', 'A pergunta deve ter pelo menos 10 caracteres.');
       return false;
     }
 
@@ -57,8 +51,8 @@ export default function CriarPerguntaScreen() {
 
       const novaPergunta = {
         palestraId: palestraId as string,
-        titulo: titulo.trim(),
-        descricao: descricao.trim(),
+        titulo: pergunta.trim(),
+        descricao: '',
         palestraTitulo: palestraTitulo as string || 'Palestra',
       };
 
@@ -84,7 +78,7 @@ export default function CriarPerguntaScreen() {
   };
 
   const handleCancelar = () => {
-    if (titulo.trim() || descricao.trim()) {
+    if (pergunta.trim()) {
       Alert.alert(
         'Descartar pergunta?',
         'Você tem alterações não salvas. Deseja descartar?',
@@ -118,40 +112,23 @@ export default function CriarPerguntaScreen() {
 
           {/* Formulário */}
           <View style={styles.formulario}>
-            {/* Campo Título */}
+            {/* Campo Pergunta */}
             <View style={styles.campoContainer}>
-              <Text style={styles.label}>Título da Pergunta *</Text>
+              <Text style={styles.label}>Faça sua pergunta!</Text>
               <TextInput
-                style={styles.inputTitulo}
-                placeholder="Ex: Como implementar autenticação JWT?"
+                style={styles.inputPergunta}
+                placeholder="Ex: Como funciona o sistema de autenticação?"
                 placeholderTextColor="#94A3B8"
-                value={titulo}
-                onChangeText={setTitulo}
-                maxLength={200}
-                editable={!enviando}
-              />
-              <Text style={styles.contador}>
-                {titulo.length}/200 caracteres
-              </Text>
-            </View>
-
-            {/* Campo Descrição */}
-            <View style={styles.campoContainer}>
-              <Text style={styles.label}>Descrição (opcional)</Text>
-              <TextInput
-                style={styles.inputDescricao}
-                placeholder="Adicione mais detalhes sobre sua pergunta..."
-                placeholderTextColor="#94A3B8"
-                value={descricao}
-                onChangeText={setDescricao}
-                maxLength={1000}
+                value={pergunta}
+                onChangeText={setPergunta}
+                maxLength={500}
                 multiline
-                numberOfLines={6}
+                numberOfLines={4}
                 textAlignVertical="top"
                 editable={!enviando}
               />
               <Text style={styles.contador}>
-                {descricao.length}/1000 caracteres
+                {pergunta.length}/500 caracteres
               </Text>
             </View>
 
@@ -238,7 +215,7 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     marginBottom: 8,
   },
-  inputTitulo: {
+  inputPergunta: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#E2E8F0',
@@ -246,16 +223,7 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 16,
     color: '#1E293B',
-  },
-  inputDescricao: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#1E293B',
-    minHeight: 150,
+    minHeight: 120,
   },
   contador: {
     fontSize: 12,

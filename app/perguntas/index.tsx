@@ -168,6 +168,10 @@ export default function PerguntasScreen() {
         await perguntasApi.votarPergunta(perguntaId, usuario.id);
       }
 
+      // Recarregar dados do servidor para garantir sincronização
+      await carregarPerguntas();
+      await carregarVotosParticipante();
+
     } catch (error: any) {
       console.error('Erro ao votar:', error);
       // Reverter mudanças em caso de erro
