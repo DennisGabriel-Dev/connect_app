@@ -12,6 +12,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
 } from 'react-native';
 import { showAlert } from '@/utils/alert';
 
@@ -195,6 +196,7 @@ export default function GerenciarPerguntasScreen() {
             style={[
               styles.statusIndicador,
               item.status === StatusPergunta.APROVADA && styles.statusAprovada,
+              item.status === StatusPergunta.PREMIADA && styles.statusPremiada,
               item.status === StatusPergunta.REJEITADA && styles.statusRejeitada,
               item.status === StatusPergunta.PENDENTE && styles.statusPendente,
             ]}
@@ -262,6 +264,8 @@ export default function GerenciarPerguntasScreen() {
         return 'Pendente';
       case StatusPergunta.APROVADA:
         return 'Aprovada';
+      case StatusPergunta.PREMIADA:
+        return 'Premiada';
       case StatusPergunta.REJEITADA:
         return 'Rejeitada';
       default:
@@ -277,57 +281,78 @@ export default function GerenciarPerguntasScreen() {
     <View style={styles.container}>
       <HeaderTela titulo={tituloTela} onVoltar={() => router.back()} />
 
-      <View style={styles.filtrosContainer}>
-        <TouchableOpacity
-          style={[
-            styles.botaoFiltro,
-            filtro === StatusPergunta.PENDENTE && styles.botaoFiltroAtivo,
-          ]}
-          onPress={() => setFiltro(StatusPergunta.PENDENTE)}
-        >
-          <Text
-            style={[
-              styles.botaoFiltroTexto,
-              filtro === StatusPergunta.PENDENTE && styles.botaoFiltroTextoAtivo,
-            ]}
-          >
-            Pendentes
-          </Text>
-        </TouchableOpacity>
+      <View style={{ height: 60}}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtrosScrollContent} style={styles.filtrosScroll}>
 
-        <TouchableOpacity
-          style={[
-            styles.botaoFiltro,
-            filtro === StatusPergunta.APROVADA && styles.botaoFiltroAtivo,
-          ]}
-          onPress={() => setFiltro(StatusPergunta.APROVADA)}
-        >
-          <Text
+        
+          <TouchableOpacity
             style={[
-              styles.botaoFiltroTexto,
-              filtro === StatusPergunta.APROVADA && styles.botaoFiltroTextoAtivo,
+              styles.botaoFiltro,
+              filtro === StatusPergunta.PENDENTE && styles.botaoFiltroAtivo,
             ]}
+            onPress={() => setFiltro(StatusPergunta.PENDENTE)}
           >
-            Aprovadas
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.botaoFiltroTexto,
+                filtro === StatusPergunta.PENDENTE && styles.botaoFiltroTextoAtivo,
+              ]}
+            >
+              Pendentes
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.botaoFiltro,
-            filtro === StatusPergunta.REJEITADA && styles.botaoFiltroAtivo,
-          ]}
-          onPress={() => setFiltro(StatusPergunta.REJEITADA)}
-        >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.botaoFiltroTexto,
-              filtro === StatusPergunta.REJEITADA && styles.botaoFiltroTextoAtivo,
+              styles.botaoFiltro,
+              filtro === StatusPergunta.APROVADA && styles.botaoFiltroAtivo,
             ]}
+            onPress={() => setFiltro(StatusPergunta.APROVADA)}
           >
-            Rejeitadas
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.botaoFiltroTexto,
+                filtro === StatusPergunta.APROVADA && styles.botaoFiltroTextoAtivo,
+              ]}
+            >
+              Aprovadas
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.botaoFiltro,
+              filtro === StatusPergunta.PREMIADA && styles.botaoFiltroAtivo,
+            ]}
+            onPress={() => setFiltro(StatusPergunta.PREMIADA)}
+          >
+            <Text
+              style={[
+                styles.botaoFiltroTexto,
+                filtro === StatusPergunta.PREMIADA && styles.botaoFiltroTextoAtivo,
+              ]}
+            >
+              Premiadas
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.botaoFiltro,
+              filtro === StatusPergunta.REJEITADA && styles.botaoFiltroAtivo,
+            ]}
+            onPress={() => setFiltro(StatusPergunta.REJEITADA)}
+          >
+            <Text
+              style={[
+                styles.botaoFiltroTexto,
+                filtro === StatusPergunta.REJEITADA && styles.botaoFiltroTextoAtivo,
+              ]}
+            >
+              Rejeitadas
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {/* Card Simplificado de Controle de Período */}
@@ -398,23 +423,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  filtrosContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 8,
+  filtrosScroll: {
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
-  botaoFiltro: {
-    flex: 1,
-    paddingVertical: 10,
+  filtrosScrollContent: {
     paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingVertical: 12,
+    gap: 8,
+    alignItems: 'center',
+  },
+  botaoFiltro: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     backgroundColor: '#F1F5F9',
     borderWidth: 1,
     borderColor: '#E2E8F0',
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 90,
   },
   botaoFiltroAtivo: {
     backgroundColor: '#1E88E5',
@@ -468,6 +497,9 @@ const styles = StyleSheet.create({
   },
   statusAprovada: {
     backgroundColor: '#48BB78',
+  },
+  statusPremiada: {
+    backgroundColor: '#F6AD55',
   },
   statusRejeitada: {
     backgroundColor: '#F56565',

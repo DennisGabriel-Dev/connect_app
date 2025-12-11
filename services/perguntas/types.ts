@@ -2,6 +2,7 @@
 export enum StatusPergunta {
   PENDENTE = 'pendente',
   APROVADA = 'aprovada',
+  PREMIADA = 'premiada',
   REJEITADA = 'rejeitada'
 }
 
