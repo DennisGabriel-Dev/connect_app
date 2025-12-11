@@ -5,6 +5,7 @@ import { useAuth } from '@/services/auth/context';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { Modal, TextInput, KeyboardAvoidingView, ScrollView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
@@ -28,6 +29,14 @@ export default function PerguntasScreen() {
   const [votosUsados, setVotosUsados] = useState(0);
   const [periodoAtivo, setPeriodoAtivo] = useState(true);
   const [motivoPeriodoInativo, setMotivoPeriodoInativo] = useState<string | null>(null);
+
+  // Estados para edição
+  const [editando, setEditando] = useState(false);
+  const [perguntaEditando, setPerguntaEditando] = useState<Pergunta | null>(null);
+  const [textoEdit, setTextoEdit] = useState('');
+
+  // Perguntas pendentes do usuário
+  const [perguntasPendentes, setPerguntasPendentes] = useState<Pergunta[]>([]);
 
   const LIMITE_VOTOS = 3;
 
@@ -70,6 +79,7 @@ export default function PerguntasScreen() {
         carregarPerguntas();
         if (usuario?.id) {
           carregarVotosParticipante();
+          carregarPerguntasPendentes();
         }
       }
     }, [palestraId, usuario?.id])
@@ -93,8 +103,24 @@ export default function PerguntasScreen() {
     try {
       setAtualizando(true);
       await carregarPerguntas();
+      if (usuario?.id && palestraId) {
+        await carregarPerguntasPendentes();
+      }
     } finally {
       setAtualizando(false);
+    }
+  };
+
+  const carregarPerguntasPendentes = async () => {
+    if (!usuario?.id || !palestraId) return;
+    try {
+      const pendentes = await perguntasApi.listarPendentesPorParticipante(
+        palestraId as string,
+        usuario.id
+      );
+      setPerguntasPendentes(pendentes);
+    } catch (error) {
+      console.error('Erro ao carregar perguntas pendentes:', error);
     }
   };
 
@@ -205,6 +231,71 @@ export default function PerguntasScreen() {
     router.push(`/perguntas/${pergunta.id}`);
   };
 
+  const handleEditar = (pergunta: Pergunta) => {
+    setPerguntaEditando(pergunta);
+    // Combinar título e descrição se existir, ou usar apenas título
+    const textoCompleto = pergunta.titulo + (pergunta.descricao ? `\n\n${pergunta.descricao}` : '');
+    setTextoEdit(textoCompleto);
+    setEditando(true);
+  };
+
+  const handleSalvarEdicao = async () => {
+    if (!usuario?.id || !perguntaEditando) return;
+    if (!textoEdit.trim()) {
+      Alert.alert('Atenção', 'O texto da pergunta é obrigatório');
+      return;
+    }
+    try {
+      // Separar primeira linha como título, resto como descrição
+      const linhas = textoEdit.trim().split('\n\n');
+      const titulo = linhas[0] || textoEdit.trim();
+      const descricao = linhas.slice(1).join('\n\n') || '';
+
+      await perguntasApi.editarPergunta(
+        perguntaEditando.id,
+        titulo,
+        descricao,
+        usuario.id
+      );
+      Alert.alert('Sucesso', 'Pergunta editada com sucesso!');
+      setEditando(false);
+      setPerguntaEditando(null);
+      await carregarPerguntas();
+      await carregarPerguntasPendentes();
+    } catch (error: any) {
+      console.error('Erro ao editar:', error);
+      const mensagem = error.response?.data?.error || 'Não foi possível editar a pergunta';
+      Alert.alert('Erro', mensagem);
+    }
+  };
+
+  const handleExcluir = (pergunta: Pergunta) => {
+    if (!usuario?.id) return;
+    Alert.alert(
+      'Excluir Pergunta',
+      `Tem certeza que deseja excluir esta pergunta?\n\nVocês tem ${pergunta.votos} votos nela.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await perguntasApi.deletarPergunta(pergunta.id, usuario.id);
+              Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
+              await carregarPerguntas();
+              await carregarPerguntasPendentes();
+            } catch (error: any) {
+              console.error('Erro ao excluir:', error);
+              const mensagem = error.response?.data?.error || 'Não foi possível excluir a pergunta';
+              Alert.alert('Erro', mensagem);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleCriarPergunta = () => {
     router.push({
       pathname: '/perguntas/criar',
@@ -213,24 +304,16 @@ export default function PerguntasScreen() {
   };
 
   const renderPergunta = ({ item, index }: { item: Pergunta; index: number }) => (
-    <View>
-      {index === 0 && item.votos > 0 && (
-        <View style={styles.bannerTop}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <IconSymbol name="star.fill" size={16} color="#1E88E5" />
-            <Text style={styles.bannerTexto}>Pergunta mais votada</Text>
-          </View>
-        </View>
-      )}
-      <PerguntaCard
-        pergunta={item}
-        usuarioAtualId={usuario?.id || ''}
-        onVotar={handleVotar}
-        onPressionar={handlePressionarPergunta}
-        limiteAtingido={votosUsados >= LIMITE_VOTOS}
-        periodoAtivo={periodoAtivo}
-      />
-    </View>
+    <PerguntaCard
+      pergunta={item}
+      usuarioAtualId={usuario?.id || ''}
+      onVotar={handleVotar}
+      onPressionar={handlePressionarPergunta}
+      onEditar={handleEditar}
+      onExcluir={handleExcluir}
+      limiteAtingido={votosUsados >= LIMITE_VOTOS}
+      periodoAtivo={periodoAtivo}
+    />
   );
 
   const renderHeader = () => (
@@ -278,8 +361,97 @@ export default function PerguntasScreen() {
         <View style={styles.periodoAtivoBadge}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
-            <Text style={styles.periodoAtivoBadgeTexto}>Período ativo</Text>
+            <Text style={styles.periodoAtivoBadgeTexto}>Aberto a perguntas</Text>
           </View>
+        </View>
+      )}
+
+      {/* Seção de Perguntas Pendentes do Usuário */}
+      {usuario?.id && perguntasPendentes.length > 0 && periodoAtivo && (
+        <View style={styles.secaoPendentes}>
+          <View style={styles.pendentesTitulo}>
+            <IconSymbol name="clock" size={18} color="#F59E0B" />
+            <Text style={styles.pendentesTituloTexto}>
+              Minhas Perguntas Pendentes ({perguntasPendentes.length})
+            </Text>
+          </View>
+
+          {perguntasPendentes.map((pergunta) => (
+            <View key={pergunta.id} style={styles.cardPendente}>
+              <View style={styles.pendenteBadge}>
+                <Text style={styles.pendenteBadgeTexto}>⏳ Aguardando aprovação</Text>
+              </View>
+
+              <Text style={styles.pendenteTitulo} numberOfLines={2}>
+                {pergunta.titulo}
+              </Text>
+
+              {pergunta.descricao && (
+                <Text style={styles.pendenteDescricao} numberOfLines={2}>
+                  {pergunta.descricao}
+                </Text>
+              )}
+
+              <View style={styles.pendenteAcoes}>
+                <TouchableOpacity
+                  style={styles.botaoEditarPendente}
+                  onPress={() => handleEditar(pergunta)}
+                >
+                  <IconSymbol name="pencil" size={14} color="#1E88E5" />
+                  <Text style={styles.botaoEditarPendenteTexto}>Editar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.botaoExcluirPendente}
+                  onPress={() => handleExcluir(pergunta)}
+                >
+                  <IconSymbol name="trash" size={14} color="#EF4444" />
+                  <Text style={styles.botaoExcluirPendenteTexto}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Seção Top 3 Perguntas Mais Votadas */}
+      {perguntas.length > 0 && perguntas.slice(0, 3).some(p => p.votos > 0) && (
+        <View style={styles.secaoTop3}>
+          <View style={styles.top3Titulo}>
+            <IconSymbol name="star.fill" size={18} color="#1E88E5" />
+            <Text style={styles.top3TituloTexto}>
+              Top 3 Perguntas Mais Votadas
+            </Text>
+          </View>
+
+          {perguntas.slice(0, 3).filter(p => p.votos > 0).map((pergunta, index) => (
+            <View key={pergunta.id} style={styles.cardTop3}>
+              <View style={styles.top3Badge}>
+                <IconSymbol name="trophy.fill" size={14} color="#1E88E5" />
+                <Text style={styles.top3BadgeTexto}>
+                  #{index + 1} · {pergunta.votos} {pergunta.votos === 1 ? 'voto' : 'votos'}
+                </Text>
+              </View>
+
+              <Text style={styles.top3Titulo} numberOfLines={2}>
+                {pergunta.titulo}
+              </Text>
+
+              {pergunta.descricao && (
+                <Text style={styles.top3Descricao} numberOfLines={2}>
+                  {pergunta.descricao}
+                </Text>
+              )}
+
+              <TouchableOpacity
+                style={styles.botaoVerTop3}
+                onPress={() => handlePressionarPergunta(pergunta)}
+              >
+                <Text style={styles.botaoVerTop3Texto}>Ver detalhes</Text>
+                <IconSymbol name="chevron.right" size={14} color="#4F46E5" />
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
       )}
     </View>
@@ -352,6 +524,70 @@ export default function PerguntasScreen() {
           </Text>
         </TouchableOpacity>
       )}
+
+      {/* Modal de Edição */}
+      <Modal
+        visible={editando}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditando(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitulo}>Editar Pergunta</Text>
+                    <TouchableOpacity onPress={() => setEditando(false)}>
+                      <IconSymbol name="xmark" size={24} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <ScrollView
+                    style={styles.modalScroll}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    <TextInput
+                      style={styles.inputTexto}
+                      placeholder="Digite sua pergunta..."
+                      value={textoEdit}
+                      onChangeText={setTextoEdit}
+                      multiline
+                      maxLength={500}
+                      textAlignVertical="top"
+                    />
+
+                    <Text style={styles.contadorCaracteres}>
+                      {textoEdit.length}/500 caracteres
+                    </Text>
+                  </ScrollView>
+
+                  <View style={styles.modalFooter}>
+                    <TouchableOpacity
+                      style={styles.botaoCancelar}
+                      onPress={() => setEditando(false)}
+                    >
+                      <Text style={styles.botaoCancelarTexto}>Cancelar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.botaoSalvar}
+                      onPress={handleSalvarEdicao}
+                    >
+                      <Text style={styles.botaoSalvarTexto}>Salvar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -522,5 +758,236 @@ const styles = StyleSheet.create({
   },
   botaoFlutuanteDesabilitado: {
     backgroundColor: '#94A3B8',
+  },
+  // Estilos para Modal de Edição
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalScroll: {
+    flexGrow: 0,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitulo: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  inputTexto: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    minHeight: 150,
+    maxHeight: 300,
+  },
+  contadorCaracteres: {
+    fontSize: 12,
+    color: '#94A3B8',
+    textAlign: 'right',
+    marginBottom: 16,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  botaoCancelar: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+  },
+  botaoCancelarTexto: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  botaoSalvar: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#1E88E5',
+    alignItems: 'center',
+  },
+  botaoSalvarTexto: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  // Estilos para seção de perguntas pendentes
+  secaoPendentes: {
+    marginTop: 16,
+    backgroundColor: '#FEF3C7',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  pendentesTitulo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  pendentesTituloTexto: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  cardPendente: {
+    backgroundColor: '#FFF',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  pendenteBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  pendenteBadgeTexto: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  pendenteTitulo: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  pendenteDescricao: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 8,
+  },
+  pendenteAcoes: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  botaoEditarPendente: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: '#EFF6FF',
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  botaoEditarPendenteTexto: {
+    color: '#1E88E5',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  botaoExcluirPendente: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  botaoExcluirPendenteTexto: {
+    color: '#EF4444',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  // Estilos para seção Top 3 Perguntas
+  secaoTop3: {
+    marginTop: 16,
+    backgroundColor: '#EFF6FF',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  top3Titulo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  top3TituloTexto: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E40AF',
+  },
+  cardTop3: {
+    backgroundColor: '#FFF',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  top3Badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  top3BadgeTexto: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#1E40AF',
+  },
+  top3Descricao: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 8,
+  },
+  botaoVerTop3: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: '#EEF2FF',
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#A5B4FC',
+    marginTop: 4,
+  },
+  botaoVerTop3Texto: {
+    color: '#4F46E5',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

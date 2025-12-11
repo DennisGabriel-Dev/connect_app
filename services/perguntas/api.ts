@@ -222,6 +222,49 @@ export const perguntasApi = {
     }
   },
 
+  // Editar pergunta (apenas autor e pendente)
+  async editarPergunta(perguntaId: string, titulo: string, descricao: string, usuarioId: string): Promise<Pergunta> {
+    try {
+      const texto = titulo + (descricao ? `\n\n${descricao}` : '');
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}`, {
+        texto,
+        participanteId: usuarioId
+      });
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
+    } catch (error) {
+      console.error('Erro ao editar pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Deletar pergunta (apenas autor)
+  async deletarPergunta(perguntaId: string, usuarioId: string): Promise<void> {
+    try {
+      await axios.delete(`${URL_BASE_API}/${perguntaId}`, {
+        data: { participanteId: usuarioId }
+      });
+    } catch (error) {
+      console.error('Erro ao deletar pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Listar perguntas pendentes do participante
+  async listarPendentesPorParticipante(palestraId: string, participanteId: string): Promise<Pergunta[]> {
+    try {
+      const response = await axios.get(
+        `${URL_BASE_API}/palestra/${palestraId}/pendentes/${participanteId}`
+      );
+      const perguntasBackend = response.data.data || response.data;
+      const perguntasArray = Array.isArray(perguntasBackend) ? perguntasBackend : [];
+      return perguntasArray.map(mapearPerguntaBackendParaFrontend);
+    } catch (error) {
+      console.error('Erro ao listar perguntas pendentes:', error);
+      return [];
+    }
+  },
+
   // Verificar período de votação ativo
   async verificarPeriodoAtivo(palestraId: string): Promise<PeriodoVotacaoStatus> {
     try {

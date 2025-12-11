@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { Pergunta } from '@/services/perguntas/types';
+import { Pergunta, StatusPergunta } from '@/services/perguntas/types';
 import { IconSymbol } from '../ui/icon-symbol';
 
 interface PerguntaCardProps {
@@ -8,6 +8,8 @@ interface PerguntaCardProps {
   usuarioAtualId: string;
   onVotar: (perguntaId: string) => void;
   onPressionar?: (pergunta: Pergunta) => void;
+  onEditar?: (pergunta: Pergunta) => void;
+  onExcluir?: (pergunta: Pergunta) => void;
   limiteAtingido?: boolean; // Indica se o limite de 3 votos foi atingido
   periodoAtivo?: boolean; // Indica se o período de votação está ativo
 }
@@ -17,6 +19,8 @@ export default function PerguntaCard({
   usuarioAtualId,
   onVotar,
   onPressionar,
+  onEditar,
+  onExcluir,
   limiteAtingido = false,
   periodoAtivo = true
 }: PerguntaCardProps) {
@@ -125,13 +129,38 @@ export default function PerguntaCard({
             </TouchableOpacity>
           )}
 
-          {/* Mostrar badge se for o autor */}
+          {/* Mostrar badge e botões se for o autor */}
           {ehAutor && (
-            <View style={styles.autorBadge}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <IconSymbol name="person.fill" size={14} color="#4F46E5" />
-                <Text style={styles.autorBadgeTexto}>Sua pergunta</Text>
+            <View style={styles.autorContainer}>
+              <View style={styles.autorBadge}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <IconSymbol name="person.fill" size={14} color="#4F46E5" />
+                  <Text style={styles.autorBadgeTexto}>Sua pergunta</Text>
+                </View>
               </View>
+
+              {/* Botões de ação para perguntas pendentes */}
+              {pergunta.status === StatusPergunta.PENDENTE && periodoAtivo && (
+                <View style={styles.acoesRapidas}>
+                  <TouchableOpacity
+                    style={styles.botaoEditar}
+                    onPress={() => onEditar?.(pergunta)}
+                    activeOpacity={0.7}
+                  >
+                    <IconSymbol name="pencil" size={14} color="#1E88E5" />
+                    <Text style={styles.botaoEditarTexto}>Editar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.botaoExcluir}
+                    onPress={() => onExcluir?.(pergunta)}
+                    activeOpacity={0.7}
+                  >
+                    <IconSymbol name="trash" size={14} color="#EF4444" />
+                    <Text style={styles.botaoExcluirTexto}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -254,5 +283,47 @@ const styles = StyleSheet.create({
   },
   botaoVotarTextoDesabilitado: {
     color: '#94A3B8',
+  },
+  // Novos estilos para editar/excluir
+  autorContainer: {
+    flexDirection: 'column',
+    gap: 8,
+    alignItems: 'flex-end',
+  },
+  acoesRapidas: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  botaoEditar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  botaoEditarTexto: {
+    color: '#1E88E5',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  botaoExcluir: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  botaoExcluirTexto: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

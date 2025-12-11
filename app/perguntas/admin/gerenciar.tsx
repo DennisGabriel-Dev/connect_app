@@ -9,15 +9,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Modal,
-  Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function GerenciarPerguntasScreen() {
   const router = useRouter();
@@ -28,14 +24,8 @@ export default function GerenciarPerguntasScreen() {
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState<StatusPergunta>(StatusPergunta.PENDENTE);
 
-  // Estados para configuração de período
-  const [modalPeriodoVisivel, setModalPeriodoVisivel] = useState(false);
-  const [periodoAtual, setPeriodoAtual] = useState<any>(null);
-  const [dataInicio, setDataInicio] = useState(new Date());
-  const [dataFim, setDataFim] = useState(new Date());
-  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
-  const [pickerTarget, setPickerTarget] = useState<'inicio' | 'fim'>('inicio');
-  const [showPicker, setShowPicker] = useState(false);
+  // Estado simplificado para controle de período
+  const [periodoAtivo, setPeriodoAtivo] = useState(false);
 
   useEffect(() => {
     // Verificar se é admin
@@ -53,15 +43,13 @@ export default function GerenciarPerguntasScreen() {
 
   const carregarPeriodoVotacao = async () => {
     try {
-      const status = await perguntasApi.verificarPeriodoAtivo(palestraId as string);
-      setPeriodoAtual(status);
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao`
+      );
+      const data = await response.json();
 
-      // Se houver períodos configurados, usar como valores iniciais
-      if (status.votacaoInicio) {
-        setDataInicio(new Date(status.votacaoInicio));
-      }
-      if (status.votacaoFim) {
-        setDataFim(new Date(status.votacaoFim));
+      if (data.success) {
+        setPeriodoAtivo(data.data.periodoAtivo);
       }
     } catch (error) {
       console.error('Erro ao carregar período:', error);
@@ -139,73 +127,63 @@ export default function GerenciarPerguntasScreen() {
     );
   };
 
-  const handleSalvarPeriodo = async () => {
-    if (!palestraId) return;
-
-    // Validar que fim é após início
-    if (dataFim <= dataInicio) {
-      Alert.alert('Erro', 'A data de fim deve ser posterior à data de início.');
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao`,
+  const handleIniciarPeriodo = async () => {
+    Alert.alert(
+      'Iniciar Período',
+      'Deseja iniciar o período de perguntas e votação?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
         {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            votacaoInicio: dataInicio.toISOString(),
-            votacaoFim: dataFim.toISOString(),
-          }),
+          text: 'Iniciar',
+          onPress: async () => {
+            try {
+              const response = await fetch(
+                `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao/iniciar`,
+                { method: 'POST' }
+              );
+
+              if (!response.ok) throw new Error('Erro ao iniciar período');
+
+              Alert.alert('Sucesso', 'Período iniciado!');
+              await carregarPeriodoVotacao();
+            } catch (error) {
+              console.error('Erro:', error);
+              Alert.alert('Erro', 'Não foi possível iniciar o período.');
+            }
+          }
         }
-      );
-
-      if (!response.ok) {
-        throw new Error('Erro ao configurar período');
-      }
-
-      Alert.alert('Sucesso', 'Período de votação configurado com sucesso!');
-      setModalPeriodoVisivel(false);
-      await carregarPeriodoVotacao();
-    } catch (error) {
-      console.error('Erro ao salvar período:', error);
-      Alert.alert('Erro', 'Não foi possível configurar o período.');
-    }
+      ]
+    );
   };
 
-  const abrirPicker = (target: 'inicio' | 'fim', mode: 'date' | 'time') => {
-    setPickerTarget(target);
-    setPickerMode(mode);
-    setShowPicker(true);
-  };
+  const handleEncerrarPeriodo = async () => {
+    Alert.alert(
+      'Encerrar Período',
+      'Deseja encerrar o período de perguntas e votação?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Encerrar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(
+                `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao/encerrar`,
+                { method: 'POST' }
+              );
 
-  const handlePickerChange = (event: any, selectedDate?: Date) => {
-    setShowPicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      if (pickerTarget === 'inicio') {
-        setDataInicio(selectedDate);
-      } else {
-        setDataFim(selectedDate);
-      }
-    }
-  };
+              if (!response.ok) throw new Error('Erro ao encerrar período');
 
-  const formatarData = (data: Date) => {
-    return data.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
-  const formatarHora = (data: Date) => {
-    return data.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+              Alert.alert('Sucesso', 'Período encerrado!');
+              await carregarPeriodoVotacao();
+            } catch (error) {
+              console.error('Erro:', error);
+              Alert.alert('Erro', 'Não foi possível encerrar o período.');
+            }
+          }
+        }
+      ]
+    );
   };
 
 
@@ -352,166 +330,49 @@ export default function GerenciarPerguntasScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Card de Configuração de Período - só mostra se houver palestraId */}
+      {/* Card Simplificado de Controle de Período */}
       {palestraId && (
         <View style={styles.periodoCard}>
           <View style={styles.periodoHeader}>
-            <View>
-              <Text style={styles.periodoTitulo}>Período de Votação</Text>
-              {periodoAtual && (
-                <Text style={styles.periodoStatus}>
-                  Status: {periodoAtual.periodoAtivo ? '✅ Ativo' : '⏰ Encerrado'}
-                </Text>
-              )}
+            <Text style={styles.periodoTitulo}>Controle de Período</Text>
+            <View style={styles.statusBadge}>
+              <IconSymbol
+                name={periodoAtivo ? "checkmark.circle.fill" : "xmark.circle.fill"}
+                size={16}
+                color={periodoAtivo ? "#10B981" : "#94A3B8"}
+              />
+              <Text style={periodoAtivo ? styles.statusAtivoTexto : styles.statusInativoTexto}>
+                {periodoAtivo ? 'Ativo' : 'Inativo'}
+              </Text>
             </View>
-            <TouchableOpacity
-              style={styles.botaoConfigurar}
-              onPress={() => setModalPeriodoVisivel(true)}
-            >
-              <IconSymbol name="gearshape.fill" size={18} color="#FFF" />
-              <Text style={styles.botaoConfigurarTexto}>Configurar</Text>
-            </TouchableOpacity>
           </View>
 
-          {periodoAtual && periodoAtual.periodoEfetivo && (
-            <View style={styles.periodoInfo}>
-              <View style={styles.periodoInfoItem}>
-                <IconSymbol name="calendar" size={14} color="#666" />
-                <Text style={styles.periodoInfoTexto}>
-                  Início: {new Date(periodoAtual.periodoEfetivo.votacaoInicio).toLocaleString('pt-BR')}
-                </Text>
-              </View>
-              <View style={styles.periodoInfoItem}>
-                <IconSymbol name="calendar" size={14} color="#666" />
-                <Text style={styles.periodoInfoTexto}>
-                  Fim: {new Date(periodoAtual.periodoEfetivo.votacaoFim).toLocaleString('pt-BR')}
-                </Text>
-              </View>
-              {periodoAtual.usandoPadrao && (
-                <Text style={styles.periodoPadraoTexto}>
-                  💡 Usando período padrão (início da palestra até 10min antes do fim)
-                </Text>
-              )}
-            </View>
+          <Text style={styles.periodoDescricao}>
+            {periodoAtivo
+              ? 'Participantes podem criar perguntas e votar.'
+              : 'Perguntas e votação estão bloqueadas.'}
+          </Text>
+
+          {periodoAtivo ? (
+            <TouchableOpacity
+              style={[styles.botaoControle, styles.botaoEncerrar]}
+              onPress={handleEncerrarPeriodo}
+            >
+              <IconSymbol name="stop.circle.fill" size={20} color="#FFF" />
+              <Text style={styles.botaoControleTexto}>Encerrar Período</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.botaoControle, styles.botaoIniciar]}
+              onPress={handleIniciarPeriodo}
+            >
+              <IconSymbol name="play.circle.fill" size={20} color="#FFF" />
+              <Text style={styles.botaoControleTexto}>Iniciar Período</Text>
+            </TouchableOpacity>
           )}
         </View>
       )}
 
-      {/* Modal de Configuração de Período */}
-      <Modal
-        visible={modalPeriodoVisivel}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setModalPeriodoVisivel(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitulo}>Configurar Período de Votação</Text>
-              <TouchableOpacity onPress={() => setModalPeriodoVisivel(false)}>
-                <IconSymbol name="xmark.circle.fill" size={28} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalConteudo}>
-              {/* Início - Data e Hora */}
-              <View style={styles.secaoContainer}>
-                <Text style={styles.secaoTitulo}>📅 Início do Período</Text>
-
-                <View style={styles.campoContainer}>
-                  <Text style={styles.campoLabel}>Data</Text>
-                  <TouchableOpacity
-                    style={styles.campoBotao}
-                    onPress={() => abrirPicker('inicio', 'date')}
-                  >
-                    <IconSymbol name="calendar" size={20} color="#1E88E5" />
-                    <Text style={styles.campoValor}>
-                      {formatarData(dataInicio)}
-                    </Text>
-                    <IconSymbol name="chevron.right" size={16} color="#94A3B8" />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.campoContainer}>
-                  <Text style={styles.campoLabel}>Hora</Text>
-                  <TouchableOpacity
-                    style={styles.campoBotao}
-                    onPress={() => abrirPicker('inicio', 'time')}
-                  >
-                    <IconSymbol name="clock" size={20} color="#1E88E5" />
-                    <Text style={styles.campoValor}>
-                      {formatarHora(dataInicio)}
-                    </Text>
-                    <IconSymbol name="chevron.right" size={16} color="#94A3B8" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Divisor */}
-              <View style={styles.divisor} />
-
-              {/* Fim - Data e Hora */}
-              <View style={styles.secaoContainer}>
-                <Text style={styles.secaoTitulo}>🏁 Fim do Período</Text>
-
-                <View style={styles.campoContainer}>
-                  <Text style={styles.campoLabel}>Data</Text>
-                  <TouchableOpacity
-                    style={styles.campoBotao}
-                    onPress={() => abrirPicker('fim', 'date')}
-                  >
-                    <IconSymbol name="calendar" size={20} color="#1E88E5" />
-                    <Text style={styles.campoValor}>
-                      {formatarData(dataFim)}
-                    </Text>
-                    <IconSymbol name="chevron.right" size={16} color="#94A3B8" />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.campoContainer}>
-                  <Text style={styles.campoLabel}>Hora</Text>
-                  <TouchableOpacity
-                    style={styles.campoBotao}
-                    onPress={() => abrirPicker('fim', 'time')}
-                  >
-                    <IconSymbol name="clock" size={20} color="#1E88E5" />
-                    <Text style={styles.campoValor}>
-                      {formatarHora(dataFim)}
-                    </Text>
-                    <IconSymbol name="chevron.right" size={16} color="#94A3B8" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* DateTimePicker */}
-              {showPicker && (
-                <DateTimePicker
-                  value={pickerTarget === 'inicio' ? dataInicio : dataFim}
-                  mode={pickerMode}
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handlePickerChange}
-                />
-              )}
-
-              {/* Botões */}
-              <View style={styles.modalBotoes}>
-                <TouchableOpacity
-                  style={[styles.modalBotao, styles.modalBotaoCancelar]}
-                  onPress={() => setModalPeriodoVisivel(false)}
-                >
-                  <Text style={styles.modalBotaoCancelarTexto}>Cancelar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalBotao, styles.modalBotaoSalvar]}
-                  onPress={handleSalvarPeriodo}
-                >
-                  <Text style={styles.modalBotaoSalvarTexto}>Salvar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {carregando ? (
         <View style={styles.loadingContainer}>
@@ -857,5 +718,40 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Estilos para card simplificado de período
+  statusAtivoTexto: {
+    fontSize: 13,
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  statusInativoTexto: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontWeight: '600',
+  },
+  periodoDescricao: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 16,
+  },
+  botaoControle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  botaoIniciar: {
+    backgroundColor: '#10B981',
+  },
+  botaoEncerrar: {
+    backgroundColor: '#EF4444',
+  },
+  botaoControleTexto: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
