@@ -11,7 +11,12 @@ interface PerguntaBackend {
   id?: string;
   texto: string;
   participanteId: string;
-  participanteNome: string;
+  participanteNome?: string;  // Formato flat (listagem pública)
+  participante?: {             // Formato aninhado (admin)
+    id: string;
+    nome: string;
+    email?: string;
+  };
   palestraId: string;
   palestraTitulo: string;
   dataHora: string;
@@ -43,11 +48,14 @@ function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pe
     }
   }
 
+  // Obter nome do participante (suporta formato flat e aninhado)
+  const usuarioNome = perguntaBackend.participante?.nome || perguntaBackend.participanteNome || 'Anônimo';
+
   return {
     id: perguntaBackend._id || perguntaBackend.id || '',
     palestraId: perguntaBackend.palestraId,
     usuarioId: perguntaBackend.participanteId,
-    usuarioNome: perguntaBackend.participanteNome,
+    usuarioNome: usuarioNome,
     titulo: titulo.trim(),
     descricao: descricao.trim(),
     votos: perguntaBackend.curtidas || 0,

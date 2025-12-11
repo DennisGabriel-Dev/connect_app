@@ -42,6 +42,7 @@ const MAPPING = {
   'clock.fill': 'schedule',
   'arrow.right.square.fill': 'logout',
   'questionmark.diamond.fill': 'help',
+  'pencil': 'edit',
 } as IconMapping;
 
 /** 

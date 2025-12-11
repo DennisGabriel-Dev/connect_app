@@ -96,9 +96,12 @@ export default function PerguntaCard({
 
         {/* Footer com autor e botão de votar */}
         <View style={styles.footer}>
-          <Text style={styles.autor}>
-            Por: {pergunta.usuarioNome || 'Anônimo'}
-          </Text>
+          <View style={styles.autorContainer}>
+            <IconSymbol name="person.fill" size={13} color="#94A3B8" />
+            <Text style={styles.autor}>
+              {pergunta.usuarioNome || 'Anônimo'}
+            </Text>
+          </View>
 
           {/* Ocultar botão se for o autor */}
           {!ehAutor && (
@@ -238,6 +241,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
+  autorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   autor: {
     fontSize: 13,
     color: '#94A3B8',
@@ -285,11 +293,6 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   // Novos estilos para editar/excluir
-  autorContainer: {
-    flexDirection: 'column',
-    gap: 8,
-    alignItems: 'flex-end',
-  },
   acoesRapidas: {
     flexDirection: 'row',
     gap: 8,

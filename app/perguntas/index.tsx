@@ -370,7 +370,7 @@ export default function PerguntasScreen() {
       {usuario?.id && perguntasPendentes.length > 0 && periodoAtivo && (
         <View style={styles.secaoPendentes}>
           <View style={styles.pendentesTitulo}>
-            <IconSymbol name="clock" size={18} color="#F59E0B" />
+            <IconSymbol name="clock.fill" size={18} color="#F59E0B" />
             <Text style={styles.pendentesTituloTexto}>
               Minhas Perguntas Pendentes ({perguntasPendentes.length})
             </Text>
@@ -379,7 +379,8 @@ export default function PerguntasScreen() {
           {perguntasPendentes.map((pergunta) => (
             <View key={pergunta.id} style={styles.cardPendente}>
               <View style={styles.pendenteBadge}>
-                <Text style={styles.pendenteBadgeTexto}>⏳ Aguardando aprovação</Text>
+                <IconSymbol name="clock.fill" size={12} color="#92400E" />
+                <Text style={styles.pendenteBadgeTexto}>Aguardando aprovação</Text>
               </View>
 
               <Text style={styles.pendenteTitulo} numberOfLines={2}>
@@ -405,7 +406,7 @@ export default function PerguntasScreen() {
                   style={styles.botaoExcluirPendente}
                   onPress={() => handleExcluir(pergunta)}
                 >
-                  <IconSymbol name="trash" size={14} color="#EF4444" />
+                  <IconSymbol name="xmark.circle.fill" size={14} color="#EF4444" />
                   <Text style={styles.botaoExcluirPendenteTexto}>Excluir</Text>
                 </TouchableOpacity>
               </View>
@@ -543,7 +544,7 @@ export default function PerguntasScreen() {
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitulo}>Editar Pergunta</Text>
                     <TouchableOpacity onPress={() => setEditando(false)}>
-                      <IconSymbol name="xmark" size={24} color="#64748B" />
+                      <IconSymbol name="xmark.circle.fill" size={24} color="#64748B" />
                     </TouchableOpacity>
                   </View>
 
@@ -860,6 +861,9 @@ const styles = StyleSheet.create({
     borderColor: '#FDE68A',
   },
   pendenteBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: '#FEF3C7',
     paddingHorizontal: 8,
     paddingVertical: 4,

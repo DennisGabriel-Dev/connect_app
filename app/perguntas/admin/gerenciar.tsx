@@ -249,7 +249,7 @@ export default function GerenciarPerguntasScreen() {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <IconSymbol name="tray" size={64} color="#CBD5E0" />
+      <IconSymbol name="clipboard" size={64} color="#CBD5E0" />
       <Text style={styles.emptyTexto}>
         Nenhuma pergunta {getStatusLabel(filtro).toLowerCase()}
       </Text>
@@ -358,7 +358,7 @@ export default function GerenciarPerguntasScreen() {
               style={[styles.botaoControle, styles.botaoEncerrar]}
               onPress={handleEncerrarPeriodo}
             >
-              <IconSymbol name="stop.circle.fill" size={20} color="#FFF" />
+              <IconSymbol name="xmark.circle.fill" size={20} color="#FFF" />
               <Text style={styles.botaoControleTexto}>Encerrar Período</Text>
             </TouchableOpacity>
           ) : (
@@ -366,7 +366,7 @@ export default function GerenciarPerguntasScreen() {
               style={[styles.botaoControle, styles.botaoIniciar]}
               onPress={handleIniciarPeriodo}
             >
-              <IconSymbol name="play.circle.fill" size={20} color="#FFF" />
+              <IconSymbol name="checkmark.circle.fill" size={20} color="#FFF" />
               <Text style={styles.botaoControleTexto}>Iniciar Período</Text>
             </TouchableOpacity>
           )}
@@ -753,5 +753,19 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 15,
     fontWeight: '700',
+  },
+  metaInfo: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 8,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  infoTexto: {
+    fontSize: 13,
+    color: '#666',
   },
 });
