@@ -754,18 +754,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
-  metaInfo: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  infoTexto: {
-    fontSize: 13,
-    color: '#666',
-  },
 });
