@@ -122,32 +122,61 @@ export default function TelaDetalheProgramacao() {
 
         <View style={styles.separador} />
 
-        <View style={styles.secao}>
-          <Text style={styles.rotuloSecao}>Data</Text>
-          <Text style={styles.conteudoSecao}>
-            {dataInicio
-              ? dataInicio.toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-              })
-              : 'Data não informada'}
-          </Text>
-        </View>
+          <View style={styles.secao}>
+            <View style={styles.infoItem}>
+            <IconSymbol name="calendar" size={20} color="#1E88E5" />
+            <View style={styles.infoTexto}>
+              <Text style={styles.infoLabel}>Data</Text>
+              <Text style={styles.infoValor}>
+                {dataInicio
+                  ? dataInicio.toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                  })
+                  : 'Data não informada'}
+              </Text>
+            </View>
+          </View>
 
-        <View style={styles.secao}>
-          <Text style={styles.rotuloSecao}>Horário</Text>
-          <Text style={styles.conteudoSecao}>
-            {dataInicio && dataFim
-              ? `${dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - ${dataFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-              : 'Horário não informado'}
-          </Text>
-        </View>
+          <View style={styles.divisorInfo} />
 
-        <View style={styles.secao}>
-          <Text style={styles.rotuloSecao}>Local</Text>
-          <Text style={styles.conteudoSecao}>{atividade.local || 'Local não informado'}</Text>
-        </View>
+          <View style={styles.infoItem}>
+            <IconSymbol name="clock.fill" size={20} color="#1E88E5" />
+            <View style={styles.infoTexto}>
+              <Text style={styles.infoLabel}>Horário</Text>
+              <Text style={styles.infoValor}>
+                {dataInicio && dataFim
+                  ? `${dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - ${dataFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                  : 'Horário não informado'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divisorInfo} />
+
+          <View style={styles.infoItem}>
+            <IconSymbol name="house.fill" size={20} color="#1E88E5" />
+            <View style={styles.infoTexto}>
+              <Text style={styles.infoLabel}>Local</Text>
+              <Text style={styles.infoValor}>{atividade.local || 'Local não informado'}</Text>
+            </View>
+          </View>
+
+          {atividade.descricao && (
+            <>
+              <View style={styles.divisorInfo} />
+              <View style={styles.infoItem}>
+                <IconSymbol name="clipboard" size={20} color="#1E88E5" />
+                <View style={styles.infoTexto}>
+                  <Text style={styles.infoLabel}>Descrição</Text>
+                  <Text style={styles.infoValor}>{atividade.descricao}</Text>
+                </View>
+              </View>
+            </>
+          )}
+
+          </View>
 
         {/* Palestrantes */}
         {atividade.palestrantes && atividade.palestrantes.length > 0 && (
@@ -166,33 +195,25 @@ export default function TelaDetalheProgramacao() {
                 )}
                 <View style={styles.infoPalestrante}>
                   <Text style={styles.nomePalestrante}>{palestrante.nome}</Text>
-                  <Text style={styles.detalhesPalestrante}>Ver detalhes →</Text>
+                  <View style={styles.detalhesContainer}>
+                    <Text style={styles.detalhesPalestrante}>Ver detalhes</Text>
+                    <IconSymbol name="chevron.right" size={16} color="#1E88E5" />
+                  </View>
                 </View>
               </TouchableOpacity>
             ))}
           </View>
         )}
 
-        <View style={styles.separador} />
+        {/* 
 
         {atividade.descricao && (
           <View style={styles.secao}>
             <Text style={styles.rotuloSecao}>Descrição</Text>
             <Text style={styles.conteudoSecao}>{atividade.descricao}</Text>
           </View>
-        )}
-
-        {/* Botão Perguntas */}
-        {presencaRegistrada && (
-          <TouchableOpacity
-            style={styles.botaoPerguntas}
-            onPress={() => navegador.push(`/perguntas?palestraId=${atividade.id}&palestraTitulo=${encodeURIComponent(atividade.titulo)}`)}
-          >
-            <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#1E88E5" />
-            <Text style={styles.textoBotaoPerguntas}>Ver Perguntas</Text>
-          </TouchableOpacity>
-        )}
-
+        )} */}
+        {/* botão de presenca  */}
         <BotaoPresenca
           atividadeId={atividade.id}
           onPresencaRegistrada={(dados) => {
@@ -200,7 +221,37 @@ export default function TelaDetalheProgramacao() {
             setPresencaRegistrada(true);
             navegador.push(`/feedback/avaliar/${dados.atividadeId}`);
           }}
-        />
+          />
+
+          {/* Botão Avaliar Evento - aparece após presença registrada */}
+          {presencaRegistrada && (
+            jaAvaliou ? (
+              <View style={[styles.botaoAvaliar, styles.botaoAvaliado]}>
+                <IconSymbol name="checkmark.seal.fill" size={24} color="#10B981" />
+                <Text style={styles.textoBotaoAvaliado}>Avaliação Enviada</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.botaoAvaliar}
+                onPress={() => navegador.push(`/feedback/avaliar/${atividade.id}`)}
+              >
+                <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
+                <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
+              </TouchableOpacity>
+            )
+          )}
+
+        {/* Botão Perguntas */}
+        {presencaRegistrada && (
+          <TouchableOpacity
+            style={styles.botaoPerguntas}
+            onPress={() => navegador.push(`/perguntas?palestraId=${atividade.id}&palestraTitulo=${encodeURIComponent(atividade.titulo)}`)}
+          >
+            <IconSymbol name="eye.fill" size={20} color="#FFFFFF" />
+            <Text style={styles.textoBotaoPerguntas}>Ver Perguntas</Text>
+          </TouchableOpacity>
+        )}
+
 
         {/* Botão Gerenciar Perguntas - apenas para admin */}
         {(usuario?.role === 'admin' || usuario?.isAdmin === true) && (
@@ -214,28 +265,11 @@ export default function TelaDetalheProgramacao() {
               }
             })}
           >
-            <IconSymbol name="checkmark.shield.fill" size={20} color="#9333EA" />
+            <IconSymbol name="bubble.left.and.bubble.right.fill" size={20} color="#FFFFFF" />
             <Text style={styles.textoBotaoGerenciarPerguntas}>Gerenciar Perguntas</Text>
           </TouchableOpacity>
         )}
 
-        {/* Botão Avaliar Evento - aparece após presença registrada */}
-        {presencaRegistrada && (
-          jaAvaliou ? (
-            <View style={[styles.botaoAvaliar, styles.botaoAvaliado]}>
-              <IconSymbol name="checkmark.seal.fill" size={24} color="#10B981" />
-              <Text style={styles.textoBotaoAvaliado}>Avaliação Enviada</Text>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.botaoAvaliar}
-              onPress={() => navegador.push(`/feedback/avaliar/${atividade.id}`)}
-            >
-              <IconSymbol name="star.fill" size={20} color="#FFFFFF" />
-              <Text style={styles.textoBotaoAvaliar}>Avaliar Atividade</Text>
-            </TouchableOpacity>
-          )
-        )}
 
         {/* Quiz específico da atividade */}
         <View style={{ marginTop: 2, marginBottom: 10 }}>
@@ -289,6 +323,34 @@ export default function TelaDetalheProgramacao() {
 }
 
 const styles = StyleSheet.create({
+
+  //  
+ infoItem: {
+		    flexDirection: 'row',
+		    alignItems: 'flex-start',
+		    gap: 12,
+		  },
+		  infoTexto: {
+		    flex: 1,
+		  },
+		  infoLabel: {
+		    fontSize: 12,
+		    fontWeight: '600',
+		    color: '#64748B',
+		    marginBottom: 4,
+		    textTransform: 'uppercase',
+		  },
+		  infoValor: {
+		    fontSize: 15,
+		    color: '#1E293B',
+		    lineHeight: 22,
+		  },
+		  divisorInfo: {
+		    height: 1,
+		    backgroundColor: '#F1F5F9',
+		    marginVertical: 16,
+		  },
+  //
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
@@ -334,7 +396,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   cabecalho: {
-    padding: 18,
+    padding: 16,
     backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -345,7 +407,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   titulo: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#1E293B',
     textAlign: 'center',
@@ -407,6 +469,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#1E293B',
+  },
+  detalhesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   detalhesPalestrante: {
     fontSize: 14,
@@ -482,7 +549,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   botaoFechar: {
-    backgroundColor: '#0B7730',
+    backgroundColor:'#1E88E5',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -557,7 +624,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   botaoPerguntas: {
-    backgroundColor: '#FFFFFF',
+    // backgroundColor: '#FFFFFF',
+     backgroundColor: '#1E88E5',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
@@ -576,7 +644,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   textoBotaoPerguntas: {
-    color: '#1E88E5',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -596,7 +664,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   botaoGerenciarPerguntas: {
-    backgroundColor: '#FFFFFF',
+    // backgroundColor: '#FFFFFF',
+    backgroundColor:'#9333EA',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
@@ -615,7 +684,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   textoBotaoGerenciarPerguntas: {
-    color: '#9333EA',
+    // color: '#9333EA',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },

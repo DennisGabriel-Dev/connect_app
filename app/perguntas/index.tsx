@@ -1,22 +1,28 @@
 import PerguntaCard from '@/components/perguntas/PerguntaCard';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/services/auth/context';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { Modal, TextInput, KeyboardAvoidingView, ScrollView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import React, { useEffect, useState, useCallback } from 'react';
+import { showAlert } from '@/utils/alert';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View
 } from 'react-native';
-import { showAlert } from '@/utils/alert';
 
 export default function PerguntasScreen() {
   const router = useRouter();
@@ -448,6 +454,8 @@ export default function PerguntasScreen() {
                 style={styles.botaoVerTop3}
                 onPress={() => handlePressionarPergunta(pergunta)}
               >
+                 <IconSymbol style={{marginRight: 4}} name="eye.fill" size={20} color="#FFFFFF" />
+
                 <Text style={styles.botaoVerTop3Texto}>Ver detalhes</Text>
                 <IconSymbol name="chevron.right" size={14} color="#4F46E5" />
               </TouchableOpacity>
@@ -982,7 +990,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    backgroundColor: '#EEF2FF',
+    backgroundColor:'#4F46E5',
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
@@ -990,7 +998,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   botaoVerTop3Texto: {
-    color: '#4F46E5',
+    // color: '#4F46E5',
+    color: '#ffffff',
     fontSize: 13,
     fontWeight: '600',
   },
