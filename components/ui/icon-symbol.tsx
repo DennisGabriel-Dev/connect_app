@@ -30,6 +30,11 @@ const MAPPING = {
   'chart.bar.fill': 'bar-chart',
   'star.fill': 'star',
   'star': 'star-border',
+  'heart.fill': 'favorite',
+  'heart': 'favorite-border',
+  'lock.fill': 'lock',
+  'trophy.fill': 'emoji-events',
+  'xmark.circle.fill': 'cancel',
   'line.3.horizontal.decrease.circle': 'tune',
   'clipboard': 'assignment',
   'arrow.clockwise': 'refresh',
@@ -37,6 +42,7 @@ const MAPPING = {
   'clock.fill': 'schedule',
   'arrow.right.square.fill': 'logout',
   'questionmark.diamond.fill': 'help',
+  'pencil': 'edit',
 } as IconMapping;
 
 /** 

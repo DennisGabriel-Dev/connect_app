@@ -24,6 +24,9 @@ export default function GerenciarPerguntasScreen() {
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState<StatusPergunta>(StatusPergunta.PENDENTE);
 
+  // Estado simplificado para controle de período
+  const [periodoAtivo, setPeriodoAtivo] = useState(false);
+
   useEffect(() => {
     // Verificar se é admin
     if (!usuario?.isAdmin) {
@@ -33,7 +36,25 @@ export default function GerenciarPerguntasScreen() {
     }
 
     carregarPerguntas();
+    if (palestraId) {
+      carregarPeriodoVotacao();
+    }
   }, [filtro, palestraId]);
+
+  const carregarPeriodoVotacao = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao`
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setPeriodoAtivo(data.data.periodoAtivo);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar período:', error);
+    }
+  };
 
   const carregarPerguntas = async () => {
     try {
@@ -106,6 +127,66 @@ export default function GerenciarPerguntasScreen() {
     );
   };
 
+  const handleIniciarPeriodo = async () => {
+    Alert.alert(
+      'Iniciar Período',
+      'Deseja iniciar o período de perguntas e votação?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Iniciar',
+          onPress: async () => {
+            try {
+              const response = await fetch(
+                `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao/iniciar`,
+                { method: 'POST' }
+              );
+
+              if (!response.ok) throw new Error('Erro ao iniciar período');
+
+              Alert.alert('Sucesso', 'Período iniciado!');
+              await carregarPeriodoVotacao();
+            } catch (error) {
+              console.error('Erro:', error);
+              Alert.alert('Erro', 'Não foi possível iniciar o período.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleEncerrarPeriodo = async () => {
+    Alert.alert(
+      'Encerrar Período',
+      'Deseja encerrar o período de perguntas e votação?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Encerrar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(
+                `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao/encerrar`,
+                { method: 'POST' }
+              );
+
+              if (!response.ok) throw new Error('Erro ao encerrar período');
+
+              Alert.alert('Sucesso', 'Período encerrado!');
+              await carregarPeriodoVotacao();
+            } catch (error) {
+              console.error('Erro:', error);
+              Alert.alert('Erro', 'Não foi possível encerrar o período.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+
   const renderPergunta = ({ item }: { item: Pergunta }) => {
     return (
       <View style={styles.perguntaCard}>
@@ -168,7 +249,7 @@ export default function GerenciarPerguntasScreen() {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <IconSymbol name="tray" size={64} color="#CBD5E0" />
+      <IconSymbol name="clipboard" size={64} color="#CBD5E0" />
       <Text style={styles.emptyTexto}>
         Nenhuma pergunta {getStatusLabel(filtro).toLowerCase()}
       </Text>
@@ -248,6 +329,50 @@ export default function GerenciarPerguntasScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Card Simplificado de Controle de Período */}
+      {palestraId && (
+        <View style={styles.periodoCard}>
+          <View style={styles.periodoHeader}>
+            <Text style={styles.periodoTitulo}>Controle de Período</Text>
+            <View style={styles.statusBadge}>
+              <IconSymbol
+                name={periodoAtivo ? "checkmark.circle.fill" : "xmark.circle.fill"}
+                size={16}
+                color={periodoAtivo ? "#10B981" : "#94A3B8"}
+              />
+              <Text style={periodoAtivo ? styles.statusAtivoTexto : styles.statusInativoTexto}>
+                {periodoAtivo ? 'Ativo' : 'Inativo'}
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.periodoDescricao}>
+            {periodoAtivo
+              ? 'Participantes podem criar perguntas e votar.'
+              : 'Perguntas e votação estão bloqueadas.'}
+          </Text>
+
+          {periodoAtivo ? (
+            <TouchableOpacity
+              style={[styles.botaoControle, styles.botaoEncerrar]}
+              onPress={handleEncerrarPeriodo}
+            >
+              <IconSymbol name="xmark.circle.fill" size={20} color="#FFF" />
+              <Text style={styles.botaoControleTexto}>Encerrar Período</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.botaoControle, styles.botaoIniciar]}
+              onPress={handleIniciarPeriodo}
+            >
+              <IconSymbol name="checkmark.circle.fill" size={20} color="#FFF" />
+              <Text style={styles.botaoControleTexto}>Iniciar Período</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
 
       {carregando ? (
         <View style={styles.loadingContainer}>
@@ -424,5 +549,209 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#718096',
     marginTop: 16,
+  },
+  // Estilos para card de per\u00edodo
+  periodoCard: {
+    backgroundColor: '#FFF',
+    margin: 16,
+    marginTop: 0,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  periodoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  periodoTitulo: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2D3748',
+    marginBottom: 4,
+  },
+  periodoStatus: {
+    fontSize: 13,
+    color: '#4A5568',
+  },
+  botaoConfigurar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#1E88E5',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  botaoConfigurarTexto: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  periodoInfo: {
+    gap: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+  },
+  periodoInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  periodoInfoTexto: {
+    fontSize: 13,
+    color: '#4A5568',
+  },
+  periodoPadraoTexto: {
+    fontSize: 12,
+    color: '#718096',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  // Estilos para modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 400,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitulo: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2D3748',
+  },
+  modalConteudo: {
+    gap: 20,
+  },
+  secaoContainer: {
+    gap: 12,
+  },
+  secaoTitulo: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  divisor: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 4,
+  },
+  campoContainer: {
+    gap: 8,
+  },
+  campoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  campoBotao: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1E88E5',
+    shadowColor: '#1E88E5',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  campoValor: {
+    fontSize: 16,
+    color: '#1E293B',
+    fontWeight: '600',
+    flex: 1,
+  },
+  campoTexto: {
+    fontSize: 14,
+    color: '#2D3748',
+    flex: 1,
+  },
+  modalBotoes: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalBotao: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalBotaoCancelar: {
+    backgroundColor: '#F1F5F9',
+  },
+  modalBotaoCancelarTexto: {
+    color: '#4A5568',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalBotaoSalvar: {
+    backgroundColor: '#1E88E5',
+  },
+  modalBotaoSalvarTexto: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Estilos para card simplificado de período
+  statusAtivoTexto: {
+    fontSize: 13,
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  statusInativoTexto: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontWeight: '600',
+  },
+  periodoDescricao: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 16,
+  },
+  botaoControle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  botaoIniciar: {
+    backgroundColor: '#10B981',
+  },
+  botaoEncerrar: {
+    backgroundColor: '#EF4444',
+  },
+  botaoControleTexto: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { CriarPerguntaDTO, Pergunta, StatusPergunta } from './types';
+import { CriarPerguntaDTO, Pergunta, StatusPergunta, PeriodoVotacaoStatus } from './types';
 
 const URL_BASE_API = `${process.env.EXPO_PUBLIC_API_BASE_URL}/perguntas`;
 const STORAGE_KEY_CURTIDAS = '@perguntas:curtidas_usuario';
@@ -11,7 +11,12 @@ interface PerguntaBackend {
   id?: string;
   texto: string;
   participanteId: string;
-  participanteNome: string;
+  participanteNome?: string;  // Formato flat (listagem pública)
+  participante?: {             // Formato aninhado (admin)
+    id: string;
+    nome: string;
+    email?: string;
+  };
   palestraId: string;
   palestraTitulo: string;
   dataHora: string;
@@ -20,6 +25,7 @@ interface PerguntaBackend {
   palestranteNome?: string;
   dataResposta?: string;
   curtidas: number;
+  usuariosVotaram?: string[]; // Array de IDs dos participantes que votaram
   status?: string; // 'pendente', 'aprovada', 'rejeitada'
 }
 
@@ -42,15 +48,18 @@ function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pe
     }
   }
 
+  // Obter nome do participante (suporta formato flat e aninhado)
+  const usuarioNome = perguntaBackend.participante?.nome || perguntaBackend.participanteNome || 'Anônimo';
+
   return {
     id: perguntaBackend._id || perguntaBackend.id || '',
     palestraId: perguntaBackend.palestraId,
     usuarioId: perguntaBackend.participanteId,
-    usuarioNome: perguntaBackend.participanteNome,
+    usuarioNome: usuarioNome,
     titulo: titulo.trim(),
     descricao: descricao.trim(),
     votos: perguntaBackend.curtidas || 0,
-    usuariosVotaram: [], // O backend não tem esse campo ainda
+    usuariosVotaram: perguntaBackend.usuariosVotaram || [], // Agora vem do backend
     status: status,
     respondida: perguntaBackend.respondida || false,
     resposta: perguntaBackend.resposta,
@@ -104,7 +113,9 @@ export const perguntasApi = {
   // Votar em uma pergunta (curtir)
   async votarPergunta(perguntaId: string, usuarioId: string): Promise<Pergunta> {
     try {
-      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/curtir`);
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/curtir`, {}, {
+        headers: { 'x-participante-id': usuarioId }
+      });
       // A resposta vem no formato { success, message, data }
       const perguntaBackend = response.data.data || response.data;
       return mapearPerguntaBackendParaFrontend(perguntaBackend);
@@ -114,13 +125,15 @@ export const perguntasApi = {
     }
   },
 
-  // Remover voto de uma pergunta (não implementado no backend ainda)
+  // Remover voto de uma pergunta
   async removerVoto(perguntaId: string, usuarioId: string): Promise<Pergunta> {
     try {
-      // Por enquanto, apenas retorna a pergunta sem o voto
-      // TODO: Implementar endpoint de remover curtida no backend
-      const pergunta = await this.buscarPerguntaPorId(perguntaId);
-      return pergunta;
+      // Usa o mesmo endpoint /curtir que faz toggle
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}/curtir`, {}, {
+        headers: { 'x-participante-id': usuarioId }
+      });
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao remover voto:', error);
       throw error;
@@ -155,75 +168,17 @@ export const perguntasApi = {
     }
   },
 
-  // Gerenciamento de curtidas locais (máximo 3 perguntas diferentes)
-  async obterCurtidasUsuario(usuarioId: string): Promise<string[]> {
+  // Contar votos usados pelo participante em uma palestra
+  async contarVotosParticipante(palestraId: string, participanteId: string): Promise<number> {
     try {
-      const key = `${STORAGE_KEY_CURTIDAS}:${usuarioId}`;
-      const curtidas = await AsyncStorage.getItem(key);
-      return curtidas ? JSON.parse(curtidas) : [];
+      const response = await axios.get(
+        `${URL_BASE_API}/participante/${participanteId}/votos`,
+        { params: { palestraId } }
+      );
+      return response.data.count || 0;
     } catch (error) {
-      console.error('Erro ao obter curtidas do usuário:', error);
-      return [];
-    }
-  },
-
-  async adicionarCurtida(usuarioId: string, perguntaId: string): Promise<boolean> {
-    try {
-      const curtidas = await this.obterCurtidasUsuario(usuarioId);
-
-      // Verificar se já curtiu esta pergunta
-      if (curtidas.includes(perguntaId)) {
-        return false;
-      }
-
-      // Verificar limite de 3 curtidas
-      if (curtidas.length >= 3) {
-        throw new Error('Você já atingiu o limite de 3 curtidas em perguntas diferentes');
-      }
-
-      const novasCurtidas = [...curtidas, perguntaId];
-      const key = `${STORAGE_KEY_CURTIDAS}:${usuarioId}`;
-      await AsyncStorage.setItem(key, JSON.stringify(novasCurtidas));
-      return true;
-    } catch (error) {
-      console.error('Erro ao adicionar curtida:', error);
-      throw error;
-    }
-  },
-
-  async removerCurtida(usuarioId: string, perguntaId: string): Promise<void> {
-    try {
-      const curtidas = await this.obterCurtidasUsuario(usuarioId);
-      const novasCurtidas = curtidas.filter(id => id !== perguntaId);
-      const key = `${STORAGE_KEY_CURTIDAS}:${usuarioId}`;
-      await AsyncStorage.setItem(key, JSON.stringify(novasCurtidas));
-    } catch (error) {
-      console.error('Erro ao remover curtida:', error);
-      throw error;
-    }
-  },
-
-  async verificarPodeCurtir(usuarioId: string, perguntaId: string): Promise<{ pode: boolean; jaCurtiu: boolean; motivo?: string }> {
-    try {
-      const curtidas = await this.obterCurtidasUsuario(usuarioId);
-      const jaCurtiu = curtidas.includes(perguntaId);
-
-      if (jaCurtiu) {
-        return { pode: true, jaCurtiu: true }; // Pode descurtir
-      }
-
-      if (curtidas.length >= 3) {
-        return {
-          pode: false,
-          jaCurtiu: false,
-          motivo: 'Você já curtiu 3 perguntas diferentes. Remova uma curtida antes de adicionar outra.'
-        };
-      }
-
-      return { pode: true, jaCurtiu: false };
-    } catch (error) {
-      console.error('Erro ao verificar se pode curtir:', error);
-      return { pode: false, jaCurtiu: false, motivo: 'Erro ao verificar curtidas' };
+      console.error('Erro ao contar votos:', error);
+      return 0;
     }
   },
 
@@ -272,6 +227,72 @@ export const perguntasApi = {
     } catch (error) {
       console.error('Erro ao rejeitar pergunta:', error);
       throw error;
+    }
+  },
+
+  // Editar pergunta (apenas autor e pendente)
+  async editarPergunta(perguntaId: string, titulo: string, descricao: string, usuarioId: string): Promise<Pergunta> {
+    try {
+      const texto = titulo + (descricao ? `\n\n${descricao}` : '');
+      const response = await axios.put(`${URL_BASE_API}/${perguntaId}`, {
+        texto,
+        participanteId: usuarioId
+      });
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
+    } catch (error) {
+      console.error('Erro ao editar pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Deletar pergunta (apenas autor)
+  async deletarPergunta(perguntaId: string, usuarioId: string): Promise<void> {
+    try {
+      await axios.delete(`${URL_BASE_API}/${perguntaId}`, {
+        data: { participanteId: usuarioId }
+      });
+    } catch (error) {
+      console.error('Erro ao deletar pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Listar perguntas pendentes do participante
+  async listarPendentesPorParticipante(palestraId: string, participanteId: string): Promise<Pergunta[]> {
+    try {
+      const response = await axios.get(
+        `${URL_BASE_API}/palestra/${palestraId}/pendentes/${participanteId}`
+      );
+      const perguntasBackend = response.data.data || response.data;
+      const perguntasArray = Array.isArray(perguntasBackend) ? perguntasBackend : [];
+      return perguntasArray.map(mapearPerguntaBackendParaFrontend);
+    } catch (error) {
+      console.error('Erro ao listar perguntas pendentes:', error);
+      return [];
+    }
+  },
+
+  // Verificar período de votação ativo
+  async verificarPeriodoAtivo(palestraId: string): Promise<PeriodoVotacaoStatus> {
+    try {
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_BASE_URL}/palestras/${palestraId}/periodo-votacao`
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error('Erro ao verificar período de votação:', error);
+      // Em caso de erro, retornar período ativo por segurança
+      return {
+        palestraId,
+        palestraTitulo: '',
+        votacaoInicio: null,
+        votacaoFim: null,
+        periodoAtivo: true,
+        periodoEfetivo: null,
+        usandoPadrao: false,
+        motivo: null
+      };
     }
   },
 };

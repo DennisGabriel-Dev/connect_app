@@ -37,10 +37,10 @@ export default function PerguntasPalestraScreen() {
     try {
       setCarregando(true);
       const dados = await perguntasApi.listarPerguntasPorPalestra(id as string);
-      
+
       // Filtrar apenas perguntas aprovadas
       const perguntasAprovadas = dados.filter(p => p.status === StatusPergunta.APROVADA);
-      
+
       setPerguntas(perguntasAprovadas);
     } catch (error) {
       console.error('Erro ao carregar perguntas:', error);
@@ -77,7 +77,7 @@ export default function PerguntasPalestraScreen() {
         'Sucesso',
         'Sua pergunta foi enviada e está aguardando aprovação do administrador.'
       );
-      
+
       setNovaPerguntaTitulo('');
       setNovaPerguntaDescricao('');
       setModalVisivel(false);
@@ -116,7 +116,7 @@ export default function PerguntasPalestraScreen() {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <IconSymbol name="bubble.left.and.bubble.right" size={64} color="#CBD5E0" />
+      <IconSymbol name="bubble.right.fill" size={64} color="#CBD5E0" />
       <Text style={styles.emptyTexto}>Nenhuma pergunta aprovada ainda</Text>
       <Text style={styles.emptySubtexto}>
         Seja o primeiro a fazer uma pergunta!
@@ -128,7 +128,7 @@ export default function PerguntasPalestraScreen() {
     <View style={styles.container}>
       <HeaderTela titulo="Perguntas da Palestra" onVoltar={() => router.back()} />
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.refreshButton}
         onPress={carregarPerguntas}
         disabled={carregando}
@@ -158,7 +158,7 @@ export default function PerguntasPalestraScreen() {
         style={styles.botaoNovaPergunta}
         onPress={() => setModalVisivel(true)}
       >
-        <IconSymbol name="plus.circle.fill" size={24} color="#FFF" />
+        <IconSymbol name="checkmark.circle.fill" size={24} color="#FFF" />
         <Text style={styles.botaoNovaPerguntaTexto}>Nova Pergunta</Text>
       </TouchableOpacity>
 
@@ -411,20 +411,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  refreshButton:{
-    borderColor: '#1e88e5', 
+  refreshButton: {
+    borderColor: '#1e88e5',
     borderWidth: 2,
     padding: 12,
     borderRadius: 8,
     alignSelf: 'flex-end',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16, 
+    marginBottom: 16,
     marginTop: 10,
     marginRight: 16,
   },
-  refreshButtonText:{ 
-    color: '#1e88e5', 
-    fontWeight: 'bold' 
+  refreshButtonText: {
+    color: '#1e88e5',
+    fontWeight: 'bold'
   }
 });

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
+import {
+  View,
+  Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet, 
+  StyleSheet,
   ScrollView,
   Alert,
   KeyboardAvoidingView,
@@ -14,29 +14,46 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { useAuth } from '@/services/auth/context';
+import { HeaderTela } from '@/components/shared/HeaderTela';
 
 export default function CriarPerguntaScreen() {
   const router = useRouter();
   const { palestraId, palestraTitulo } = useLocalSearchParams();
   const { usuario } = useAuth();
-  
-  const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState('');
+
+  const [pergunta, setPergunta] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [carregandoPeriodo, setCarregandoPeriodo] = useState(true);
+  const [periodoAtivo, setPeriodoAtivo] = useState(true);
+  const [motivoPeriodoInativo, setMotivoPeriodoInativo] = useState<string | null>(null);
+
+  useEffect(() => {
+    verificarPeriodo();
+  }, [palestraId]);
+
+  const verificarPeriodo = async () => {
+    try {
+      setCarregandoPeriodo(true);
+      const status = await perguntasApi.verificarPeriodoAtivo(palestraId as string);
+      setPeriodoAtivo(status.periodoAtivo);
+      setMotivoPeriodoInativo(status.motivo);
+    } catch (error) {
+      console.error('Erro ao verificar período:', error);
+      // Em caso de erro, permitir criação
+      setPeriodoAtivo(true);
+    } finally {
+      setCarregandoPeriodo(false);
+    }
+  };
 
   const validarFormulario = (): boolean => {
-    if (!titulo.trim()) {
-      Alert.alert('Atenção', 'Por favor, insira um título para sua pergunta.');
+    if (!pergunta.trim()) {
+      Alert.alert('Atenção', 'Por favor, escreva sua pergunta.');
       return false;
     }
 
-    if (titulo.trim().length < 10) {
-      Alert.alert('Atenção', 'O título deve ter pelo menos 10 caracteres.');
-      return false;
-    }
-
-    if (!descricao.trim()) {
-      Alert.alert('Atenção', 'Por favor, adicione uma descrição à sua pergunta.');
+    if (pergunta.trim().length < 10) {
+      Alert.alert('Atenção', 'A pergunta deve ter pelo menos 10 caracteres.');
       return false;
     }
 
@@ -56,8 +73,8 @@ export default function CriarPerguntaScreen() {
 
       const novaPergunta = {
         palestraId: palestraId as string,
-        titulo: titulo.trim(),
-        descricao: descricao.trim(),
+        titulo: pergunta.trim(),
+        descricao: '',
         palestraTitulo: palestraTitulo as string || 'Palestra',
       };
 
@@ -83,7 +100,7 @@ export default function CriarPerguntaScreen() {
   };
 
   const handleCancelar = () => {
-    if (titulo.trim() || descricao.trim()) {
+    if (pergunta.trim()) {
       Alert.alert(
         'Descartar pergunta?',
         'Você tem alterações não salvas. Deseja descartar?',
@@ -98,96 +115,96 @@ export default function CriarPerguntaScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <View style={{ flex: 1 }}>
+      <HeaderTela titulo="Nova Pergunta" />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitulo}>Nova Pergunta</Text>
-          {palestraTitulo && (
-            <Text style={styles.headerSubtitulo}>Para: {palestraTitulo}</Text>
-          )}
-        </View>
-
-        {/* Formulário */}
-        <View style={styles.formulario}>
-          {/* Campo Título */}
-          <View style={styles.campoContainer}>
-            <Text style={styles.label}>Título da Pergunta *</Text>
-            <TextInput
-              style={styles.inputTitulo}
-              placeholder="Ex: Como implementar autenticação JWT?"
-              placeholderTextColor="#94A3B8"
-              value={titulo}
-              onChangeText={setTitulo}
-              maxLength={200}
-              editable={!enviando}
-            />
-            <Text style={styles.contador}>
-              {titulo.length}/200 caracteres
-            </Text>
-          </View>
-
-          {/* Campo Descrição */}
-          <View style={styles.campoContainer}>
-            <Text style={styles.label}>Descrição (opcional)</Text>
-            <TextInput
-              style={styles.inputDescricao}
-              placeholder="Adicione mais detalhes sobre sua pergunta..."
-              placeholderTextColor="#94A3B8"
-              value={descricao}
-              onChangeText={setDescricao}
-              maxLength={1000}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              editable={!enviando}
-            />
-            <Text style={styles.contador}>
-              {descricao.length}/1000 caracteres
-            </Text>
-          </View>
-
-          {/* Dica */}
-          <View style={styles.dicaContainer}>
-            <Text style={styles.dicaIcon}>💡</Text>
-            <Text style={styles.dicaTexto}>
-              Perguntas claras e objetivas têm mais chances de serem respondidas!
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Botões de ação */}
-      <View style={styles.botoesContainer}>
-        <TouchableOpacity 
-          style={[styles.botao, styles.botaoCancelar]}
-          onPress={handleCancelar}
-          disabled={enviando}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.botaoCancelarTexto}>Cancelar</Text>
-        </TouchableOpacity>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitulo}>{palestraTitulo}</Text>
+          </View>
 
-        <TouchableOpacity 
-          style={[styles.botao, styles.botaoEnviar, enviando && styles.botaoDesabilitado]}
-          onPress={handleEnviar}
-          disabled={enviando}
-        >
-          {enviando ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.botaoEnviarTexto}>Enviar Pergunta</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          {/* Formulário */}
+          <View style={styles.formulario}>
+            {/* Campo Pergunta */}
+            <View style={styles.campoContainer}>
+              <Text style={styles.label}>Faça sua pergunta!</Text>
+              <TextInput
+                style={styles.inputPergunta}
+                placeholder="Ex: Como funciona o sistema de autenticação?"
+                placeholderTextColor="#94A3B8"
+                value={pergunta}
+                onChangeText={setPergunta}
+                maxLength={500}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                editable={!enviando}
+              />
+              <Text style={styles.contador}>
+                {pergunta.length}/500 caracteres
+              </Text>
+            </View>
+
+            {/* Alerta de período inativo */}
+            {!carregandoPeriodo && !periodoAtivo && (
+              <View style={styles.alertaContainer}>
+                <Text style={styles.alertaIcon}>⏰</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.alertaTitulo}>Período encerrado</Text>
+                  <Text style={styles.alertaTexto}>
+                    {motivoPeriodoInativo || 'O período para criar perguntas encerrou'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Dica */}
+            {periodoAtivo && (
+              <View style={styles.dicaContainer}>
+                <Text style={styles.dicaIcon}>💡</Text>
+                <Text style={styles.dicaTexto}>
+                  Perguntas claras e objetivas têm mais chances de serem respondidas!
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        {/* Botões de ação */}
+        <View style={styles.botoesContainer}>
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoCancelar]}
+            onPress={handleCancelar}
+            disabled={enviando}
+          >
+            <Text style={styles.botaoCancelarTexto}>Cancelar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoEnviar, (enviando || !periodoAtivo) && styles.botaoDesabilitado]}
+            onPress={handleEnviar}
+            disabled={enviando || !periodoAtivo}
+          >
+            {enviando ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.botaoEnviarTexto}>
+                {!periodoAtivo ? 'Período encerrado' : 'Enviar Pergunta'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -237,7 +254,7 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     marginBottom: 8,
   },
-  inputTitulo: {
+  inputPergunta: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#E2E8F0',
@@ -245,16 +262,7 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 16,
     color: '#1E293B',
-  },
-  inputDescricao: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#1E293B',
-    minHeight: 150,
+    minHeight: 120,
   },
   contador: {
     fontSize: 12,
@@ -316,5 +324,29 @@ const styles = StyleSheet.create({
   },
   botaoDesabilitado: {
     backgroundColor: '#94A3B8',
+  },
+  alertaContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF3C7',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+    marginBottom: 16,
+  },
+  alertaIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  alertaTitulo: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 4,
+  },
+  alertaTexto: {
+    fontSize: 14,
+    color: '#92400E',
+    lineHeight: 20,
   },
 });
