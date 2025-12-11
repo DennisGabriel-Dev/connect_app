@@ -1,20 +1,26 @@
 import PerguntaCard from '@/components/perguntas/PerguntaCard';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HeaderTela } from '@/components/shared/HeaderTela';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/services/auth/context';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { Modal, TextInput, KeyboardAvoidingView, ScrollView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import React, { useEffect, useState, useCallback } from 'react';
+import { showAlert } from '@/utils/alert';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View
 } from 'react-native';
 
@@ -93,7 +99,7 @@ export default function PerguntasScreen() {
       setPerguntas(dados);
     } catch (error) {
       console.error('Erro ao carregar perguntas:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as perguntas.');
+      showAlert('Erro', 'Não foi possível carregar as perguntas.');
     } finally {
       setCarregando(false);
     }
@@ -140,7 +146,7 @@ export default function PerguntasScreen() {
 
   const handleVotar = async (perguntaId: string) => {
     if (!usuario?.id) {
-      Alert.alert('Erro', 'Você precisa estar logado para votar.');
+      showAlert('Erro', 'Você precisa estar logado para votar.');
       return;
     }
 
@@ -150,7 +156,7 @@ export default function PerguntasScreen() {
 
       // Verificar se é o autor
       if (pergunta.usuarioId === usuario.id) {
-        Alert.alert(
+        showAlert(
           'Ação não permitida',
           'Você não pode votar na sua própria pergunta.',
           [{ text: 'OK' }]
@@ -162,7 +168,7 @@ export default function PerguntasScreen() {
 
       // Verificar limite ANTES de votar
       if (!jaVotou && votosUsados >= LIMITE_VOTOS) {
-        Alert.alert(
+        showAlert(
           'Limite de votos atingido',
           `Você já usou seus ${LIMITE_VOTOS} votos. Desfaça um voto antes de votar em outra pergunta.`,
           [{ text: 'OK' }]
@@ -223,7 +229,7 @@ export default function PerguntasScreen() {
 
       // Mostrar mensagem de erro específica
       const mensagemErro = error.response?.data?.error || 'Não foi possível registrar seu voto. Tente novamente.';
-      Alert.alert('Erro', mensagemErro);
+      showAlert('Erro', mensagemErro);
     }
   };
 
@@ -242,7 +248,7 @@ export default function PerguntasScreen() {
   const handleSalvarEdicao = async () => {
     if (!usuario?.id || !perguntaEditando) return;
     if (!textoEdit.trim()) {
-      Alert.alert('Atenção', 'O texto da pergunta é obrigatório');
+      showAlert('Atenção', 'O texto da pergunta é obrigatório');
       return;
     }
     try {
@@ -257,7 +263,7 @@ export default function PerguntasScreen() {
         descricao,
         usuario.id
       );
-      Alert.alert('Sucesso', 'Pergunta editada com sucesso!');
+      showAlert('Sucesso', 'Pergunta editada com sucesso!');
       setEditando(false);
       setPerguntaEditando(null);
       await carregarPerguntas();
@@ -265,13 +271,13 @@ export default function PerguntasScreen() {
     } catch (error: any) {
       console.error('Erro ao editar:', error);
       const mensagem = error.response?.data?.error || 'Não foi possível editar a pergunta';
-      Alert.alert('Erro', mensagem);
+      showAlert('Erro', mensagem);
     }
   };
 
   const handleExcluir = (pergunta: Pergunta) => {
     if (!usuario?.id) return;
-    Alert.alert(
+    showAlert(
       'Excluir Pergunta',
       `Tem certeza que deseja excluir esta pergunta?\n\nVocês tem ${pergunta.votos} votos nela.`,
       [
@@ -282,13 +288,13 @@ export default function PerguntasScreen() {
           onPress: async () => {
             try {
               await perguntasApi.deletarPergunta(pergunta.id, usuario.id);
-              Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
+              showAlert('Sucesso', 'Pergunta excluída com sucesso!');
               await carregarPerguntas();
               await carregarPerguntasPendentes();
             } catch (error: any) {
               console.error('Erro ao excluir:', error);
               const mensagem = error.response?.data?.error || 'Não foi possível excluir a pergunta';
-              Alert.alert('Erro', mensagem);
+              showAlert('Erro', mensagem);
             }
           }
         }
@@ -448,6 +454,8 @@ export default function PerguntasScreen() {
                 style={styles.botaoVerTop3}
                 onPress={() => handlePressionarPergunta(pergunta)}
               >
+                 <IconSymbol style={{marginRight: 4}} name="eye.fill" size={20} color="#FFFFFF" />
+
                 <Text style={styles.botaoVerTop3Texto}>Ver detalhes</Text>
                 <IconSymbol name="chevron.right" size={14} color="#4F46E5" />
               </TouchableOpacity>
@@ -982,7 +990,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    backgroundColor: '#EEF2FF',
+    backgroundColor:'#4F46E5',
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
@@ -990,7 +998,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   botaoVerTop3Texto: {
-    color: '#4F46E5',
+    // color: '#4F46E5',
+    color: '#ffffff',
     fontSize: 13,
     fontWeight: '600',
   },

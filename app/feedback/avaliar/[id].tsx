@@ -5,7 +5,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,6 +17,7 @@ import {
 import { useAuth } from '../../../services/auth/context';
 import { apiFeedback } from '../../../services/feedback/api';
 import { apiProgramacao, Atividade } from '../../../services/programacao/api';
+import { showAlert } from '../../../utils/alert';
 
 export default function TelaAvaliarPalestra() {
   const { id } = useLocalSearchParams();
@@ -41,7 +41,8 @@ export default function TelaAvaliarPalestra() {
         setPalestra(dadosPalestra);
       } catch (erro) {
         console.error('Erro ao carregar palestra:', erro);
-        Alert.alert('Erro', 'Não foi possível carregar os dados da palestra');
+        // Alert.alert('Erro', 'Não foi possível carregar os dados da palestra');  // ANTES
+        showAlert('Erro', 'Não foi possível carregar os dados da palestra');   
       } finally {
         setCarregando(false);
       }
@@ -58,7 +59,7 @@ export default function TelaAvaliarPalestra() {
     if (!usuario || !palestra) return;
 
     if (estrelas === 0) {
-      Alert.alert('Atenção', 'Por favor, selecione uma avaliação de 1 a 5 estrelas');
+      showAlert('Atenção', 'Por favor, selecione uma avaliação de 1 a 5 estrelas');
       return;
     }
 
@@ -75,7 +76,7 @@ export default function TelaAvaliarPalestra() {
       const resultado = await apiFeedback.criarFeedback(dadosFeedback);
 
       if (resultado) {
-        Alert.alert(
+        showAlert(
           'Avaliação Enviada!',
           'Sua avaliação foi registrada com sucesso. Obrigado pelo feedback!',
           [
@@ -94,7 +95,7 @@ export default function TelaAvaliarPalestra() {
       console.error('Erro ao enviar avaliação:', erro);
       
       if (erro.message.includes('já enviou um feedback')) {
-        Alert.alert(
+        showAlert(
           'Avaliação Já Existente',
           'Você já enviou uma avaliação para este evento.',
           [
@@ -109,7 +110,7 @@ export default function TelaAvaliarPalestra() {
           ]
         );
       } else if (erro.message.includes('precisa ter comparecido')) {
-        Alert.alert(
+        showAlert(
           'Presença Não Registrada',
           'Você precisa ter comparecido ao evento para enviar uma avaliação.',
           [
@@ -120,7 +121,7 @@ export default function TelaAvaliarPalestra() {
           ]
         );
       } else {
-        Alert.alert('Erro', erro.message || 'Não foi possível enviar sua avaliação');
+        showAlert('Erro', erro.message || 'Não foi possível enviar sua avaliação');
       }
     } finally {
       setEnviando(false);

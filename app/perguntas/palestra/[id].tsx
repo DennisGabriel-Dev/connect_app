@@ -6,10 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   TextInput,
   Modal,
 } from 'react-native';
+import { showAlert } from '@/utils/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta, StatusPergunta } from '@/services/perguntas/types';
@@ -44,7 +44,7 @@ export default function PerguntasPalestraScreen() {
       setPerguntas(perguntasAprovadas);
     } catch (error) {
       console.error('Erro ao carregar perguntas:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as perguntas.');
+      showAlert('Erro', 'Não foi possível carregar as perguntas.');
     } finally {
       setCarregando(false);
     }
@@ -52,12 +52,12 @@ export default function PerguntasPalestraScreen() {
 
   const handleEnviarPergunta = async () => {
     if (!usuario?.id || !usuario?.nome) {
-      Alert.alert('Erro', 'Você precisa estar logado para enviar perguntas.');
+      showAlert('Erro', 'Você precisa estar logado para enviar perguntas.');
       return;
     }
 
     if (!novaPerguntaTitulo.trim()) {
-      Alert.alert('Atenção', 'Por favor, digite uma pergunta.');
+      showAlert('Atenção', 'Por favor, digite uma pergunta.');
       return;
     }
 
@@ -73,7 +73,7 @@ export default function PerguntasPalestraScreen() {
         usuario.nome
       );
 
-      Alert.alert(
+      showAlert(
         'Sucesso',
         'Sua pergunta foi enviada e está aguardando aprovação do administrador.'
       );
@@ -83,7 +83,7 @@ export default function PerguntasPalestraScreen() {
       setModalVisivel(false);
     } catch (error) {
       console.error('Erro ao enviar pergunta:', error);
-      Alert.alert('Erro', 'Não foi possível enviar sua pergunta. Tente novamente.');
+      showAlert('Erro', 'Não foi possível enviar sua pergunta. Tente novamente.');
     } finally {
       setEnviando(false);
     }

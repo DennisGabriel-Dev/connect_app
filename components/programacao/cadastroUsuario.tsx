@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Linking,
@@ -14,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { useAuth } from '../../services/auth/context';
 import { authStorage } from '../../services/programacao/authStorage';
 
@@ -38,23 +38,23 @@ export default function CadastroUsuario({
 
   const validarCampos = () => {
     if (!email || !senha || !confirmarSenha) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      showAlert('Erro', 'Por favor, preencha todos os campos');
       return false;
     }
 
     if (senha !== confirmarSenha) {
-      Alert.alert('Erro', 'As senhas não coincidem');
+      showAlert('Erro', 'As senhas não coincidem');
       return false;
     }
 
     if (senha.length < 6) {
-      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres');
+      showAlert('Erro', 'A senha deve ter pelo menos 6 caracteres');
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Erro', 'Por favor, insira um email válido');
+      showAlert('Erro', 'Por favor, insira um email válido');
       return false;
     }
 
@@ -116,13 +116,13 @@ export default function CadastroUsuario({
           router.replace('/(tabs)');
         }
       } else {
-        Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
+        showAlert('Erro', resultado.erro || 'Erro desconhecido');
       }
     } catch (erro: any) {
       const mensagemErro = erro.message || 'Erro ao realizar cadastro';
       
       if (mensagemErro.toLowerCase().includes('inscrito')) {
-        Alert.alert(
+        showAlert(
           'Email não inscrito',
           'Seu email não está inscrito no evento. Deseja se inscrever agora?',
           [
@@ -133,7 +133,7 @@ export default function CadastroUsuario({
                 const urlEven = process.env.EXPO_PUBLIC_URL_EVEN;
                 if (urlEven) {
                   Linking.openURL(urlEven).catch(() => 
-                    Alert.alert('Erro', 'Não foi possível abrir o link')
+                    showAlert('Erro', 'Não foi possível abrir o link')
                   );
                 }
               }
@@ -141,7 +141,7 @@ export default function CadastroUsuario({
           ]
         );
       } else {
-        Alert.alert('Erro', mensagemErro);
+        showAlert('Erro', mensagemErro);
       }
     } finally {
       setCarregando(false);

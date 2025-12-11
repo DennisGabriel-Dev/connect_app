@@ -2,7 +2,8 @@ import { HeaderTela } from '@/components/shared/HeaderTela';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { buscarQuizCompleto, submeterRespostas } from '../../services/quiz/api';
 import { Opcao, Pergunta, Quiz, RespostaUsuario } from '../../services/quiz/type';
@@ -31,7 +32,7 @@ export default function TelaQuiz() {
       setQuiz(quizData);
     } catch (error) {
       console.error(error);
-      Alert.alert('Erro', 'Falha ao carregar o quiz.');
+      showAlert('Erro', 'Falha ao carregar o quiz.');
     } finally {
       setCarregando(false);
     }
@@ -52,11 +53,11 @@ export default function TelaQuiz() {
 
     const algumaSemResposta = respostas.some(r => !r.opcaoId);
     if (algumaSemResposta) {
-      Alert.alert('Atenção', 'Responda todas as perguntas antes de finalizar.');
+      showAlert('Atenção', 'Responda todas as perguntas antes de finalizar.');
       return;
     }
 
-    Alert.alert(
+    showAlert(
       'Confirmar Envio',
       'Deseja finalizar e enviar suas respostas? Esta ação não pode ser desfeita.',
       [
@@ -77,7 +78,7 @@ export default function TelaQuiz() {
       setEnviando(true);
       const resultado = await submeterRespostas(String(id), respostas);
 
-      Alert.alert(
+      showAlert(
         'Quiz finalizado',
         `Você obteve ${resultado.pontuacao} de ${resultado.total} pontos.`,
         [
@@ -95,7 +96,7 @@ export default function TelaQuiz() {
         err?.messageApi || err?.message || 'Não foi possível enviar as respostas.';
 
       if (mensagemApi.includes('já respondeu')) {
-        Alert.alert('Aviso', mensagemApi, [
+        showAlert('Aviso', mensagemApi, [
           {
             text: 'OK',
             onPress: () => {
@@ -104,7 +105,7 @@ export default function TelaQuiz() {
           },
         ]);
       } else {
-        Alert.alert('Aviso', mensagemApi);
+        showAlert('Aviso', mensagemApi);
       }
     } finally {
       setEnviando(false);

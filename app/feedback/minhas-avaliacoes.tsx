@@ -3,13 +3,13 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 // eslint-disable-next-line import/no-duplicates
 import { Atividade } from '../../services/programacao/api';
  
@@ -78,7 +78,7 @@ export default function TelaMinhasAvaliacoes() {
       setPalestrasComPresenca(palestrasComInfoAvaliacao);
     } catch (erro) {
       console.error('Erro ao carregar meus eventos:', erro);
-      Alert.alert('Erro', 'Não foi possível carregar seus eventos');
+      showAlert('Erro', 'Não foi possível carregar seus eventos');
     } finally {
       setCarregando(false);
     }
@@ -92,7 +92,7 @@ export default function TelaMinhasAvaliacoes() {
 
   const manipularAvaliarPalestra = (palestra: PalestraComPresenca) => {
     if (palestra.jaAvaliada) {
-      Alert.alert(
+      showAlert(
         'Avaliação já enviada',
         'Você já avaliou este evento. Deseja ver sua avaliação?',
         [

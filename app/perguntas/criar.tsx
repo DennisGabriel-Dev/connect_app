@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator
 } from 'react-native';
+import { showAlert } from '@/utils/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { useAuth } from '@/services/auth/context';
@@ -48,17 +48,17 @@ export default function CriarPerguntaScreen() {
 
   const validarFormulario = (): boolean => {
     if (!pergunta.trim()) {
-      Alert.alert('Atenção', 'Por favor, escreva sua pergunta.');
+      showAlert('Atenção', 'Por favor, escreva sua pergunta.');
       return false;
     }
 
     if (pergunta.trim().length < 10) {
-      Alert.alert('Atenção', 'A pergunta deve ter pelo menos 10 caracteres.');
+      showAlert('Atenção', 'A pergunta deve ter pelo menos 10 caracteres.');
       return false;
     }
 
     if (!usuario?.id) {
-      Alert.alert('Erro', 'Você precisa estar logado para criar uma pergunta.');
+      showAlert('Erro', 'Você precisa estar logado para criar uma pergunta.');
       return false;
     }
 
@@ -80,7 +80,7 @@ export default function CriarPerguntaScreen() {
 
       await perguntasApi.criarPergunta(novaPergunta, usuario?.id || '', usuario?.nome || usuario?.email || '');
 
-      Alert.alert(
+      showAlert(
         'Sucesso!',
         'Sua pergunta foi enviada com sucesso.',
         [
@@ -93,7 +93,7 @@ export default function CriarPerguntaScreen() {
 
     } catch (error) {
       console.error('Erro ao criar pergunta:', error);
-      Alert.alert('Erro', 'Não foi possível enviar sua pergunta. Tente novamente.');
+      showAlert('Erro', 'Não foi possível enviar sua pergunta. Tente novamente.');
     } finally {
       setEnviando(false);
     }
@@ -101,7 +101,7 @@ export default function CriarPerguntaScreen() {
 
   const handleCancelar = () => {
     if (pergunta.trim()) {
-      Alert.alert(
+      showAlert(
         'Descartar pergunta?',
         'Você tem alterações não salvas. Deseja descartar?',
         [

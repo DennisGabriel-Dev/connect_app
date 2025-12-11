@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { useAuth } from '../../services/auth/context';
 import { apiAuth, CredenciaisLogin } from '../../services/programacao/api';
 import { authStorage } from '../../services/programacao/authStorage';
@@ -54,7 +54,7 @@ export default function LoginUsuario({
 
   const manipularLogin = async () => {
     if (!email || !senha) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      showAlert('Erro', 'Por favor, preencha todos os campos');
       return;
     }
 
@@ -74,14 +74,14 @@ export default function LoginUsuario({
           await finalizarLogin(resultado.usuario);
         }
       } else {
-        Alert.alert('Erro', resultado.erro || 'Erro desconhecido');
+        showAlert('Erro', resultado.erro || 'Erro desconhecido');
       }
     } catch (erro: any) {
       if (erro.message === 'FIRST_ACCESS') {
-        Alert.alert('Primeiro Acesso', 'Detectado primeiro acesso. Redirecionando...');
+        showAlert('Primeiro Acesso', 'Detectado primeiro acesso. Redirecionando...');
         
       } else {
-        Alert.alert('Erro', erro.message || 'Erro ao fazer login');
+        showAlert('Erro', erro.message || 'Erro ao fazer login');
       }
     } finally {
       setCarregando(false);

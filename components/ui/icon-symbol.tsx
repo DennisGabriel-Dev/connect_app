@@ -43,6 +43,9 @@ const MAPPING = {
   'arrow.right.square.fill': 'logout',
   'questionmark.diamond.fill': 'help',
   'pencil': 'edit',
+  'bubble.left.and.bubble.right.fill': 'forum',
+  'checkmark.shield.fill': 'verified-user',
+  'eye.fill': 'visibility',
 } as IconMapping;
 
 /** 
