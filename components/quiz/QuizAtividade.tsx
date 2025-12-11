@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { QuizResumido, buscarQuizPorAtividade } from '../../services/quiz/api';
 
 interface QuizAtividadeProps {
@@ -32,17 +33,17 @@ const QuizAtividade: React.FC<QuizAtividadeProps> = ({ atividadeId }) => {
     if (!quiz) return;
 
     if (quiz.jaRespondeu) {
-      Alert.alert("Concluído", "Você já respondeu este quiz.");
+      showAlert("Concluído", "Você já respondeu este quiz.");
       return;
     }
 
     if (quiz.presencaConfirmada === false) {
-      Alert.alert("Presença necessária", "Você precisa confirmar sua presença nesta atividade para liberar o quiz.")
+      showAlert("Presença necessária", "Você precisa confirmar sua presença nesta atividade para liberar o quiz.")
       return;
     }
 
     if (quiz.liberado === false) {
-      Alert.alert("Quiz Bloqueado", "Este quiz ainda não está liberado.");
+      showAlert("Quiz Bloqueado", "Este quiz ainda não está liberado.");
       return;
     }
 

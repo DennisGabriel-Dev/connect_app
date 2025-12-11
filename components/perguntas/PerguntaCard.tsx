@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { showAlert } from '@/utils/alert';
 import { Pergunta, StatusPergunta } from '@/services/perguntas/types';
 import { IconSymbol } from '../ui/icon-symbol';
 
@@ -41,7 +42,7 @@ export default function PerguntaCard({
 
     // Se limite atingido e não votou, mostrar alert
     if (mostrarLimite) {
-      Alert.alert(
+      showAlert(
         'Limite de votos atingido',
         'Você já usou seus 3 votos. Desfaça um voto antes de votar em outra pergunta.',
         [{ text: 'OK' }]

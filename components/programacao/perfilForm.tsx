@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
   Modal,
   FlatList
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 
 interface PerfilFormProps {
   usuarioId: string;
@@ -52,12 +52,12 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
 
   const handleSubmit = async () => {
     if (!tipoUsuario) {
-      Alert.alert('Erro', 'Por favor, selecione o tipo de usuário');
+      showAlert('Erro', 'Por favor, selecione o tipo de usuário');
       return;
     }
 
     if (tipoUsuario === 'discente' && !turma) {
-      Alert.alert('Erro', 'Por favor, selecione a turma');
+      showAlert('Erro', 'Por favor, selecione a turma');
       return;
     }
 
@@ -69,10 +69,10 @@ export default function PerfilForm({ usuarioId, onPerfilCompleto }: PerfilFormPr
         turma: tipoUsuario === 'discente' ? turma : undefined
       });
 
-      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+      showAlert('Sucesso', 'Perfil atualizado com sucesso!');
       onPerfilCompleto();
     } catch (erro: any) {
-      Alert.alert('Erro', erro.message || 'Erro ao salvar perfil');
+      showAlert('Erro', erro.message || 'Erro ao salvar perfil');
     } finally {
       setCarregando(false);
     }

@@ -7,13 +7,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { showAlert } from '@/utils/alert';
 
 export default function GerenciarPerguntasScreen() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function GerenciarPerguntasScreen() {
   useEffect(() => {
     // Verificar se é admin
     if (!usuario?.isAdmin) {
-      Alert.alert('Acesso Negado', 'Você não tem permissão para acessar esta tela.');
+      showAlert('Acesso Negado', 'Você não tem permissão para acessar esta tela.');
       router.back();
       return;
     }
@@ -74,14 +74,14 @@ export default function GerenciarPerguntasScreen() {
       setPerguntas(todasPerguntas);
     } catch (error) {
       console.error('Erro ao carregar perguntas:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as perguntas.');
+      showAlert('Erro', 'Não foi possível carregar as perguntas.');
     } finally {
       setCarregando(false);
     }
   };
 
   const handleAprovar = async (pergunta: Pergunta) => {
-    Alert.alert(
+    showAlert(
       'Aprovar Pergunta',
       'Tem certeza que deseja aprovar esta pergunta? Ela ficará visível para todos.',
       [
@@ -91,11 +91,11 @@ export default function GerenciarPerguntasScreen() {
           onPress: async () => {
             try {
               await perguntasApi.aprovarPergunta(pergunta.id);
-              Alert.alert('Sucesso', 'Pergunta aprovada com sucesso!');
+              showAlert('Sucesso', 'Pergunta aprovada com sucesso!');
               carregarPerguntas();
             } catch (error) {
               console.error('Erro ao aprovar pergunta:', error);
-              Alert.alert('Erro', 'Não foi possível aprovar a pergunta.');
+              showAlert('Erro', 'Não foi possível aprovar a pergunta.');
             }
           },
         },
@@ -104,7 +104,7 @@ export default function GerenciarPerguntasScreen() {
   };
 
   const handleRejeitar = async (pergunta: Pergunta) => {
-    Alert.alert(
+    showAlert(
       'Rejeitar Pergunta',
       'Tem certeza que deseja rejeitar esta pergunta?',
       [
@@ -115,11 +115,11 @@ export default function GerenciarPerguntasScreen() {
           onPress: async () => {
             try {
               await perguntasApi.rejeitarPergunta(pergunta.id);
-              Alert.alert('Sucesso', 'Pergunta rejeitada.');
+              showAlert('Sucesso', 'Pergunta rejeitada.');
               carregarPerguntas();
             } catch (error) {
               console.error('Erro ao rejeitar pergunta:', error);
-              Alert.alert('Erro', 'Não foi possível rejeitar a pergunta.');
+              showAlert('Erro', 'Não foi possível rejeitar a pergunta.');
             }
           },
         },
@@ -128,7 +128,7 @@ export default function GerenciarPerguntasScreen() {
   };
 
   const handleIniciarPeriodo = async () => {
-    Alert.alert(
+    showAlert(
       'Iniciar Período',
       'Deseja iniciar o período de perguntas e votação?',
       [
@@ -144,11 +144,11 @@ export default function GerenciarPerguntasScreen() {
 
               if (!response.ok) throw new Error('Erro ao iniciar período');
 
-              Alert.alert('Sucesso', 'Período iniciado!');
+              showAlert('Sucesso', 'Período iniciado!');
               await carregarPeriodoVotacao();
             } catch (error) {
               console.error('Erro:', error);
-              Alert.alert('Erro', 'Não foi possível iniciar o período.');
+              showAlert('Erro', 'Não foi possível iniciar o período.');
             }
           }
         }
@@ -157,7 +157,7 @@ export default function GerenciarPerguntasScreen() {
   };
 
   const handleEncerrarPeriodo = async () => {
-    Alert.alert(
+    showAlert(
       'Encerrar Período',
       'Deseja encerrar o período de perguntas e votação?',
       [
@@ -174,11 +174,11 @@ export default function GerenciarPerguntasScreen() {
 
               if (!response.ok) throw new Error('Erro ao encerrar período');
 
-              Alert.alert('Sucesso', 'Período encerrado!');
+              showAlert('Sucesso', 'Período encerrado!');
               await carregarPeriodoVotacao();
             } catch (error) {
               console.error('Erro:', error);
-              Alert.alert('Erro', 'Não foi possível encerrar o período.');
+              showAlert('Erro', 'Não foi possível encerrar o período.');
             }
           }
         }

@@ -3,7 +3,8 @@ import { useAuth } from '@/services/auth/context';
 import { authStorage } from '@/services/programacao/authStorage';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { showAlert } from '@/utils/alert';
 
 export default function Profile() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function Profile() {
 
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Tem certeza que deseja sair?', [
+    showAlert('Logout', 'Tem certeza que deseja sair?', [
       { text: 'Cancelar', onPress: () => {} },
       {
         text: 'Sair',

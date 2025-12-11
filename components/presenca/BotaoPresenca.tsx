@@ -2,13 +2,13 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { showAlert } from '../../utils/alert';
 import { useAuth } from '../../services/auth/context';
 import { presencaApi, PresencaCompleta } from '../../services/presenca/api';
 import { extrairPalestraIdDoQrCode } from '../../services/presenca/qrcode';
@@ -61,7 +61,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
     if (!permission?.granted) {
       const resultado = await requestPermission();
       if (!resultado.granted) {
-        Alert.alert('Permissão negada', 'É necessário permitir acesso à câmera para escanear QR codes');
+        showAlert('Permissão negada', 'É necessário permitir acesso à câmera para escanear QR codes');
         return;
       }
     }
@@ -86,7 +86,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
 
       // Verificar se há usuário logado
       if (!usuarioLogado || !usuarioLogado.id) {
-        Alert.alert('Erro', 'Você precisa estar logado para registrar presença.');
+        showAlert('Erro', 'Você precisa estar logado para registrar presença.');
         fecharModal();
         return;
       }
@@ -98,7 +98,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
       const palestraId = palestraIdDoQr;
 
       if (!palestraId) {
-        Alert.alert('Erro', 'QR Code inválido. Não foi possível identificar a palestra/atividade.');
+        showAlert('Erro', 'QR Code inválido. Não foi possível identificar a palestra/atividade.');
         fecharModal();
         return;
       }
@@ -112,10 +112,10 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
       });
 
       if (resposta.error) {
-        Alert.alert('Erro', resposta.error);
+        showAlert('Erro', resposta.error);
         fecharModal();
       } else {
-        Alert.alert('Sucesso', resposta.message || 'Presença registrada com sucesso!');
+        showAlert('Sucesso', resposta.message || 'Presença registrada com sucesso!');
         
         // Atualizar estado para indicar que agora tem presença
         setTemPresenca(true);
@@ -131,7 +131,7 @@ export default function BotaoPresenca({ atividadeId, onPresencaRegistrada }: Bot
         fecharModal();
       }
     } catch (erro: any) {
-      Alert.alert('Erro', erro.message || 'Falha ao registrar presença');
+      showAlert('Erro', erro.message || 'Falha ao registrar presença');
       console.error('Erro ao registrar presença:', erro);
       fecharModal();
     }

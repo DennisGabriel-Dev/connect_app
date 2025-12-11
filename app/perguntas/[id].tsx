@@ -5,9 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  TouchableOpacity,
-  Alert
+  TouchableOpacity
 } from 'react-native';
+import { showAlert } from '@/utils/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { perguntasApi } from '@/services/perguntas/api';
 import { Pergunta } from '@/services/perguntas/types';
@@ -61,7 +61,7 @@ export default function DetalhePerguntaScreen() {
       setPergunta(dados);
     } catch (error) {
       console.error('Erro ao carregar pergunta:', error);
-      Alert.alert('Erro', 'Não foi possível carregar a pergunta.');
+      showAlert('Erro', 'Não foi possível carregar a pergunta.');
     } finally {
       setCarregando(false);
     }
@@ -86,13 +86,13 @@ export default function DetalhePerguntaScreen() {
 
   const handleVotar = async () => {
     if (!usuario?.id || !pergunta) {
-      Alert.alert('Erro', 'Você precisa estar logado para votar.');
+      showAlert('Erro', 'Você precisa estar logado para votar.');
       return;
     }
 
     // Verificar se é o autor
     if (pergunta.usuarioId === usuario.id) {
-      Alert.alert(
+      showAlert(
         'Ação não permitida',
         'Você não pode votar na sua própria pergunta.',
         [{ text: 'OK' }]
@@ -105,7 +105,7 @@ export default function DetalhePerguntaScreen() {
 
       // Verificar limite ANTES de votar
       if (!jaVotou && votosUsados >= LIMITE_VOTOS) {
-        Alert.alert(
+        showAlert(
           'Limite de votos atingido',
           `Você já usou seus ${LIMITE_VOTOS} votos. Desfaça um voto antes de votar em outra pergunta.`,
           [{ text: 'OK' }]
@@ -150,7 +150,7 @@ export default function DetalhePerguntaScreen() {
 
       // Mostrar mensagem de erro específica do backend
       const mensagemErro = error.response?.data?.error || error.message || 'Não foi possível registrar seu voto.';
-      Alert.alert('Erro', mensagemErro);
+      showAlert('Erro', mensagemErro);
     }
   };
 

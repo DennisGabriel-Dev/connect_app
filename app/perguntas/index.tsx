@@ -9,7 +9,6 @@ import { Modal, TextInput, KeyboardAvoidingView, ScrollView, Platform, Keyboard,
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -17,6 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { showAlert } from '@/utils/alert';
 
 export default function PerguntasScreen() {
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function PerguntasScreen() {
       setPerguntas(dados);
     } catch (error) {
       console.error('Erro ao carregar perguntas:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as perguntas.');
+      showAlert('Erro', 'Não foi possível carregar as perguntas.');
     } finally {
       setCarregando(false);
     }
@@ -140,7 +140,7 @@ export default function PerguntasScreen() {
 
   const handleVotar = async (perguntaId: string) => {
     if (!usuario?.id) {
-      Alert.alert('Erro', 'Você precisa estar logado para votar.');
+      showAlert('Erro', 'Você precisa estar logado para votar.');
       return;
     }
 
@@ -150,7 +150,7 @@ export default function PerguntasScreen() {
 
       // Verificar se é o autor
       if (pergunta.usuarioId === usuario.id) {
-        Alert.alert(
+        showAlert(
           'Ação não permitida',
           'Você não pode votar na sua própria pergunta.',
           [{ text: 'OK' }]
@@ -162,7 +162,7 @@ export default function PerguntasScreen() {
 
       // Verificar limite ANTES de votar
       if (!jaVotou && votosUsados >= LIMITE_VOTOS) {
-        Alert.alert(
+        showAlert(
           'Limite de votos atingido',
           `Você já usou seus ${LIMITE_VOTOS} votos. Desfaça um voto antes de votar em outra pergunta.`,
           [{ text: 'OK' }]
@@ -223,7 +223,7 @@ export default function PerguntasScreen() {
 
       // Mostrar mensagem de erro específica
       const mensagemErro = error.response?.data?.error || 'Não foi possível registrar seu voto. Tente novamente.';
-      Alert.alert('Erro', mensagemErro);
+      showAlert('Erro', mensagemErro);
     }
   };
 
@@ -242,7 +242,7 @@ export default function PerguntasScreen() {
   const handleSalvarEdicao = async () => {
     if (!usuario?.id || !perguntaEditando) return;
     if (!textoEdit.trim()) {
-      Alert.alert('Atenção', 'O texto da pergunta é obrigatório');
+      showAlert('Atenção', 'O texto da pergunta é obrigatório');
       return;
     }
     try {
@@ -257,7 +257,7 @@ export default function PerguntasScreen() {
         descricao,
         usuario.id
       );
-      Alert.alert('Sucesso', 'Pergunta editada com sucesso!');
+      showAlert('Sucesso', 'Pergunta editada com sucesso!');
       setEditando(false);
       setPerguntaEditando(null);
       await carregarPerguntas();
@@ -265,13 +265,13 @@ export default function PerguntasScreen() {
     } catch (error: any) {
       console.error('Erro ao editar:', error);
       const mensagem = error.response?.data?.error || 'Não foi possível editar a pergunta';
-      Alert.alert('Erro', mensagem);
+      showAlert('Erro', mensagem);
     }
   };
 
   const handleExcluir = (pergunta: Pergunta) => {
     if (!usuario?.id) return;
-    Alert.alert(
+    showAlert(
       'Excluir Pergunta',
       `Tem certeza que deseja excluir esta pergunta?\n\nVocês tem ${pergunta.votos} votos nela.`,
       [
@@ -282,13 +282,13 @@ export default function PerguntasScreen() {
           onPress: async () => {
             try {
               await perguntasApi.deletarPergunta(pergunta.id, usuario.id);
-              Alert.alert('Sucesso', 'Pergunta excluída com sucesso!');
+              showAlert('Sucesso', 'Pergunta excluída com sucesso!');
               await carregarPerguntas();
               await carregarPerguntasPendentes();
             } catch (error: any) {
               console.error('Erro ao excluir:', error);
               const mensagem = error.response?.data?.error || 'Não foi possível excluir a pergunta';
-              Alert.alert('Erro', mensagem);
+              showAlert('Erro', mensagem);
             }
           }
         }
