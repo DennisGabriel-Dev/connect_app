@@ -66,7 +66,6 @@ export default function PerguntaCard({
 
   const handlePremiar = () => {
     if (!podePremiar) return;
-    if (pergunta.status !== StatusPergunta.APROVADA) return;
     onPremiar?.(pergunta);
   };
 
@@ -82,7 +81,7 @@ export default function PerguntaCard({
             style={[styles.botaoPremiar, perguntaPremiada && styles.botaoPremiarAtivo]}
             onPress={handlePremiar}
             activeOpacity={0.8}
-            disabled={perguntaPremiada}
+            disabled={!ehAdmin}
           >
             <IconSymbol name="trophy.fill" size={14} color={perguntaPremiada ? '#92400E' : '#92400E'} />
             <Text style={[styles.botaoPremiarTexto, perguntaPremiada && styles.botaoPremiarTextoAtivo]}>

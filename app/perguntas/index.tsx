@@ -236,21 +236,42 @@ export default function PerguntasScreen() {
 
   const handlePremiarPergunta = (pergunta: Pergunta) => {
     if (!ehAdmin) return;
+    
+    const estaPremiada = pergunta.status === StatusPergunta.PREMIADA;
+
+    const titulo = estaPremiada ? 'Remover prêmio' : 'Premiar pergunta';
+    const mensagem = estaPremiada ? 'Deseja remover o destaque desta pergunta? Ela voltará a ser apenas Aprovada.'
+      : 'A pergunta selecionada substituirá qualquer outra pergunta premiada desta palestra. Deseja continuar?';
 
     const executarPremiacao = async () => {
       try {
         setPerguntas(prevPerguntas => prevPerguntas.map(p => {
+
+          if (estaPremiada) {
+            if (p.id === pergunta.id) {
+              return { ...p, status: StatusPergunta.APROVADA };
+            }
+            return p;
+          }
+
           if (p.palestraId !== pergunta.palestraId) return p;
+
           if (p.id === pergunta.id) {
             return { ...p, status: StatusPergunta.PREMIADA };
           }
+
           if (p.status === StatusPergunta.PREMIADA) {
             return { ...p, status: StatusPergunta.APROVADA };
           }
+
           return p;
         }));
 
-        await perguntasApi.premiarPergunta(pergunta.id);
+        if (estaPremiada) {
+          await perguntasApi.aprovarPergunta(pergunta.id);
+        } else {
+          await perguntasApi.premiarPergunta(pergunta.id);
+        }
         await carregarPerguntas();
       } catch (error: any) {
         console.error('Erro ao premiar pergunta:', error);
@@ -261,11 +282,11 @@ export default function PerguntasScreen() {
     };
 
     showAlert(
-      'Premiar pergunta',
-      'A pergunta selecionada substituirá qualquer pergunta premiada desta palestra. Deseja continuar?',
+      titulo,
+      mensagem,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Premiar', onPress: executarPremiacao }
+        { text: estaPremiada ? 'Remover' : 'Premiar', onPress: executarPremiacao, style: estaPremiada ? 'destructive' : 'default' }
       ]
     );
   };
