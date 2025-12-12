@@ -13,6 +13,8 @@ interface PerguntaCardProps {
   onExcluir?: (pergunta: Pergunta) => void;
   limiteAtingido?: boolean; // Indica se o limite de 3 votos foi atingido
   periodoAtivo?: boolean; // Indica se o período de votação está ativo
+  ehAdmin?: boolean; // Indica se o usuário atual é um admin
+  onPremiar: (pergunta: Pergunta) => void; // Função para premiar a pergunta
 }
 
 export default function PerguntaCard({
@@ -23,10 +25,14 @@ export default function PerguntaCard({
   onEditar,
   onExcluir,
   limiteAtingido = false,
-  periodoAtivo = true
+  periodoAtivo = true,
+  ehAdmin = false,
+  onPremiar
 }: PerguntaCardProps) {
   const usuarioJaVotou = pergunta.usuariosVotaram?.includes(usuarioAtualId) || false;
   const ehAutor = pergunta.usuarioId === usuarioAtualId;
+  const perguntaPremiada = pergunta.status === StatusPergunta.PREMIADA;
+  const podePremiar = ehAdmin && (pergunta.status === StatusPergunta.APROVADA || perguntaPremiada);
 
   // Mostrar estilo de limite se atingido E usuário ainda não votou nesta pergunta
   const mostrarLimite = limiteAtingido && !usuarioJaVotou;
@@ -58,6 +64,11 @@ export default function PerguntaCard({
     }
   };
 
+  const handlePremiar = () => {
+    if (!podePremiar) return;
+    onPremiar?.(pergunta);
+  };
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -65,6 +76,20 @@ export default function PerguntaCard({
       activeOpacity={0.7}
     >
       <View style={styles.conteudo}>
+        {(podePremiar || perguntaPremiada) && (
+          <TouchableOpacity
+            style={[styles.botaoPremiar, perguntaPremiada && styles.botaoPremiarAtivo]}
+            onPress={handlePremiar}
+            activeOpacity={0.8}
+            disabled={!ehAdmin}
+          >
+            <IconSymbol name="trophy.fill" size={14} color={perguntaPremiada ? '#92400E' : '#92400E'} />
+            <Text style={[styles.botaoPremiarTexto, perguntaPremiada && styles.botaoPremiarTextoAtivo]}>
+              {perguntaPremiada ? 'Premiada' : 'Premiar'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Header com ranking */}
         <View style={styles.header}>
           <View style={styles.rankingBadge}>
@@ -97,9 +122,9 @@ export default function PerguntaCard({
 
         {/* Footer com autor e botão de votar */}
         <View style={styles.footer}>
-          <View style={styles.autorContainer}>
+          <View style={styles.infoAutor}>
             <IconSymbol name="person.fill" size={13} color="#94A3B8" />
-            <Text style={styles.autor}>
+            <Text style={styles.autor}  numberOfLines={1}>
               {pergunta.usuarioNome || 'Anônimo'}
             </Text>
           </View>
@@ -135,7 +160,7 @@ export default function PerguntaCard({
 
           {/* Mostrar badge e botões se for o autor */}
           {ehAutor && (
-            <View style={styles.autorContainer}>
+            <View style={styles.acoesAutorContainer}>
               <View style={styles.autorBadge}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <IconSymbol name="person.fill" size={14} color="#4F46E5" />
@@ -184,6 +209,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    position: 'relative',
   },
   conteudo: {
     padding: 16,
@@ -193,6 +219,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    paddingRight: 80,
+  },
+  botaoPremiar: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FEF9C3',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FACC15',
+    elevation: 2,
+    zIndex: 10,
+  },
+  botaoPremiarAtivo: {
+    backgroundColor: '#FDE68A',
+    borderColor: '#D97706',
+  },
+  botaoPremiarTexto: {
+    color: '#92400E',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  botaoPremiarTextoAtivo: {
+    color: '#92400E',
   },
   rankingBadge: {
     backgroundColor: '#E3F2FD',
@@ -241,11 +296,14 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
+    gap: 8,
   },
-  autorContainer: {
+  infoAutor: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flex: 1,
+    marginRight: 8,
   },
   autor: {
     fontSize: 13,
@@ -294,6 +352,12 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   // Novos estilos para editar/excluir
+  acoesAutorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
   acoesRapidas: {
     flexDirection: 'row',
     gap: 8,

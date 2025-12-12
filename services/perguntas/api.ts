@@ -41,7 +41,9 @@ function mapearPerguntaBackendParaFrontend(perguntaBackend: PerguntaBackend): Pe
   let status = StatusPergunta.PENDENTE;
   if (perguntaBackend.status) {
     const statusLower = perguntaBackend.status.toLowerCase();
-    if (statusLower === 'aprovada' || statusLower === 'aprovado') {
+    if (statusLower === 'premiada' || statusLower === 'premiado') {
+      status = StatusPergunta.PREMIADA;
+    } else if (statusLower === 'aprovada' || statusLower === 'aprovado') {
       status = StatusPergunta.APROVADA;
     } else if (statusLower === 'rejeitada' || statusLower === 'rejeitado') {
       status = StatusPergunta.REJEITADA;
@@ -214,6 +216,18 @@ export const perguntasApi = {
       return mapearPerguntaBackendParaFrontend(perguntaBackend);
     } catch (error) {
       console.error('Erro ao aprovar pergunta:', error);
+      throw error;
+    }
+  },
+
+  // Premiar pergunta (admin) - garante apenas uma premiada por palestra
+  async premiarPergunta(perguntaId: string): Promise<Pergunta> {
+    try {
+      const response = await axios.patch(`${URL_BASE_API}/${perguntaId}/premiar`);
+      const perguntaBackend = response.data.data || response.data;
+      return mapearPerguntaBackendParaFrontend(perguntaBackend);
+    } catch (error) {
+      console.error('Erro ao premiar pergunta:', error);
       throw error;
     }
   },

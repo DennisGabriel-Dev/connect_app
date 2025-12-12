@@ -38,8 +38,10 @@ export default function PerguntasPalestraScreen() {
       setCarregando(true);
       const dados = await perguntasApi.listarPerguntasPorPalestra(id as string);
 
-      // Filtrar apenas perguntas aprovadas
-      const perguntasAprovadas = dados.filter(p => p.status === StatusPergunta.APROVADA);
+      // Filtrar perguntas visíveis: aprovadas ou premiadas
+      const perguntasAprovadas = dados.filter(
+        p => p.status === StatusPergunta.APROVADA || p.status === StatusPergunta.PREMIADA
+      );
 
       setPerguntas(perguntasAprovadas);
     } catch (error) {

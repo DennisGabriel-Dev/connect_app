@@ -3,7 +3,7 @@ import { HeaderTela } from '@/components/shared/HeaderTela';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/services/auth/context';
 import { perguntasApi } from '@/services/perguntas/api';
-import { Pergunta } from '@/services/perguntas/types';
+import { Pergunta, StatusPergunta } from '@/services/perguntas/types';
 import { showAlert } from '@/utils/alert';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -45,6 +45,7 @@ export default function PerguntasScreen() {
   const [perguntasPendentes, setPerguntasPendentes] = useState<Pergunta[]>([]);
 
   const LIMITE_VOTOS = 3;
+  const ehAdmin = usuario?.isAdmin || usuario?.role === 'admin';
 
   // Carregar perguntas da palestra
   useEffect(() => {
@@ -233,6 +234,63 @@ export default function PerguntasScreen() {
     }
   };
 
+  const handlePremiarPergunta = (pergunta: Pergunta) => {
+    if (!ehAdmin) return;
+    
+    const estaPremiada = pergunta.status === StatusPergunta.PREMIADA;
+
+    const titulo = estaPremiada ? 'Remover prêmio' : 'Premiar pergunta';
+    const mensagem = estaPremiada ? 'Deseja remover o destaque desta pergunta? Ela voltará a ser apenas Aprovada.'
+      : 'A pergunta selecionada substituirá qualquer outra pergunta premiada desta palestra. Deseja continuar?';
+
+    const executarPremiacao = async () => {
+      try {
+        setPerguntas(prevPerguntas => prevPerguntas.map(p => {
+
+          if (estaPremiada) {
+            if (p.id === pergunta.id) {
+              return { ...p, status: StatusPergunta.APROVADA };
+            }
+            return p;
+          }
+
+          if (p.palestraId !== pergunta.palestraId) return p;
+
+          if (p.id === pergunta.id) {
+            return { ...p, status: StatusPergunta.PREMIADA };
+          }
+
+          if (p.status === StatusPergunta.PREMIADA) {
+            return { ...p, status: StatusPergunta.APROVADA };
+          }
+
+          return p;
+        }));
+
+        if (estaPremiada) {
+          await perguntasApi.aprovarPergunta(pergunta.id);
+        } else {
+          await perguntasApi.premiarPergunta(pergunta.id);
+        }
+        await carregarPerguntas();
+      } catch (error: any) {
+        console.error('Erro ao premiar pergunta:', error);
+        await carregarPerguntas();
+        const mensagem = error?.response?.data?.error || 'Não foi possível premiar a pergunta.';
+        showAlert('Erro', mensagem);
+      }
+    };
+
+    showAlert(
+      titulo,
+      mensagem,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: estaPremiada ? 'Remover' : 'Premiar', onPress: executarPremiacao, style: estaPremiada ? 'destructive' : 'default' }
+      ]
+    );
+  };
+
   const handlePressionarPergunta = (pergunta: Pergunta) => {
     router.push(`/perguntas/${pergunta.id}`);
   };
@@ -319,152 +377,211 @@ export default function PerguntasScreen() {
       onExcluir={handleExcluir}
       limiteAtingido={votosUsados >= LIMITE_VOTOS}
       periodoAtivo={periodoAtivo}
+      ehAdmin={ehAdmin}
+      onPremiar={handlePremiarPergunta}
     />
   );
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <Text style={styles.headerTitulo}>{palestraTitulo}</Text>
-      <View style={styles.headerInfoContainer}>
-        <Text style={styles.headerInfo}>
-          {perguntas.length} {perguntas.length === 1 ? 'pergunta' : 'perguntas'}
-        </Text>
-        {usuario?.id && (
-          <View style={[
-            styles.votosContador,
-            votosUsados >= LIMITE_VOTOS && styles.votosContadorLimite
-          ]}>
+  const renderHeader = () => {
+    const perguntaPremiada = perguntas.find(p => p.status === StatusPergunta.PREMIADA);
+
+    return (
+      <View style={styles.header}>
+        <Text style={styles.headerTitulo}>{palestraTitulo}</Text>
+        <View style={styles.headerInfoContainer}>
+          <Text style={styles.headerInfo}>
+            {perguntas.length} {perguntas.length === 1 ? 'pergunta' : 'perguntas'}
+          </Text>
+          {usuario?.id && (
+            <View style={[
+              styles.votosContador,
+              votosUsados >= LIMITE_VOTOS && styles.votosContadorLimite
+            ]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <IconSymbol
+                  name={votosUsados >= LIMITE_VOTOS ? 'lock.fill' : 'heart.fill'}
+                  size={16}
+                  color={votosUsados >= LIMITE_VOTOS ? '#DC2626' : '#1E88E5'}
+                />
+                <Text style={[
+                  styles.votosContadorTexto,
+                  votosUsados >= LIMITE_VOTOS && styles.votosContadorTextoLimite
+                ]}>
+                  Votos: {votosUsados}/{LIMITE_VOTOS}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Badge de período ativo/inativo */}
+        {!periodoAtivo && (
+          <View style={styles.periodoBadge}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <IconSymbol
-                name={votosUsados >= LIMITE_VOTOS ? 'lock.fill' : 'heart.fill'}
-                size={16}
-                color={votosUsados >= LIMITE_VOTOS ? '#DC2626' : '#1E88E5'}
-              />
-              <Text style={[
-                styles.votosContadorTexto,
-                votosUsados >= LIMITE_VOTOS && styles.votosContadorTextoLimite
-              ]}>
-                Votos: {votosUsados}/{LIMITE_VOTOS}
+              <IconSymbol name="clock.fill" size={14} color="#92400E" />
+              <Text style={styles.periodoBadgeTexto}>
+                {motivoPeriodoInativo || 'Período de perguntas encerrado'}
               </Text>
             </View>
           </View>
         )}
-      </View>
 
-      {/* Badge de período ativo/inativo */}
-      {!periodoAtivo && (
-        <View style={styles.periodoBadge}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <IconSymbol name="clock.fill" size={14} color="#92400E" />
-            <Text style={styles.periodoBadgeTexto}>
-              {motivoPeriodoInativo || 'Período de perguntas encerrado'}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {periodoAtivo && (
-        <View style={styles.periodoAtivoBadge}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
-            <Text style={styles.periodoAtivoBadgeTexto}>Aberto a perguntas</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Seção de Perguntas Pendentes do Usuário */}
-      {usuario?.id && perguntasPendentes.length > 0 && periodoAtivo && (
-        <View style={styles.secaoPendentes}>
-          <View style={styles.pendentesTitulo}>
-            <IconSymbol name="clock.fill" size={18} color="#F59E0B" />
-            <Text style={styles.pendentesTituloTexto}>
-              Minhas Perguntas Pendentes ({perguntasPendentes.length})
-            </Text>
-          </View>
-
-          {perguntasPendentes.map((pergunta) => (
-            <View key={pergunta.id} style={styles.cardPendente}>
-              <View style={styles.pendenteBadge}>
-                <IconSymbol name="clock.fill" size={12} color="#92400E" />
-                <Text style={styles.pendenteBadgeTexto}>Aguardando aprovação</Text>
-              </View>
-
-              <Text style={styles.pendenteTitulo} numberOfLines={2}>
-                {pergunta.titulo}
-              </Text>
-
-              {pergunta.descricao && (
-                <Text style={styles.pendenteDescricao} numberOfLines={2}>
-                  {pergunta.descricao}
-                </Text>
-              )}
-
-              <View style={styles.pendenteAcoes}>
-                <TouchableOpacity
-                  style={styles.botaoEditarPendente}
-                  onPress={() => handleEditar(pergunta)}
-                >
-                  <IconSymbol name="pencil" size={14} color="#1E88E5" />
-                  <Text style={styles.botaoEditarPendenteTexto}>Editar</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.botaoExcluirPendente}
-                  onPress={() => handleExcluir(pergunta)}
-                >
-                  <IconSymbol name="xmark.circle.fill" size={14} color="#EF4444" />
-                  <Text style={styles.botaoExcluirPendenteTexto}>Excluir</Text>
-                </TouchableOpacity>
-              </View>
+        {periodoAtivo && (
+          <View style={styles.periodoAtivoBadge}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <IconSymbol name="checkmark.circle.fill" size={14} color="#10B981" />
+              <Text style={styles.periodoAtivoBadgeTexto}>Aberto a perguntas</Text>
             </View>
-          ))}
-        </View>
-      )}
-
-      {/* Seção Top 3 Perguntas Mais Votadas */}
-      {perguntas.length > 0 && perguntas.slice(0, 3).some(p => p.votos > 0) && (
-        <View style={styles.secaoTop3}>
-          <View style={styles.top3Titulo}>
-            <IconSymbol name="star.fill" size={18} color="#1E88E5" />
-            <Text style={styles.top3TituloTexto}>
-              Top 3 Perguntas Mais Votadas
-            </Text>
           </View>
+        )}
 
-          {perguntas.slice(0, 3).filter(p => p.votos > 0).map((pergunta, index) => (
-            <View key={pergunta.id} style={styles.cardTop3}>
-              <View style={styles.top3Badge}>
-                <IconSymbol name="trophy.fill" size={14} color="#1E88E5" />
-                <Text style={styles.top3BadgeTexto}>
-                  #{index + 1} · {pergunta.votos} {pergunta.votos === 1 ? 'voto' : 'votos'}
+        {/* Seção de Perguntas Pendentes do Usuário */}
+        {usuario?.id && perguntasPendentes.length > 0 && periodoAtivo && (
+          <View style={styles.secaoPendentes}>
+            <View style={styles.pendentesTitulo}>
+              <IconSymbol name="clock.fill" size={18} color="#F59E0B" />
+              <Text style={styles.pendentesTituloTexto}>
+                Minhas Perguntas Pendentes ({perguntasPendentes.length})
+              </Text>
+            </View>
+
+            {perguntasPendentes.map((pergunta) => (
+              <View key={pergunta.id} style={styles.cardPendente}>
+                <View style={styles.pendenteBadge}>
+                  <IconSymbol name="clock.fill" size={12} color="#92400E" />
+                  <Text style={styles.pendenteBadgeTexto}>Aguardando aprovação</Text>
+                </View>
+
+                <Text style={styles.pendenteTitulo} numberOfLines={2}>
+                  {pergunta.titulo}
                 </Text>
-              </View>
 
-              <Text style={styles.top3Titulo} numberOfLines={2}>
-                {pergunta.titulo}
+                {pergunta.descricao && (
+                  <Text style={styles.pendenteDescricao} numberOfLines={2}>
+                    {pergunta.descricao}
+                  </Text>
+                )}
+
+                <View style={styles.pendenteAcoes}>
+                  <TouchableOpacity
+                    style={styles.botaoEditarPendente}
+                    onPress={() => handleEditar(pergunta)}
+                  >
+                    <IconSymbol name="pencil" size={14} color="#1E88E5" />
+                    <Text style={styles.botaoEditarPendenteTexto}>Editar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.botaoExcluirPendente}
+                    onPress={() => handleExcluir(pergunta)}
+                  >
+                    <IconSymbol name="xmark.circle.fill" size={14} color="#EF4444" />
+                    <Text style={styles.botaoExcluirPendenteTexto}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Pergunta premiada da palestra */}
+        {perguntaPremiada && (
+          <View style={styles.secaoPremiada}>
+            <View style={styles.premiadaTitulo}>
+              <IconSymbol name="trophy.fill" size={18} color="#B45309" />
+              <Text style={styles.premiadaTituloTexto}>Pergunta Premiada</Text>
+            </View>
+
+            <View style={styles.cardPremiada}>
+
+              <Text style={styles.premiadaPerguntaTitulo} numberOfLines={2}>
+                {perguntaPremiada.titulo}
               </Text>
 
-              {pergunta.descricao && (
-                <Text style={styles.top3Descricao} numberOfLines={2}>
-                  {pergunta.descricao}
+              {perguntaPremiada.descricao && (
+                <Text style={styles.premiadaPerguntaDescricao} numberOfLines={3}>
+                  {perguntaPremiada.descricao}
                 </Text>
               )}
+
+              <View style={styles.premiadaMeta}>
+                
+                <View style={styles.premiadaAutorContainer}>
+                  <IconSymbol name="person.fill" size={14} color="#92400E" />
+                  <Text 
+                    style={styles.premiadaAutorTexto} 
+                    numberOfLines={1} 
+                    ellipsizeMode="tail"
+                  >
+                    {perguntaPremiada.usuarioNome || 'Anônimo'}
+                  </Text>
+                </View>
+
+                
+                <View style={styles.premiadaVotos}>
+                  <IconSymbol name="heart.fill" size={14} color="#B45309" />
+                  <Text style={styles.premiadaVotosTexto}>
+                    {perguntaPremiada.votos}
+                  </Text>
+                </View>
+              </View>
 
               <TouchableOpacity
-                style={styles.botaoVerTop3}
-                onPress={() => handlePressionarPergunta(pergunta)}
+                style={styles.botaoVerPremiada}
+                onPress={() => handlePressionarPergunta(perguntaPremiada)}
               >
-                 <IconSymbol style={{marginRight: 4}} name="eye.fill" size={20} color="#FFFFFF" />
-
-                <Text style={styles.botaoVerTop3Texto}>Ver detalhes</Text>
-                <IconSymbol name="chevron.right" size={14} color="#4F46E5" />
+                <Text style={styles.botaoVerPremiadaTexto}>Ver detalhes</Text>
+                <IconSymbol name="chevron.right" size={14} color="#92400E" />
               </TouchableOpacity>
             </View>
-          ))}
-        </View>
-      )}
-    </View>
-  );
+          </View>
+        )}
+
+        {/* Seção Top 3 Perguntas Mais Votadas */}
+        {perguntas.length > 0 && perguntas.slice(0, 3).some(p => p.votos > 0) && (
+          <View style={styles.secaoTop3}>
+            <View style={styles.top3Titulo}>
+              <IconSymbol name="star.fill" size={18} color="#1E88E5" />
+              <Text style={styles.top3TituloTexto}>
+                Top 3 Perguntas Mais Votadas
+              </Text>
+            </View>
+
+            {perguntas.slice(0, 3).filter(p => p.votos > 0).map((pergunta, index) => (
+              <View key={pergunta.id} style={styles.cardTop3}>
+                <View style={styles.top3Badge}>
+                  <IconSymbol name="trophy.fill" size={14} color="#1E88E5" />
+                  <Text style={styles.top3BadgeTexto}>
+                    #{index + 1} · {pergunta.votos} {pergunta.votos === 1 ? 'voto' : 'votos'}
+                  </Text>
+                </View>
+
+                <Text style={styles.top3Titulo} numberOfLines={2}>
+                  {pergunta.titulo}
+                </Text>
+
+                {pergunta.descricao && (
+                  <Text style={styles.top3Descricao} numberOfLines={2}>
+                    {pergunta.descricao}
+                  </Text>
+                )}
+
+                <TouchableOpacity
+                  style={styles.botaoVerTop3}
+                  onPress={() => handlePressionarPergunta(pergunta)}
+                >
+                  <IconSymbol style={{marginRight: 4}} name="eye.fill" size={20} color="#FFFFFF" />
+
+                  <Text style={styles.botaoVerTop3Texto}>Ver detalhes</Text>
+                  <IconSymbol name="chevron.right" size={14} color="#4F46E5" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
 
   const renderEmpty = () => {
     // Se não há palestraId, mostra mensagem diferente
@@ -933,6 +1050,100 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontSize: 13,
     fontWeight: '600',
+  },
+  // Estilos para pergunta premiada
+  secaoPremiada: {
+    marginTop: 16,
+    backgroundColor: '#FFFBEB',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  premiadaTitulo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  premiadaTituloTexto: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  cardPremiada: {
+    backgroundColor: '#FFF7ED',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  premiadaPerguntaTitulo: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#78350F',
+    marginBottom: 6,
+  },
+  premiadaPerguntaDescricao: {
+    fontSize: 14,
+    color: '#92400E',
+    marginBottom: 8,
+  },
+  premiadaMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    marginBottom: 12,
+    gap: 10,
+  },
+  premiadaAutorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+    marginRight: 8,
+  },
+  premiadaAutorTexto: {
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '500',
+  },
+  premiadaVotos: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexShrink: 0, 
+  },
+  premiadaVotosTexto: {
+    fontSize: 13,
+    color: '#B45309',
+    fontWeight: '700',
+  },
+  botaoVerPremiada: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FDE68A',
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  botaoVerPremiadaTexto: {
+    color: '#92400E',
+    fontSize: 13,
+    fontWeight: '700',
   },
   // Estilos para seção Top 3 Perguntas
   secaoTop3: {
