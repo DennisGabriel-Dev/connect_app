@@ -301,7 +301,12 @@ export default function TelaDetalheProgramacao() {
                 {palestranteSelecionado.bio && (
                   <View style={styles.secaoModal}>
                     <Text style={styles.tituloSecaoModal}>Sobre</Text>
+                    <ScrollView 
+                     style={{ maxHeight: 300 }} 
+                  showsVerticalScrollIndicator={true} >
                     <Text style={styles.textoModal}>{palestranteSelecionado.bio}</Text>
+
+                    </ScrollView>
                   </View>
                 )}
 
@@ -461,14 +466,16 @@ const styles = StyleSheet.create({
   },
   infoPalestrante: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
+    
   },
   nomePalestrante: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1E293B',
+    marginBottom: 4
   },
   detalhesContainer: {
     flexDirection: 'row',
@@ -544,6 +551,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     lineHeight: 24,
+    
   },
   botoesModal: {
     marginTop: 20,
