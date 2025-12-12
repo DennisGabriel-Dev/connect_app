@@ -20,11 +20,10 @@ export default function AdminFiltersModal() {
   const [sortBy, setSortBy] = useState<'votes' | 'engagement'>('engagement');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [filtroPerguntas, setFiltroPerguntas] = useState<'todas' | 'premiadas' | 'nao_premiadas'>('todas');
 
   // NOVOS FILTROS
   const [nomeContains, setNomeContains] = useState('');
-  const [atividadeNome, setAtividadeNome] = useState('');
-  const [palestraNome, setPalestraNome] = useState('');
   
   // FILTROS DE TIPO E TURMA
   const [tipoUsuario, setTipoUsuario] = useState<string>('');
@@ -59,11 +58,10 @@ export default function AdminFiltersModal() {
       sortBy,
       dateFrom,
       dateTo,
+      filtroPerguntas: filtroPerguntas !== 'todas' ? filtroPerguntas : undefined,
 
       // novos filtros que o backend vai receber
       nomeContains: nomeContains.trim() || undefined,
-      atividadeNome: atividadeNome.trim() || undefined,
-      palestraNome: palestraNome.trim() || undefined,
       tipoUsuario: tipoUsuario || undefined,
       turma: turma || undefined,
     };
@@ -82,11 +80,19 @@ export default function AdminFiltersModal() {
     setDateFrom('');
     setDateTo('');
     setNomeContains('');
-    setAtividadeNome('');
-    setPalestraNome('');
     setTipoUsuario('');
     setTurma('');
+    setFiltroPerguntas('todas');
   }
+
+  // Opções selecionáveis para presença mínima
+  const opcoesPresenca = [0, 1, 2, 3, 5, 10, 15, 20];
+  
+  // Opções selecionáveis para nota mínima
+  const opcoesNota = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  
+  // Opções selecionáveis para feedbacks
+  const opcoesFeedbacks = [0, 1, 2, 3, 5, 10];
 
   return (
     <View
@@ -128,137 +134,170 @@ export default function AdminFiltersModal() {
           />
         </View>
 
-        {/* FILTRO POR ATIVIDADE */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Atividade</Text>
-          <Text style={{ color: '#6B7280', marginBottom: 6 }}>
-            Filtrar pela atividade vinculada à presença (nome ou código, conforme seu backend).
-          </Text>
-          <TextInput
-            value={atividadeNome}
-            onChangeText={setAtividadeNome}
-            placeholder="Ex: Workshop, Hackathon..."
-            style={{
-              borderWidth: 1,
-              borderColor: '#D1D5DB',
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-            }}
-          />
-        </View>
-
-        {/* FILTRO POR PALESTRA */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Palestra</Text>
-          <Text style={{ color: '#6B7280', marginBottom: 6 }}>
-            Filtrar pela palestra associada à presença.
-          </Text>
-          <TextInput
-            value={palestraNome}
-            onChangeText={setPalestraNome}
-            placeholder="Ex: Abertura, Keynote..."
-            style={{
-              borderWidth: 1,
-              borderColor: '#D1D5DB',
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-            }}
-          />
-        </View>
 
         {/* Presença mínima */}
         <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Presença mínima</Text>
-          <Text style={{ color: '#6B7280', marginBottom: 6 }}>
-            Quantidade mínima de registros de presença.
+          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Quantidade mínima de registros de presença</Text>
+          <Text style={{ color: '#6B7280', marginBottom: 8 }}>
+            Selecione a quantidade mínima de presenças.
           </Text>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => setMinPresence((prev) => Math.max(prev - 1, 0))}
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                backgroundColor: '#E5E7EB',
-                borderRadius: 999,
-              }}
-            >
-              <Text>-1</Text>
-            </TouchableOpacity>
-
-            <Text style={{ minWidth: 40, textAlign: 'center', fontWeight: '600' }}>
-              {minPresence}
-            </Text>
-
-            <TouchableOpacity
-              onPress={() => setMinPresence((prev) => prev + 1)}
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                backgroundColor: '#2563EB',
-                borderRadius: 999,
-              }}
-            >
-              <Text style={{ color: '#FFFFFF' }}>+1</Text>
-            </TouchableOpacity>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {opcoesPresenca.map((valor) => (
+              <TouchableOpacity
+                key={valor}
+                onPress={() => setMinPresence(valor)}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: minPresence === valor ? '#2563EB' : '#E5E7EB',
+                }}
+              >
+                <Text
+                  style={{
+                    color: minPresence === valor ? '#FFFFFF' : '#111827',
+                    fontWeight: '600',
+                    fontSize: 14,
+                  }}
+                >
+                  {valor === 0 ? 'Todas' : `≥ ${valor}`}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
         {/* Nota mínima */}
         <View style={{ marginBottom: 16 }}>
           <Text style={{ fontWeight: '600', marginBottom: 4 }}>Nota mínima</Text>
-          <Text style={{ color: '#6B7280', marginBottom: 6 }}>
+          <Text style={{ color: '#6B7280', marginBottom: 8 }}>
             Nota mínima de média nos quizzes (0 a 10).
           </Text>
-          <TextInput
-            keyboardType="decimal-pad"
-            value={String(minQuizScore || '')}
-            onChangeText={(value) => {
-              const num = Number(value.replace(',', '.')) || 0;
-              const clamped = Math.max(0, Math.min(10, num));
-              setMinQuizScore(clamped);
-            }}
-            style={{
-              borderWidth: 1,
-              borderColor: '#D1D5DB',
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-            }}
-            placeholder="Ex: 7"
-          />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {opcoesNota.map((valor) => (
+              <TouchableOpacity
+                key={valor}
+                onPress={() => setMinQuizScore(valor)}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: minQuizScore === valor ? '#2563EB' : '#E5E7EB',
+                }}
+              >
+                <Text
+                  style={{
+                    color: minQuizScore === valor ? '#FFFFFF' : '#111827',
+                    fontWeight: '600',
+                    fontSize: 14,
+                  }}
+                >
+                  {valor === 0 ? 'Todas' : valor}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Feedbacks */}
         <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Quantidade de feedbacks</Text>
-          <Text style={{ color: '#6B7280', marginBottom: 6 }}>
-            Número mínimo de feedbacks enviados.
+          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Número mínimo de feedbacks enviados</Text>
+          <Text style={{ color: '#6B7280', marginBottom: 8 }}>
+            Selecione a quantidade mínima de feedbacks.
           </Text>
-          <TextInput
-            keyboardType="numeric"
-            value={String(minFeedbacks || '')}
-            onChangeText={(value) => {
-              const num = parseInt(value || '0', 10) || 0;
-              setMinFeedbacks(Math.max(0, num));
-            }}
-            style={{
-              borderWidth: 1,
-              borderColor: '#D1D5DB',
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-            }}
-            placeholder="Ex: 3"
-          />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {opcoesFeedbacks.map((valor) => (
+              <TouchableOpacity
+                key={valor}
+                onPress={() => setMinFeedbacks(valor)}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: minFeedbacks === valor ? '#2563EB' : '#E5E7EB',
+                }}
+              >
+                <Text
+                  style={{
+                    color: minFeedbacks === valor ? '#FFFFFF' : '#111827',
+                    fontWeight: '600',
+                    fontSize: 14,
+                  }}
+                >
+                  {valor === 0 ? 'Todas' : `≥ ${valor}`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Filtro de Perguntas */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontWeight: '600', marginBottom: 4 }}>Perguntas</Text>
+          <Text style={{ color: '#6B7280', marginBottom: 8 }}>
+            Filtrar por status das perguntas do usuário.
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => setFiltroPerguntas('todas')}
+              style={{
+                flex: 1,
+                paddingVertical: 10,
+                borderRadius: 8,
+                alignItems: 'center',
+                backgroundColor: filtroPerguntas === 'todas' ? '#2563EB' : '#E5E7EB',
+              }}
+            >
+              <Text
+                style={{
+                  color: filtroPerguntas === 'todas' ? '#FFFFFF' : '#111827',
+                  fontWeight: '600',
+                }}
+              >
+                Todas
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setFiltroPerguntas('premiadas')}
+              style={{
+                flex: 1,
+                paddingVertical: 10,
+                borderRadius: 8,
+                alignItems: 'center',
+                backgroundColor: filtroPerguntas === 'premiadas' ? '#2563EB' : '#E5E7EB',
+              }}
+            >
+              <Text
+                style={{
+                  color: filtroPerguntas === 'premiadas' ? '#FFFFFF' : '#111827',
+                  fontWeight: '600',
+                }}
+              >
+                Premiadas
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setFiltroPerguntas('nao_premiadas')}
+              style={{
+                flex: 1,
+                paddingVertical: 10,
+                borderRadius: 8,
+                alignItems: 'center',
+                backgroundColor: filtroPerguntas === 'nao_premiadas' ? '#2563EB' : '#E5E7EB',
+              }}
+            >
+              <Text
+                style={{
+                  color: filtroPerguntas === 'nao_premiadas' ? '#FFFFFF' : '#111827',
+                  fontWeight: '600',
+                }}
+              >
+                Não Premiadas
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Foco da análise */}
