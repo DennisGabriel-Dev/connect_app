@@ -3,6 +3,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/services/auth/context';
 import { buscarQuizzesStatus } from '@/services/quiz/api';
 import { QuizStatus } from '@/services/quiz/type';
+import { showAlert } from '@/utils/alert';
 import { useFocusEffect } from '@react-navigation/native';
 import { Stack, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -57,6 +58,30 @@ export default function MeusQuizzesScreen() {
   const renderQuizItem = ({ item }: { item: QuizStatus }) => {
     const isPendente = item.status === 'PENDENTE';
 
+    const handleResponder = () => {
+      if (!item.presencaConfirmada) {
+        showAlert("Presença necessária", "Você precisa confirmar sua presença nesta atividade para liberar o quiz.");
+        return;
+      }
+
+      if (!item.liberado) {
+        showAlert("Quiz Bloqueado", "Este quiz ainda não está liberado.");
+        return;
+      }
+
+      router.push(`/quiz/${item.id}`);
+    };
+
+    let estiloBotao = styles.botaoResponder;
+    let textoBotao = 'Responder Agora';
+
+    if (!item.presencaConfirmada) {
+      estiloBotao = styles.botaoBloqueado;
+    } else if (!item.liberado) {
+      estiloBotao = styles.botaoBloqueado;
+      textoBotao = 'Quiz Bloqueado';
+    }
+
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -71,8 +96,8 @@ export default function MeusQuizzesScreen() {
 
         <View style={styles.cardFooter}>
           {isPendente ? (
-            <TouchableOpacity style={styles.botaoResponder} onPress={() => router.push(`/quiz/${item.id}`)}>
-              <Text style={styles.textoBotao}>Responder Agora</Text>
+            <TouchableOpacity style={estiloBotao} onPress={handleResponder}>
+              <Text style={styles.textoBotao}>{textoBotao}</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.infoRespondido}>
@@ -140,6 +165,12 @@ const styles = StyleSheet.create({
   cardFooter: { marginTop: 'auto' },
   botaoResponder: {
     backgroundColor: '#1E88E5',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  botaoBloqueado: {
+    backgroundColor: '#94A3B8',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
