@@ -9,7 +9,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 
 export default function PainelScreen() {
@@ -90,13 +90,11 @@ export default function PainelScreen() {
               <View style={styles.statsContainer}>
                 <Text style={styles.statText}>Feedbacks: {item.feedbacks}</Text>
                 <Text style={styles.statText}>Perguntas: {item.perguntas}</Text>
-                {item.perguntasPremiadas > 0 && (
-                  <Text style={[styles.statText, { color: "#F59E0B", fontWeight: "600" }]}>
-                    Perguntas Premiadas: {item.perguntasPremiadas}
-                  </Text>
-                )}
                 <Text style={styles.statText}>Votos: {item.votosPerguntas}</Text>
                 <Text style={styles.statText}>Presenças: {item.presencas}</Text>
+                <Text style={styles.totalScore}>
+                  Pontuação total: {item.scoreTotal}
+                </Text>
               </View>
             </TouchableOpacity>
           )}

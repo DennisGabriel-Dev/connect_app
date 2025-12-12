@@ -15,7 +15,7 @@ export default function SorteioLayout() {
     
       <Stack.Screen
         name="index"
-        options={{ title: "Painel Administrativo" }}
+        options={{ title: "Painel do Sorteio " }}
       />
       <Stack.Screen
         name="details"
