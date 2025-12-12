@@ -37,4 +37,6 @@ export interface QuizStatus {
   status: 'RESPONDIDO' | 'PENDENTE';
   pontuacao: number | null;
   dataResposta: string | null;
+  presencaConfirmada: boolean;
+  liberado: boolean;
 }
